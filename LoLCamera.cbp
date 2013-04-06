@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="LoLCamera" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin\Debug\LoLCamera" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj\Debug\" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="bin\Release\LoLCamera" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj\Release\" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+		</Compiler>
+		<Unit filename="..\BbQueue\BbQueue.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\BbQueue\BbQueue.h" />
+		<Unit filename="..\IniParser\IniParser.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\IniParser\IniParser.h" />
+		<Unit filename="LoLCamera.ini" />
+		<Unit filename="LoLCamera\LoLCamera.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="LoLCamera\LoLCamera.h" />
+		<Unit filename="MemPos\MemPos.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="MemPos\MemPos.h" />
+		<Unit filename="icon.rc">
+			<Option compilerVar="WINDRES" />
+		</Unit>
+		<Unit filename="main-V1.c">
+			<Option compilerVar="CC" />
+			<Option compile="0" />
+			<Option link="0" />
+		</Unit>
+		<Unit filename="main.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\MemProc\MemChunk.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\MemProc\MemChunk.h" />
+		<Unit filename="..\MemProc\MemProc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\MemProc\MemProc.h" />
+		<Unit filename="..\Vector\Vector2D.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\Vector\Vector2D.h" />
+		<Unit filename="..\Win32Tools\Win32Tools.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\Win32Tools\Win32Tools.h" />
+		<Unit filename="..\Ztring\Ztring.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\Ztring\Ztring.h" />
+		<Extensions>
+			<code_completion />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

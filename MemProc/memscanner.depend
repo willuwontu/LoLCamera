@@ -1,0 +1,70 @@
+# depslib dependency file v1.0
+1362446533 source:c:\users\spl3en\desktop\c\memscanner\memchunk.c
+	"MemChunk.h"
+
+1362446533 c:\users\spl3en\desktop\c\memscanner\memchunk.h
+	<stdlib.h>
+	<stdio.h>
+	<windows.h>
+	"../BbQueue/BbQueue.h"
+
+1362494432 source:c:\users\spl3en\desktop\c\memscanner\memproc.c
+	"MemProc.h"
+
+1362494394 c:\users\spl3en\desktop\c\memscanner\memproc.h
+	<stdlib.h>
+	"MemChunk.h"
+	"../BbQueue/BbQueue.h"
+	"../Win32Tools/Win32Tools.h"
+
+1362690678 c:\users\spl3en\desktop\c\bbqueue\bbqueue.h
+	<stdio.h>
+	<stdlib.h>
+
+1362494438 source:c:\users\spl3en\desktop\c\memscanner\main.c
+	"MemProc.h"
+
+1362696055 source:c:\users\spl3en\desktop\c\bbqueue\bbqueue.c
+	"BbQueue.h"
+
+1363091277 source:c:\users\spl3en\desktop\c\win32tools\win32tools.c
+	"Win32Tools.h"
+
+1362695590 c:\users\spl3en\desktop\c\win32tools\win32tools.h
+	<stdlib.h>
+	<windows.h>
+	<tlhelp32.h>
+	<time.h>
+	<psapi.h>
+	"../Ztring/Ztring.h"
+
+1362666549 c:\users\spl3en\desktop\c\ztring\ztring.h
+	<stdarg.h>
+	<string.h>
+	"../BbQueue/BbQueue.h"
+
+1362666537 source:c:\users\spl3en\desktop\c\ztring\ztring.c
+	"Ztring.h"
+
+1362695530 source:c:\users\spl3en\desktop\c\memproc\memchunk.c
+	"MemChunk.h"
+
+1362704888 c:\users\spl3en\desktop\c\memproc\memchunk.h
+	<stdlib.h>
+	<stdio.h>
+	<windows.h>
+	"../BbQueue/BbQueue.h"
+	"../Win32Tools/Win32Tools.h"
+
+1363263488 source:c:\users\spl3en\desktop\c\memproc\memproc.c
+	"MemProc.h"
+
+1363092129 c:\users\spl3en\desktop\c\memproc\memproc.h
+	<stdlib.h>
+	"MemChunk.h"
+	"../BbQueue/BbQueue.h"
+	"../Win32Tools/Win32Tools.h"
+
+1362494792 source:c:\users\spl3en\desktop\c\memproc\main.c
+	"MemProc.h"
+
