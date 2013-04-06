@@ -19,8 +19,8 @@
 	<File name="main-V1.c" open="1" top="0" tabpos="3">
 		<Cursor position="3065" topLine="102" />
 	</File>
-	<File name="main.c" open="1" top="1" tabpos="2">
-		<Cursor position="4323" topLine="0" />
+	<File name="main.c" open="1" top="0" tabpos="2">
+		<Cursor position="410" topLine="0" />
 	</File>
 	<File name="..\MemProc\MemProc.c" open="0" top="0" tabpos="0">
 		<Cursor position="1872" topLine="72" />
@@ -31,7 +31,7 @@
 	<File name="..\Vector\Vector2D.c" open="1" top="0" tabpos="4">
 		<Cursor position="2666" topLine="74" />
 	</File>
-	<File name="..\Vector\Vector2D.h" open="1" top="0" tabpos="5">
+	<File name="..\Vector\Vector2D.h" open="1" top="1" tabpos="5">
 		<Cursor position="1067" topLine="32" />
 	</File>
 	<File name="..\Win32Tools\Win32Tools.c" open="0" top="0" tabpos="2">
