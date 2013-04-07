@@ -250,13 +250,11 @@ memblock_new (void *data, DWORD addr, int size, MemType type)
 	return r;
 }
 
-
 inline void
 memblock_read_from_memory (MemProc *mp, MemBlock *mem)
 {
 	read_from_memory(mp->proc, mem->data, mem->addr, mem->size);
 }
-
 
 void
 memproc_free (MemProc *memproc)

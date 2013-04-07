@@ -1,1 +1,10 @@
+########### Description ###########
+
 LoLCamera is a tool for replacing the camera behavior of League of Legends
+
+Current shortcuts :
+F11 : enable / disable LoLCamera
+
+###########   Authors   ###########
+	Spl3en (data mining & patching)
+	jtjin (camera behavior coding)

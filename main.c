@@ -1,10 +1,6 @@
 /**
-*	Discussion thread   : http://www.reddit.com/r/leagueoflegends/comments/1bo5eg/new_camera_idea_my_solution/
-*	Updated sources	 : https://github.com/Spl3en/LoLCamera
-*
-*	Credits to jtjin, thanks for those features :
-*		- Very nice camera smoothing
-*		- F11 to toggle camera tracking
+*	Discussion thread	: http://www.reddit.com/r/leagueoflegends/comments/1bo5eg/new_camera_idea_my_solution/
+*	Source				: https://github.com/Spl3en/LoLCamera
 */
 
 #include "./LoLCamera/LoLCamera.h"

@@ -1,6 +1,6 @@
 #include "LoLCamera.h"
 
-// Todo : Find a userfriendly way to put TOGGLE_KEY in .ini
+// Todo : Find a userfriendly way to put TOGGLE_KEY in the .ini
 #define TOGGLE_KEY	 VK_F11   // which key toggles the camera adjustments
 
 unsigned char set_camera_pos_sig [] = {
@@ -13,14 +13,24 @@ unsigned char set_camera_pos_sig [] = {
 	0xF3,0x0F,0x11,0x15,0x3C,0x71,0xDF,0x03,0xF3,0x0F,0x11,0x0D,0x40,0x71,0xDF,0x03,0xF3,0x0F,0x11,0x05,0x44,0x71,0xDF,0x03
 };
 
+unsigned char set_camera_pos_click_minimap_sig [] = {
+/*
+	Address   Hex dump                 Command                                                  Comments
+	00B89822  ║·  F30F111D 3C71DF03    movss [dword ds:League_of_Legends.CameraX], xmm3         ; float 450.0000 <-- CameraX
+	00B8982A  ║·  F30F1125 4071DF03    movss [dword ds:League_of_Legends.3DF7140], xmm4         ; float 0.0
+	00B89832  ║·  F30F112D 4471DF03    movss [dword ds:League_of_Legends.CameraY], xmm5         ; float 8467.621 <-- CameraY
+*/
+	0xF3,0x0F,0x11,0x1D,0x3C,0x71,0xDF,0x03,0xF3,0x0F,0x11,0x25,0x40,0x71,0xDF,0x03,0xF3,0x0F,0x11,0x2D,0x44,0x71,0xDF,0x03
+};
+
 // Singleton
 static Camera *this = NULL;
-
 
 static BOOL camera_is_enabled ()
 {
 	static BOOL enabled = TRUE;
 	static short last_toggle_state = 0;
+	static BOOL space_pressed = FALSE;
 
 	// listen for toggle key
 	short new_toggle_state = GetKeyState(TOGGLE_KEY);
@@ -29,7 +39,24 @@ static BOOL camera_is_enabled ()
 		enabled = !enabled;
 		last_toggle_state = new_toggle_state;
 
-		camera_set_patch(enabled);
+		camera_default_set_patch(enabled);
+	}
+
+	// Disable when space is pressed
+	if (GetKeyState(VK_SPACE) < 0)
+	{
+		/*	BUGFIX:
+		*	When space is kept pressed, LoLCamera saves the last camera position (before it gets centered on the champion)
+		*	When space is released, the camera returns in the last position saved -> weird camera moves
+		*	fix : request polling data for the next loop, so the data saved are synchronized with the new camera
+		*/
+		space_pressed = TRUE;
+		return 0;
+	}
+	else if (space_pressed == TRUE) // on release
+	{
+		this->request_polling = TRUE;
+		space_pressed = FALSE;
 	}
 
 	// to allow minimap navigation, also disabled if LMB is down
@@ -48,25 +75,37 @@ void camera_init_patch ()
 
 	info("Scanning process...");
 	memproc_dump(this->mp, text_section, text_section + text_size);
-	memproc_search(this->mp, set_camera_pos_sig, "xxxxxxxxxxxxxxxx", NULL, SEARCH_TYPE_BYTES);
 
-	BbQueue *res = memproc_get_res(this->mp);
-
-	if (bb_queue_get_length(res) <= 0) {
-		warning("Camera movement instructions havn't been found (maybe already patched?)");
-		return;
-	}
-
-	if (bb_queue_get_length(res) > 1) {
-		warning("Multiple occurences of camera movement instructions have been found");
-	}
-
-	MemBlock *memblock = bb_queue_get_first(res);
-
-	this->move_camera_addr = memblock->addr;
+	// Search for camera positionning instructions
+	this->move_camera_addr    = camera_search_signature(set_camera_pos_sig, 			  "xxxxxxxxxxxxxxxx", "default camera positionning");
+	this->minimap_camera_addr = camera_search_signature(set_camera_pos_click_minimap_sig, "xxxxxxxxxxxxxxxx", "minimap camera positionning");
 }
 
-void camera_set_patch (BOOL patch_active)
+DWORD camera_search_signature (unsigned char *pattern, char *mask, char *name)
+{
+	memproc_search(this->mp, pattern, "xxxxxxxxxxxxxxxx", NULL, SEARCH_TYPE_BYTES);
+	BbQueue *results = memproc_get_res(this->mp);
+	DWORD addr = 0;
+
+	if (bb_queue_get_length(results) <= 0) {
+		warning("%s address not found (already patched ?)", name);
+		return 0;
+	}
+
+	if (bb_queue_get_length(results) > 1) {
+		warning("Multiple occurences of %s found", name);
+	}
+
+	MemBlock *memblock = bb_queue_pick_first(results);
+	addr = memblock->addr;
+	info("%s found = 0x%.8x", name, addr);
+
+	bb_queue_free_all(results, memblock_free);
+
+	return addr;
+}
+
+void camera_default_set_patch (BOOL patch_active)
 {
 	if (!this->move_camera_addr)
 	{
@@ -77,15 +116,15 @@ void camera_set_patch (BOOL patch_active)
 	if (patch_active)
 	{
 		// We must NOP those bytes :
-		// $ ==>	   F30F1115 3C71DF03		 movss [dword ds:League_of_Legends.CameraX], xmm2			   ; float 450.0000  <-- This
-		// $+8		 F30F110D 4071DF03		 movss [dword ds:League_of_Legends.3DF7140], xmm1			   ; float 0.0
+		// $ ==>	F30F1115 3C71DF03		 movss [dword ds:League_of_Legends.CameraX], xmm2			   ; float 450.0000  <-- This
+		// $+8		F30F110D 4071DF03		 movss [dword ds:League_of_Legends.3DF7140], xmm1			   ; float 0.0
 		// $+10		F30F1105 4471DF03		 movss [dword ds:League_of_Legends.CameraY], xmm0			   ; float 3846.329  <-- and this
 		char buffer[] = "\x90\x90\x90\x90\x90\x90\x90\x90";
 
-		if (write_to_memory(this->mp->proc, buffer, this->move_camera_addr,		sizeof(buffer)-1)
+		if (write_to_memory(this->mp->proc, buffer, this->move_camera_addr,		   sizeof(buffer)-1)
 		&&  write_to_memory(this->mp->proc, buffer, this->move_camera_addr + 0x10, sizeof(buffer)-1))
 		{
-			info("Patch successful");
+			info("Camera default : Patch successful");
 		}
 
 		else
@@ -116,15 +155,13 @@ void camera_load_ini ()
 	DWORD mousey_addr = strtol(ini_parser_get_value(parser, "mouse_posy_addr"), NULL, 16);
 	DWORD destx_addr  = strtol(ini_parser_get_value(parser, "dest_posx_addr"), NULL, 16);
 	DWORD desty_addr  = strtol(ini_parser_get_value(parser, "dest_posy_addr"), NULL, 16);
-
-	this->lerp_rate	= atof(ini_parser_get_value(parser, "lerp_rate")); // this controls smoothing, smaller values mean slower camera movement
-	this->threshold	= atof(ini_parser_get_value(parser, "threshold")); // minimum threshold before calculations halted because camera is "close enough"
-	this->sleep_time   = strtol(ini_parser_get_value(parser, "sleep_time"), NULL, 10); // Time slept between two camera updates (in ms)
-	this->poll_data	= strtol(ini_parser_get_value(parser, "poll_data"), NULL, 5); // Retrieve data from client every X loops
+	this->lerp_rate	  = atof  (ini_parser_get_value(parser, "lerp_rate")); // this controls smoothing, smaller values mean slower camera movement
+	this->threshold	  = atof  (ini_parser_get_value(parser, "threshold")); // minimum threshold before calculations halted because camera is "close enough"
+	this->sleep_time  = strtol(ini_parser_get_value(parser, "sleep_time"), NULL, 10); // Time slept between two camera updates (in ms)
+	this->poll_data	  = strtol(ini_parser_get_value(parser, "poll_data"), NULL, 5); // Retrieve data from client every X loops
 	// this->close_limit = atof(ini_parser_get_value(parser, "close_limit")); // don't move the camera when the cursor is near the champion
 	// this->disable_if_too_far = atof(ini_parser_get_value(parser, "disable_if_too_far")); // condition "disable the camera if you go too far"
 	// this->far_limit = atof(ini_parser_get_value(parser, "far_limit"));   // disable the camera if you go too far
-
 	this->move_camera_addr = strtol(ini_parser_get_value(parser, "move_camera_addr"), NULL, 16);
 
 	// Input checking
@@ -152,7 +189,7 @@ void camera_init (MemProc *mp)
 	this->active = TRUE;
 
 	camera_init_patch();
-	camera_set_patch(TRUE);
+	camera_default_set_patch(TRUE);
 }
 
 inline void camera_set_active (BOOL active)
@@ -164,18 +201,29 @@ BOOL camera_update ()
 {
 	static unsigned int frame_count = 0;
 
-	if (frame_count++ % this->poll_data == 0)
+	if (frame_count++ % this->poll_data == 0 || this->request_polling)
 	{
 		if (!mempos_refresh(this->cam)
 		||  !mempos_refresh(this->champ)
 		||  !mempos_refresh(this->dest)
 		||  !mempos_refresh(this->mouse))
 		{
-			// Synchronization not possible
+			// Synchronization seems not possible
+			memproc_refresh_handle(this->mp);
+
+			if (!this->mp->proc)
+			{
+				info("Client not detected anymore.");
+				this->active = FALSE;
+				return FALSE;
+			}
+
 			warning("Synchronization with the client isn't possible - Retrying in 5s.");
 			Sleep(5000);
 			return FALSE;
 		}
+
+		this->request_polling = FALSE;
 	}
 
 	return TRUE;
@@ -214,14 +262,14 @@ void camera_main ()
 	}
 }
 
-Camera *camera_get_instance ()
+inline Camera *camera_get_instance ()
 {
 	return this;
 }
 
 void camera_unload ()
 {
-	camera_set_patch(FALSE);
+	camera_default_set_patch(FALSE);
 
 	mempos_free(this->cam);
 	mempos_free(this->champ);

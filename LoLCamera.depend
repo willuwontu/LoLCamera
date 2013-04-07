@@ -19,7 +19,7 @@
 	<stdio.h>
 	<stdlib.h>
 
-1365253474 source:c:\users\spl3en\desktop\c\lolcamera\main.c
+1365288311 source:c:\users\spl3en\desktop\c\lolcamera\main.c
 	"./LoLCamera/LoLCamera.h"
 
 1364163867 source:c:\users\spl3en\desktop\c\ztring\ztring.c
@@ -94,7 +94,7 @@
 	"../MemProc/MemProc.h"
 	"../Vector/Vector2D.h"
 
-1365245583 c:\users\spl3en\desktop\c\lolcamera\win32tools\win32tools.h
+1365259123 c:\users\spl3en\desktop\c\lolcamera\win32tools\win32tools.h
 	<stdlib.h>
 	<windows.h>
 	<tlhelp32.h>
@@ -102,37 +102,37 @@
 	<psapi.h>
 	"../Ztring/Ztring.h"
 
-1364107693 c:\users\spl3en\desktop\c\lolcamera\ztring\ztring.h
+1365259123 c:\users\spl3en\desktop\c\lolcamera\ztring\ztring.h
 	<stdarg.h>
 	<string.h>
 	"../BbQueue/BbQueue.h"
 
-1364392713 c:\users\spl3en\desktop\c\lolcamera\bbqueue\bbqueue.h
+1365259123 c:\users\spl3en\desktop\c\lolcamera\bbqueue\bbqueue.h
 	<stdio.h>
 	<stdlib.h>
 
-1364728786 c:\users\spl3en\desktop\c\lolcamera\memproc\memproc.h
+1365285854 c:\users\spl3en\desktop\c\lolcamera\memproc\memproc.h
 	<stdlib.h>
 	"MemChunk.h"
 	"../BbQueue/BbQueue.h"
 	"../Win32Tools/Win32Tools.h"
 
-1362708488 c:\users\spl3en\desktop\c\lolcamera\memproc\memchunk.h
+1365259123 c:\users\spl3en\desktop\c\lolcamera\memproc\memchunk.h
 	<stdlib.h>
 	<stdio.h>
 	<windows.h>
 	"../BbQueue/BbQueue.h"
 	"../Win32Tools/Win32Tools.h"
 
-1365115559 c:\users\spl3en\desktop\c\lolcamera\vector\vector2d.h
+1365259123 c:\users\spl3en\desktop\c\lolcamera\vector\vector2d.h
 	<stdlib.h>
 	<stdio.h>
 	<math.h>
 
-1365253652 source:c:\users\spl3en\desktop\c\lolcamera\lolcamera\lolcamera.c
+1365296266 source:c:\users\spl3en\desktop\c\lolcamera\lolcamera\lolcamera.c
 	"LoLCamera.h"
 
-1365246001 c:\users\spl3en\desktop\c\lolcamera\lolcamera\lolcamera.h
+1365296025 c:\users\spl3en\desktop\c\lolcamera\lolcamera\lolcamera.h
 	<stdlib.h>
 	<windows.h>
 	<winuser.h>
@@ -141,30 +141,30 @@
 	"../Vector/Vector2D.h"
 	"../MemPos/MemPos.h"
 
-1365147077 c:\users\spl3en\desktop\c\lolcamera\iniparser\iniparser.h
+1365259123 c:\users\spl3en\desktop\c\lolcamera\iniparser\iniparser.h
 	<assert.h>
 	<string.h>
 	"../BbQueue/BbQueue.h"
 	"../Ztring/Ztring.h"
 
-1363625993 source:c:\users\spl3en\desktop\c\lolcamera\bbqueue\bbqueue.c
+1365259123 source:c:\users\spl3en\desktop\c\lolcamera\bbqueue\bbqueue.c
 	"BbQueue.h"
 
-1365147423 source:c:\users\spl3en\desktop\c\lolcamera\iniparser\iniparser.c
+1365259123 source:c:\users\spl3en\desktop\c\lolcamera\iniparser\iniparser.c
 	"IniParser.h"
 
 1364106421 source:c:\users\spl3en\desktop\c\lolcamera\memproc\memchunk.c
 	"MemChunk.h"
 
-1365246447 source:c:\users\spl3en\desktop\c\lolcamera\memproc\memproc.c
+1365289919 source:c:\users\spl3en\desktop\c\lolcamera\memproc\memproc.c
 	"MemProc.h"
 
-1365226576 source:c:\users\spl3en\desktop\c\lolcamera\vector\vector2d.c
+1365259123 source:c:\users\spl3en\desktop\c\lolcamera\vector\vector2d.c
 	"Vector2D.h"
 
-1365245307 source:c:\users\spl3en\desktop\c\lolcamera\win32tools\win32tools.c
+1365259123 source:c:\users\spl3en\desktop\c\lolcamera\win32tools\win32tools.c
 	"Win32Tools.h"
 
-1364163867 source:c:\users\spl3en\desktop\c\lolcamera\ztring\ztring.c
+1365259123 source:c:\users\spl3en\desktop\c\lolcamera\ztring\ztring.c
 	"Ztring.h"
 

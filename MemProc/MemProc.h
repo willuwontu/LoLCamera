@@ -135,6 +135,8 @@ void
 memproc_free (MemProc *memproc);
 
 
+void
+memblock_free (MemBlock *m);
 
 
 
