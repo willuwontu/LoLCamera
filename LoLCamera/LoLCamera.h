@@ -24,21 +24,26 @@ struct _Camera
 {
 	MemProc *mp;	// Process context
 
+	// Internal
+	BOOL active;			// Loop state
+	BOOL request_polling; 	// Force to poll data the next loop if TRUE
+
 	MemPos *cam;	// Camera ingame position
 	MemPos *champ;	// User champion position
 	MemPos *mouse;	// Mouse position
 	MemPos *dest;	// Right click position
 
-	float lerp_rate;
-	float threshold;
-	int sleep_time;
-	int poll_data;
-
-	BOOL active;			// Loop state
-	BOOL request_polling; 	// Force to poll data the next loop if TRUE
-
 	DWORD default_camera_addr;	// Address of the instructions moving the camera
 	DWORD minimap_camera_addr;	// Address of the instructions moving the camera when you click on the minimap
+
+	// From .ini
+	float lerp_rate;		// This controls smoothing, smaller values mean slower camera movement
+	float threshold;		// Minimum threshold before calculations halted because camera is "close enough"
+	int sleep_time;			// Sleep time at each start of main loop
+	int poll_data;			// Number of loops required for polling data
+
+	float mouse_range_max,  // controls the range at which these factors start falling off
+		  dest_range_max;
 
 	float camera_far_limit;		// Beyond this limit, the camera is considered "far"
 };
@@ -50,6 +55,7 @@ void camera_init (MemProc *mp);
 // ----------- Methods ------------
 
 void camera_main (void);
+
 BOOL camera_update ();
 
 inline void camera_set_active (BOOL active);
