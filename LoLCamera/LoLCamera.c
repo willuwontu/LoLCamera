@@ -243,18 +243,24 @@ void camera_main ()
 		if (!camera_update())
 			continue;
 
-		// Compute the target
-		vector2D_set_pos(&target,
-			(this->champ->v.x + this->mouse->v.x) / 2.0,
-			(this->champ->v.y + this->mouse->v.y) / 2.0
-		);
+        float distance_mouse_champ = vector2D_distance(&this->mouse->v, &this->champ->v);
 
-		if (this->mouse->v.y < this->champ->v.y)
-		{
-			// The camera goes farther when the camera is moving to the south
-			float distance_mouse_champ = vector2D_distance_between(&this->mouse->v, &this->champ->v);
-			target.y -= distance_mouse_champ / 10.0; // <-- 10.0 is an arbitrary value
-		}
+		// only calculate target position if mouse is within some distance of the champ
+		// this is to keep the camera from jumping around when you hover the minimap
+		// TODO: we probably want 2000 to be an adjustable value maybe
+		// (although it's in world scale so it wont matter between resolution)
+		if (distance_mouse_champ < 2000)
+        {
+            // Compute the target
+            vector2D_set_pos(&target,
+                (this->champ->v.x + this->mouse->v.x) / 2.0,
+                (this->champ->v.y + this->mouse->v.y) / 2.0
+            );
+
+            // The camera goes farther when the camera is moving to the south
+            if (this->mouse->v.y < this->champ->v.y)
+                target.y -= distance_mouse_champ / 10.0; // <-- 10.0 is an arbitrary value
+        }
 
 		// Smoothing
 		if (abs(target.x - this->cam->v.x) > this->threshold)

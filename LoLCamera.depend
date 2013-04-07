@@ -191,7 +191,7 @@
 	<string.h>
 	"../BbQueue/BbQueue.h"
 
-1365315856 source:c:\development\lolcamera\lolcamera\lolcamera.c
+1365356440 source:c:\development\lolcamera\lolcamera\lolcamera.c
 	"LoLCamera.h"
 
 1365312401 c:\development\lolcamera\lolcamera\lolcamera.h
@@ -211,7 +211,7 @@
 	<psapi.h>
 	"../Ztring/Ztring.h"
 
-1365312401 c:\development\lolcamera\vector\vector2d.h
+1365357840 c:\development\lolcamera\vector\vector2d.h
 	<stdlib.h>
 	<stdio.h>
 	<math.h>

@@ -59,9 +59,11 @@
 	)										\
 )											\
 
-#define vector2D_distance(pV1, pV2)			\
-	((float)pow((pV1)->x - (pV2)->x, 2)		\
-  + ((float)pow((pV1)->y - (pV2)->y, 2)))	\
+#define vector2D_distance(pV1, pV2)             \
+    sqrt(                                       \
+        ((float)pow((pV1)->x - (pV2)->x, 2)		\
+      + ((float)pow((pV1)->y - (pV2)->y, 2)))	\
+    )                                           \
 
 
 
