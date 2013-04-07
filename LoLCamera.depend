@@ -19,7 +19,7 @@
 	<stdio.h>
 	<stdlib.h>
 
-1365288311 source:c:\users\spl3en\desktop\c\lolcamera\main.c
+1365306363 source:c:\users\spl3en\desktop\c\lolcamera\main.c
 	"./LoLCamera/LoLCamera.h"
 
 1364163867 source:c:\users\spl3en\desktop\c\ztring\ztring.c
@@ -124,15 +124,15 @@
 	"../BbQueue/BbQueue.h"
 	"../Win32Tools/Win32Tools.h"
 
-1365259123 c:\users\spl3en\desktop\c\lolcamera\vector\vector2d.h
+1365299322 c:\users\spl3en\desktop\c\lolcamera\vector\vector2d.h
 	<stdlib.h>
 	<stdio.h>
 	<math.h>
 
-1365296266 source:c:\users\spl3en\desktop\c\lolcamera\lolcamera\lolcamera.c
+1365309062 source:c:\users\spl3en\desktop\c\lolcamera\lolcamera\lolcamera.c
 	"LoLCamera.h"
 
-1365296025 c:\users\spl3en\desktop\c\lolcamera\lolcamera\lolcamera.h
+1365300421 c:\users\spl3en\desktop\c\lolcamera\lolcamera\lolcamera.h
 	<stdlib.h>
 	<windows.h>
 	<winuser.h>
@@ -156,13 +156,13 @@
 1364106421 source:c:\users\spl3en\desktop\c\lolcamera\memproc\memchunk.c
 	"MemChunk.h"
 
-1365289919 source:c:\users\spl3en\desktop\c\lolcamera\memproc\memproc.c
+1365308895 source:c:\users\spl3en\desktop\c\lolcamera\memproc\memproc.c
 	"MemProc.h"
 
 1365259123 source:c:\users\spl3en\desktop\c\lolcamera\vector\vector2d.c
 	"Vector2D.h"
 
-1365259123 source:c:\users\spl3en\desktop\c\lolcamera\win32tools\win32tools.c
+1365306265 source:c:\users\spl3en\desktop\c\lolcamera\win32tools\win32tools.c
 	"Win32Tools.h"
 
 1365259123 source:c:\users\spl3en\desktop\c\lolcamera\ztring\ztring.c

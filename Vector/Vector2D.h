@@ -51,6 +51,14 @@
 	)									\
 )										\
 
+#define vector2D_distance_between(pV1, pV2) \
+(											\
+	abs(									\
+		vector2D_length((pV1))				\
+	  - vector2D_length((pV2))				\
+	)										\
+)											\
+
 #define vector2D_distance(pV1, pV2)			\
 	((float)pow((pV1)->x - (pV2)->x, 2)		\
   + ((float)pow((pV1)->y - (pV2)->y, 2)))	\

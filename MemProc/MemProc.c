@@ -10,7 +10,7 @@ memproc_new (char *process_name, char *window_name)
 
 	mp->memchunks = NULL;
 	mp->stype = SEARCH_TYPE_BYTES;
-	mp->pid = get_pid_by_name(process_name);
+	mp->pid = (process_name != NULL) ? get_pid_by_name(process_name) : 0;
 	mp->process_name = process_name;
 	mp->window_name = window_name;
 	mp->base_addr = 0;
@@ -83,9 +83,13 @@ memproc_dump (MemProc *mp, int start, int end)
 int
 memproc_refresh_handle (MemProc *mp)
 {
-	mp->base_addr = get_baseaddr(mp->process_name);
+	if (mp->process_name != NULL)
+	{
+		mp->base_addr = get_baseaddr(mp->process_name);
+		mp->pid = get_pid_by_name(mp->process_name);
+	}
 
-	if ((mp->proc = OpenProcess (PROCESS_ALL_ACCESS, FALSE, mp->pid)) == 0)
+	if ((mp->proc = OpenProcess(PROCESS_ALL_ACCESS, FALSE, mp->pid)) == 0)
 	{
 		if ((mp->proc = FindWindowA(NULL, mp->window_name)) == 0)
 		{

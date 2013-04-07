@@ -77,7 +77,7 @@ void camera_init_patch ()
 	memproc_dump(this->mp, text_section, text_section + text_size);
 
 	// Search for camera positionning instructions
-	this->move_camera_addr    = camera_search_signature(set_camera_pos_sig, 			  "xxxxxxxxxxxxxxxx", "default camera positionning");
+	this->default_camera_addr    = camera_search_signature(set_camera_pos_sig, 			  "xxxxxxxxxxxxxxxx", "default camera positionning");
 	this->minimap_camera_addr = camera_search_signature(set_camera_pos_click_minimap_sig, "xxxxxxxxxxxxxxxx", "minimap camera positionning");
 }
 
@@ -107,7 +107,7 @@ DWORD camera_search_signature (unsigned char *pattern, char *mask, char *name)
 
 void camera_default_set_patch (BOOL patch_active)
 {
-	if (!this->move_camera_addr)
+	if (!this->default_camera_addr)
 	{
 		warning("Camera movement patching isn't possible");
 		return;
@@ -121,23 +121,23 @@ void camera_default_set_patch (BOOL patch_active)
 		// $+10		F30F1105 4471DF03		 movss [dword ds:League_of_Legends.CameraY], xmm0			   ; float 3846.329  <-- and this
 		char buffer[] = "\x90\x90\x90\x90\x90\x90\x90\x90";
 
-		if (write_to_memory(this->mp->proc, buffer, this->move_camera_addr,		   sizeof(buffer)-1)
-		&&  write_to_memory(this->mp->proc, buffer, this->move_camera_addr + 0x10, sizeof(buffer)-1))
+		if (write_to_memory(this->mp->proc, buffer, this->default_camera_addr,		   sizeof(buffer)-1)
+		&&  write_to_memory(this->mp->proc, buffer, this->default_camera_addr + 0x10, sizeof(buffer)-1))
 		{
 			info("Camera default : Patch successful");
 		}
 
 		else
-			warning("Patch unsuccessful (0x%.8x)", this->move_camera_addr);
+			warning("Patch unsuccessful (0x%.8x)", this->default_camera_addr);
 	}
 
 	else
 	{
 		// Restore the initial bytes
-		if (write_to_memory(this->mp->proc, set_camera_pos_sig, this->move_camera_addr, sizeof(set_camera_pos_sig)))
+		if (write_to_memory(this->mp->proc, set_camera_pos_sig, this->default_camera_addr, sizeof(set_camera_pos_sig)))
 			info("Unpatch successful");
 		else
-			warning("Unpatch unsuccessful (0x%.8x)", this->move_camera_addr);
+			warning("Unpatch unsuccessful (0x%.8x)", this->default_camera_addr);
 	}
 }
 
@@ -161,8 +161,8 @@ void camera_load_ini ()
 	this->poll_data	  = strtol(ini_parser_get_value(parser, "poll_data"), NULL, 5); // Retrieve data from client every X loops
 	// this->close_limit = atof(ini_parser_get_value(parser, "close_limit")); // don't move the camera when the cursor is near the champion
 	// this->disable_if_too_far = atof(ini_parser_get_value(parser, "disable_if_too_far")); // condition "disable the camera if you go too far"
-	// this->far_limit = atof(ini_parser_get_value(parser, "far_limit"));   // disable the camera if you go too far
-	this->move_camera_addr = strtol(ini_parser_get_value(parser, "move_camera_addr"), NULL, 16);
+	//this->camera_far_limit = atof(ini_parser_get_value(parser, "camera_far_limit"));   // disable the camera if you go too far
+	this->default_camera_addr = strtol(ini_parser_get_value(parser, "default_camera_addr"), NULL, 16);
 
 	// Input checking
 	if (!this->sleep_time) this->sleep_time = 1;
@@ -209,9 +209,7 @@ BOOL camera_update ()
 		||  !mempos_refresh(this->mouse))
 		{
 			// Synchronization seems not possible
-			memproc_refresh_handle(this->mp);
-
-			if (!this->mp->proc)
+			if (!memproc_refresh_handle(this->mp))
 			{
 				info("Client not detected anymore.");
 				this->active = FALSE;
@@ -251,13 +249,21 @@ void camera_main ()
 			(this->champ->v.y + this->mouse->v.y) / 2.0
 		);
 
+		// Smoothing
 		if (abs(target.x - this->cam->v.x) > this->threshold)
 			this->cam->v.x += (target.x - this->cam->v.x) * this->lerp_rate;
 
 		if (abs(target.y - this->cam->v.y) > this->threshold)
 			this->cam->v.y += (target.y - this->cam->v.y) * this->lerp_rate;
 
-		// Update the client
+		if (this->mouse->v.y < this->champ->v.y)
+		{
+			// The camera goes farther when the camera is moving to the south
+			float distance_mouse_champ = vector2D_distance_between(&this->mouse->v, &this->champ->v);
+			this->cam->v.y -= distance_mouse_champ / 900.0; // <-- 900.0 is an arbitrary value
+		}
+
+		// Update the camera client
 		mempos_set(this->cam, this->cam->v.x, this->cam->v.y);
 	}
 }
@@ -269,10 +275,7 @@ inline Camera *camera_get_instance ()
 
 void camera_unload ()
 {
-	camera_default_set_patch(FALSE);
-
-	mempos_free(this->cam);
-	mempos_free(this->champ);
-	mempos_free(this->mouse);
-	mempos_free(this->dest);
+	// Process still active, unpatch
+	if (memproc_refresh_handle(this->mp))
+		camera_default_set_patch(FALSE);
 }

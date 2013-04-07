@@ -37,8 +37,10 @@ struct _Camera
 	BOOL active;			// Loop state
 	BOOL request_polling; 	// Force to poll data the next loop if TRUE
 
-	DWORD move_camera_addr;	// Address of the instructions moving the camera
+	DWORD default_camera_addr;	// Address of the instructions moving the camera
 	DWORD minimap_camera_addr;	// Address of the instructions moving the camera when you click on the minimap
+
+	float camera_far_limit;		// Beyond this limit, the camera is considered "far"
 };
 
 // --------- Constructors ---------
