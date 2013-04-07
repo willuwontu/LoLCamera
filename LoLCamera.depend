@@ -191,10 +191,10 @@
 	<string.h>
 	"../BbQueue/BbQueue.h"
 
-1365356440 source:c:\development\lolcamera\lolcamera\lolcamera.c
+1365364774 source:c:\development\lolcamera\lolcamera\lolcamera.c
 	"LoLCamera.h"
 
-1365312401 c:\development\lolcamera\lolcamera\lolcamera.h
+1365358106 c:\development\lolcamera\lolcamera\lolcamera.h
 	<stdlib.h>
 	<windows.h>
 	<winuser.h>

@@ -231,6 +231,11 @@ void camera_main ()
 {
 	Vector2D target;
 
+    // TODO: maybe we want these to be configurable via the ini?
+    // controls the range at which these factors start falling off
+    float mouse_range_max = 2300;
+    float dest_range_max = 2300;
+
 	while (this->active)
 	{
 		Sleep(this->sleep_time);
@@ -244,17 +249,39 @@ void camera_main ()
 			continue;
 
         float distance_mouse_champ = vector2D_distance(&this->mouse->v, &this->champ->v);
+        float distance_dest_champ = vector2D_distance(&this->dest->v, &this->champ->v);
 
-		// only calculate target position if mouse is within some distance of the champ
-		// this is to keep the camera from jumping around when you hover the minimap
-		// TODO: we probably want 2000 to be an adjustable value maybe
-		// (although it's in world scale so it wont matter between resolution)
-		if (distance_mouse_champ < 2000)
         {
-            // Compute the target
+            // weighted averages
+            float champ_weight = 1.0;
+            float mouse_weight = 1.0;
+            float dest_weight = 1.0;
+
+            // these values control how quickly the weights fall off the further you are
+            // from the ceiling distance
+            float dest_falloff_rate = 0.0005;
+            float mouse_falloff_rate = 0.002;
+
+            // adjust weights based on distance
+            if (distance_dest_champ > dest_range_max)
+                dest_weight = 1 / (((distance_dest_champ - dest_range_max) * dest_falloff_rate) + 1.0);
+            if (distance_mouse_champ > mouse_range_max)
+                mouse_weight = 1 / (((distance_mouse_champ - mouse_range_max) * mouse_falloff_rate) + 1.0);
+
+            float weight_sum = champ_weight + mouse_weight + dest_weight;
+
+            // Compute the target (weighted averages)
             vector2D_set_pos(&target,
-                (this->champ->v.x + this->mouse->v.x) / 2.0,
-                (this->champ->v.y + this->mouse->v.y) / 2.0
+                (
+                    (this->champ->v.x * champ_weight) +
+                    (this->mouse->v.x * mouse_weight) +
+                    (this->dest->v.x * dest_weight)
+                 ) / weight_sum,
+                (
+                    (this->champ->v.y * champ_weight) +
+                    (this->mouse->v.y * mouse_weight) +
+                    (this->dest->v.y * dest_weight)
+                ) / weight_sum
             );
 
             // The camera goes farther when the camera is moving to the south
