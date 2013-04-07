@@ -256,7 +256,7 @@ void camera_main ()
 
             // these values control how quickly the weights fall off the further you are
             // from the ceiling distance
-            float dest_falloff_rate = 0.0005;
+            float dest_falloff_rate = 0.001;
             float mouse_falloff_rate = 0.002;
 
             // adjust weights based on distance
