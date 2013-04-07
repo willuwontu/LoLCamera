@@ -77,7 +77,7 @@ void camera_init_patch ()
 	memproc_dump(this->mp, text_section, text_section + text_size);
 
 	// Search for camera positionning instructions
-	this->default_camera_addr    = camera_search_signature(set_camera_pos_sig, 			  "xxxxxxxxxxxxxxxx", "default camera positionning");
+	this->default_camera_addr = camera_search_signature(set_camera_pos_sig, 			  "xxxxxxxxxxxxxxxx", "default camera positionning");
 	this->minimap_camera_addr = camera_search_signature(set_camera_pos_click_minimap_sig, "xxxxxxxxxxxxxxxx", "minimap camera positionning");
 }
 
@@ -121,7 +121,7 @@ void camera_default_set_patch (BOOL patch_active)
 		// $+10		F30F1105 4471DF03		 movss [dword ds:League_of_Legends.CameraY], xmm0			   ; float 3846.329  <-- and this
 		char buffer[] = "\x90\x90\x90\x90\x90\x90\x90\x90";
 
-		if (write_to_memory(this->mp->proc, buffer, this->default_camera_addr,		   sizeof(buffer)-1)
+		if (write_to_memory(this->mp->proc, buffer, this->default_camera_addr,		  sizeof(buffer)-1)
 		&&  write_to_memory(this->mp->proc, buffer, this->default_camera_addr + 0x10, sizeof(buffer)-1))
 		{
 			info("Camera default : Patch successful");
@@ -162,7 +162,9 @@ void camera_load_ini ()
 	// this->close_limit = atof(ini_parser_get_value(parser, "close_limit")); // don't move the camera when the cursor is near the champion
 	// this->disable_if_too_far = atof(ini_parser_get_value(parser, "disable_if_too_far")); // condition "disable the camera if you go too far"
 	//this->camera_far_limit = atof(ini_parser_get_value(parser, "camera_far_limit"));   // disable the camera if you go too far
-	this->default_camera_addr = strtol(ini_parser_get_value(parser, "default_camera_addr"), NULL, 16);
+
+	this->mouse_range_max = atof(ini_parser_get_value(parser, "mouse_range_max"));
+	this->dest_range_max  = atof(ini_parser_get_value(parser, "dest_range_max"));
 
 	// Input checking
 	if (!this->sleep_time) this->sleep_time = 1;
@@ -231,10 +233,6 @@ void camera_main ()
 {
 	Vector2D target;
 
-    // TODO: maybe we want these to be configurable via the ini?
-    // controls the range at which these factors start falling off
-    float mouse_range_max = 2300;
-    float dest_range_max = 2300;
 
 	while (this->active)
 	{
@@ -250,7 +248,6 @@ void camera_main ()
 
         float distance_mouse_champ = vector2D_distance(&this->mouse->v, &this->champ->v);
         float distance_dest_champ = vector2D_distance(&this->dest->v, &this->champ->v);
-
         {
             // weighted averages
             float champ_weight = 1.0;
@@ -263,10 +260,10 @@ void camera_main ()
             float mouse_falloff_rate = 0.002;
 
             // adjust weights based on distance
-            if (distance_dest_champ > dest_range_max)
-                dest_weight = 1 / (((distance_dest_champ - dest_range_max) * dest_falloff_rate) + 1.0);
-            if (distance_mouse_champ > mouse_range_max)
-                mouse_weight = 1 / (((distance_mouse_champ - mouse_range_max) * mouse_falloff_rate) + 1.0);
+            if (distance_dest_champ > this->dest_range_max)
+                dest_weight = 1 / (((distance_dest_champ - this->dest_range_max) * dest_falloff_rate) + 1.0);
+            if (distance_mouse_champ > this->mouse_range_max)
+                mouse_weight = 1 / (((distance_mouse_champ - this->mouse_range_max) * mouse_falloff_rate) + 1.0);
 
             float weight_sum = champ_weight + mouse_weight + dest_weight;
 
