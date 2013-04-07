@@ -249,19 +249,19 @@ void camera_main ()
 			(this->champ->v.y + this->mouse->v.y) / 2.0
 		);
 
+		if (this->mouse->v.y < this->champ->v.y)
+		{
+			// The camera goes farther when the camera is moving to the south
+			float distance_mouse_champ = vector2D_distance_between(&this->mouse->v, &this->champ->v);
+			target.y -= distance_mouse_champ / 10.0; // <-- 10.0 is an arbitrary value
+		}
+
 		// Smoothing
 		if (abs(target.x - this->cam->v.x) > this->threshold)
 			this->cam->v.x += (target.x - this->cam->v.x) * this->lerp_rate;
 
 		if (abs(target.y - this->cam->v.y) > this->threshold)
 			this->cam->v.y += (target.y - this->cam->v.y) * this->lerp_rate;
-
-		if (this->mouse->v.y < this->champ->v.y)
-		{
-			// The camera goes farther when the camera is moving to the south
-			float distance_mouse_champ = vector2D_distance_between(&this->mouse->v, &this->champ->v);
-			this->cam->v.y -= distance_mouse_champ / 900.0; // <-- 900.0 is an arbitrary value
-		}
 
 		// Update the camera client
 		mempos_set(this->cam, this->cam->v.x, this->cam->v.y);
