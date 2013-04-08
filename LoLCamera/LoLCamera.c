@@ -10,7 +10,9 @@ unsigned char set_camera_pos_sig [] = {
 	00A37E32	F30F110D 4071DF03		 movss [dword ds:League_of_Legends.3DF7140], xmm1			   ; float 0.0
 	00A37E3A	F30F1105 4471DF03		 movss [dword ds:League_of_Legends.CameraY], xmm0			   ; float 3897.000  <-- CameraY
 */
-	0xF3,0x0F,0x11,0x15,0x3C,0x71,0xDF,0x03,0xF3,0x0F,0x11,0x0D,0x40,0x71,0xDF,0x03,0xF3,0x0F,0x11,0x05,0x44,0x71,0xDF,0x03
+	0xF3,0x0F,0x11,0x15,0x3C,0x71,0xDF,0x03, // xxxx????
+	0xF3,0x0F,0x11,0x0D,0x40,0x71,0xDF,0x03, // xxxx????
+	0xF3,0x0F,0x11,0x05,0x44,0x71,0xDF,0x03  // xxxx????
 };
 
 unsigned char set_camera_pos_click_minimap_sig [] = {
@@ -20,7 +22,25 @@ unsigned char set_camera_pos_click_minimap_sig [] = {
 	00B8982A  ║·  F30F1125 4071DF03    movss [dword ds:League_of_Legends.3DF7140], xmm4         ; float 0.0
 	00B89832  ║·  F30F112D 4471DF03    movss [dword ds:League_of_Legends.CameraY], xmm5         ; float 8467.621 <-- CameraY
 */
-	0xF3,0x0F,0x11,0x1D,0x3C,0x71,0xDF,0x03,0xF3,0x0F,0x11,0x25,0x40,0x71,0xDF,0x03,0xF3,0x0F,0x11,0x2D,0x44,0x71,0xDF,0x03
+	0xF3,0x0F,0x11,0x1D,0x3C,0x71,0xDF,0x03, // xxxx????
+	0xF3,0x0F,0x11,0x25,0x40,0x71,0xDF,0x03, // xxxx????
+	0xF3,0x0F,0x11,0x2D,0x44,0x71,0xDF,0x03  // xxxx????
+};
+
+unsigned char reset_camera_when_champ_respawns_sig [] = {
+/*
+	Address   Hex dump                Command                                               Comments
+	00A09334  ║·  F30F1105 3C71DF03   movss [dword ds:League_of_Legends.CameraX], xmm0      ; float 918.4202
+	00A0933C  ║·  F30F1043 04         movss xmm0, [dword ds:ebx+4]
+	00A09341  ║·  F30F1105 4071DF03   movss [dword ds:League_of_Legends.3DF7140], xmm0      ; float 0.0
+	00A09349  ║·  F30F1043 08         movss xmm0, [dword ds:ebx+8]
+	00A0934E  ║·  F30F1105 4471DF03   movss [dword ds:League_of_Legends.CameraY], xmm0      ; float 1154.925
+*/
+	0xF3,0x0F,0x11,0x05,0x3C,0x71,0xDF,0x03,	// xxxx????
+	0xF3,0x0F,0x10,0x43,0x04,				 	// xxxxx
+	0xF3,0x0F,0x11,0x05,0x40,0x71,0xDF,0x03,	// xxxx????
+	0xF3,0x0F,0x10,0x43,0x08,					// xxxxx
+	0xF3,0x0F,0x11,0x05,0x44,0x71,0xDF,0x03		// xxxx????
 };
 
 // Singleton
@@ -40,6 +60,7 @@ static BOOL camera_is_enabled ()
 		last_toggle_state = new_toggle_state;
 
 		camera_default_set_patch(enabled);
+		camera_reset_when_respawn_set_patch(enabled);
 	}
 
 	// Disable when space is pressed
@@ -77,13 +98,14 @@ void camera_init_patch ()
 	memproc_dump(this->mp, text_section, text_section + text_size);
 
 	// Search for camera positionning instructions
-	this->default_camera_addr = camera_search_signature(set_camera_pos_sig, 			  "xxxxxxxxxxxxxxxx", "default camera positionning");
-	this->minimap_camera_addr = camera_search_signature(set_camera_pos_click_minimap_sig, "xxxxxxxxxxxxxxxx", "minimap camera positionning");
+	this->default_camera_addr = camera_search_signature(set_camera_pos_sig, "xxxx????xxxx????xxxx????", "default camera positionning");
+	this->minimap_camera_addr = camera_search_signature(set_camera_pos_click_minimap_sig, "xxxx????xxxx????xxxx????", "minimap camera positionning");
+	this->reset_cam_respawn_addr = camera_search_signature(reset_camera_when_champ_respawns_sig, "xxxx????xxxxxxxxx????xxxxxxxxx????", "Reset when the champion respawns");
 }
 
 DWORD camera_search_signature (unsigned char *pattern, char *mask, char *name)
 {
-	memproc_search(this->mp, pattern, "xxxxxxxxxxxxxxxx", NULL, SEARCH_TYPE_BYTES);
+	memproc_search(this->mp, pattern, mask, NULL, SEARCH_TYPE_BYTES);
 	BbQueue *results = memproc_get_res(this->mp);
 	DWORD addr = 0;
 
@@ -105,11 +127,51 @@ DWORD camera_search_signature (unsigned char *pattern, char *mask, char *name)
 	return addr;
 }
 
+void camera_reset_when_respawn_set_patch (BOOL patch_active)
+{
+	if (!this->reset_cam_respawn_addr)
+	{
+		warning("Camera reset respawn : patching isn't possible");
+		return;
+	}
+
+	if (patch_active)
+	{
+		// NOP those bytes :
+		/*
+			->	$ ==>     ║·  F30F1105 3C71DF03   movss [dword ds:League_of_Legends.CameraX], xmm0      ; float 918.4202
+				$+8       ║·  F30F1043 04         movss xmm0, [dword ds:ebx+4]
+				$+D       ║·  F30F1105 4071DF03   movss [dword ds:League_of_Legends.3DF7140], xmm0      ; float 0.0
+				$+15      ║·  F30F1043 08         movss xmm0, [dword ds:ebx+8]
+			->	$+1A      ║·  F30F1105 4471DF03   movss [dword ds:League_of_Legends.CameraY], xmm0      ; float 1154.925
+		*/
+		char buffer[] = "\x90\x90\x90\x90\x90\x90\x90\x90";
+
+		if (write_to_memory(this->mp->proc, buffer, this->reset_cam_respawn_addr,		 sizeof(buffer)-1)
+		&&  write_to_memory(this->mp->proc, buffer, this->reset_cam_respawn_addr + 0x1A, sizeof(buffer)-1))
+		{
+			info("Camera reset respawn : Patch successful");
+		}
+
+		else
+			warning("Camera reset respawn : Patch unsuccessful (0x%.8x)", this->reset_cam_respawn_addr);
+	}
+
+	else
+	{
+		// Restore the initial bytes
+		if (write_to_memory(this->mp->proc, reset_camera_when_champ_respawns_sig, this->reset_cam_respawn_addr, sizeof(reset_camera_when_champ_respawns_sig)))
+			info("Camera reset respawn : Unpatch successful");
+		else
+			warning("Camera reset respawn : Unpatch unsuccessful (0x%.8x)", this->reset_cam_respawn_addr);
+	}
+}
+
 void camera_default_set_patch (BOOL patch_active)
 {
 	if (!this->default_camera_addr)
 	{
-		warning("Camera movement patching isn't possible");
+		warning("Camera default : patching isn't possible");
 		return;
 	}
 
@@ -135,9 +197,9 @@ void camera_default_set_patch (BOOL patch_active)
 	{
 		// Restore the initial bytes
 		if (write_to_memory(this->mp->proc, set_camera_pos_sig, this->default_camera_addr, sizeof(set_camera_pos_sig)))
-			info("Unpatch successful");
+			info("Camera default : Unpatch successful");
 		else
-			warning("Unpatch unsuccessful (0x%.8x)", this->default_camera_addr);
+			warning("Camera default : Unpatch unsuccessful (0x%.8x)", this->default_camera_addr);
 	}
 }
 
@@ -200,6 +262,7 @@ void camera_init (MemProc *mp)
 
 	camera_init_patch();
 	camera_default_set_patch(TRUE);
+	camera_reset_when_respawn_set_patch(TRUE);
 }
 
 inline void camera_set_active (BOOL active)
@@ -322,5 +385,8 @@ void camera_unload ()
 {
 	// Process still active, unpatch
 	if (memproc_refresh_handle(this->mp))
+	{
 		camera_default_set_patch(FALSE);
+		camera_reset_when_respawn_set_patch(FALSE);
+	}
 }

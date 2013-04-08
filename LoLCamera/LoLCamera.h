@@ -19,7 +19,6 @@
 // ------ Class declaration -------
 typedef struct _Camera Camera;
 
-
 struct _Camera
 {
 	MemProc *mp;	// Process context
@@ -35,6 +34,7 @@ struct _Camera
 
 	DWORD default_camera_addr;	// Address of the instructions moving the camera
 	DWORD minimap_camera_addr;	// Address of the instructions moving the camera when you click on the minimap
+	DWORD reset_cam_respawn_addr;	// Address of the instructions when the camera resets when the champion respawns
 
 	// From .ini
 	float lerp_rate;		// This controls smoothing, smaller values mean slower camera movement
@@ -55,19 +55,17 @@ void camera_init (MemProc *mp);
 // ----------- Methods ------------
 
 void camera_main (void);
-
 BOOL camera_update ();
-
 inline void camera_set_active (BOOL active);
-
-void camera_default_set_patch (BOOL patch_active);
-
-DWORD camera_search_signature (unsigned char *pattern, char *mask, char *name);
-
 inline Camera *camera_get_instance ();
 
-// --------- Destructors ----------
+// Patchers
+DWORD camera_search_signature (unsigned char *pattern, char *mask, char *name);
+void camera_default_set_patch (BOOL patch_active);
+void camera_reset_when_respawn_set_patch (BOOL patch_active);
 
+
+// --------- Destructors ----------
 void camera_unload ();
 
 
