@@ -9,22 +9,31 @@ int main()
 {
 	info("Sources : https://github.com/Spl3en/LoLCamera");
 
-	MemProc *mp = memproc_new("League of Legends.exe", "League of Legends (TM) Client");
-
-	if (!mp->proc)
-	{
-		error("Please launch a game");
-		return 0;
-	}
-
-	info("Game detected, main loop started");
+	int quit = 0;
 
 	// Force unpatch at exit
 	atexit(camera_unload);
 
-	camera_init(mp);
-	camera_main();
-	camera_unload();
+	while (!quit)
+	{
+		MemProc *mp = memproc_new("League of Legends.exe", "League of Legends (TM) Client");
+
+		if (!mp->proc)
+		{
+			// Client is not detected
+			info("Waiting for a new game ...");
+			while (!memproc_refresh_handle(mp))
+				Sleep(1000);
+		}
+
+		info("Game detected, main loop started");
+
+		camera_init(mp);
+		camera_main();
+		camera_unload();
+
+		memproc_free(mp);
+	}
 
 	return 0;
 }

@@ -190,6 +190,14 @@ void camera_init (MemProc *mp)
 
 	this->active = TRUE;
 
+	// We wait for the client to be fully ready (in game) before patching
+	this->request_polling = TRUE;
+	while (!camera_update())
+	{
+		warning("Loading screen detected");
+		Sleep(1000);
+	}
+
 	camera_init_patch();
 	camera_default_set_patch(TRUE);
 }
@@ -202,6 +210,7 @@ inline void camera_set_active (BOOL active)
 BOOL camera_update ()
 {
 	static unsigned int frame_count = 0;
+	static BOOL trying_sync = FALSE;
 
 	if (frame_count++ % this->poll_data == 0 || this->request_polling)
 	{
@@ -218,9 +227,15 @@ BOOL camera_update ()
 				return FALSE;
 			}
 
-			warning("Synchronization with the client isn't possible - Retrying in 5s.");
-			Sleep(5000);
+			trying_sync = TRUE;
+			warning("Synchronization with the client isn't possible - Retrying in 3s.");
+			Sleep(3000);
 			return FALSE;
+		}
+
+		if (trying_sync) {
+			info("LoLCamera is working now\n");
+			trying_sync = FALSE;
 		}
 
 		this->request_polling = FALSE;
