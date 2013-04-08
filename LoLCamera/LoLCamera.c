@@ -27,6 +27,25 @@ unsigned char set_camera_pos_click_minimap_sig [] = {
 	0xF3,0x0F,0x11,0x2D,0x44,0x71,0xDF,0x03  // xxxx????
 };
 
+unsigned char set_camera_pos_click_minimap_sig2 [] = {
+/*
+	00B8972F  ║·  F30F1105 3C71DF03      movss [dword ds:League_of_Legends.CameraX], xmm0    ; float 547.5713
+	00B89737  ║·  F30F1005 4071DF03      movss xmm0, [dword ds:League_of_Legends.3DF7140]    ; float 0.0
+	00B8973F  ║·  F30F58C2               addss xmm0, xmm2
+	00B89743  ║·  F30F1105 4071DF03      movss [dword ds:League_of_Legends.3DF7140], xmm0    ; float 0.0
+	00B8974B  ║·  F30F1005 4471DF03      movss xmm0, [dword ds:League_of_Legends.CameraY]    ; float 4717.657
+	00B89753  ║·  F30F58C3               addss xmm0, xmm3
+	00B89757  ║·  F30F1105 4471DF03      movss [dword ds:League_of_Legends.CameraY], xmm0    ; float 4717.657
+*/
+	0xF3,0x0F,0x11,0x05,0x3C,0x71,0xDF,0x03, // xxxx????
+	0xF3,0x0F,0x10,0x05,0x40,0x71,0xDF,0x03, // xxxx????
+	0xF3,0x0F,0x58,0xC2,					 // xxxx
+	0xF3,0x0F,0x11,0x05,0x40,0x71,0xDF,0x03, // xxxx????
+	0xF3,0x0F,0x10,0x05,0x44,0x71,0xDF,0x03, // xxxx????
+	0xF3,0x0F,0x58,0xC3,					 // xxxx
+	0xF3,0x0F,0x11,0x05,0x44,0x71,0xDF,0x03  // xxxx????
+};
+
 unsigned char reset_camera_when_champ_respawns_sig [] = {
 /*
 	Address   Hex dump                Command                                               Comments
@@ -48,28 +67,28 @@ static Camera *this = NULL;
 
 static BOOL camera_is_enabled ()
 {
-	static BOOL enabled = TRUE;
 	static short last_toggle_state = 0;
 	static BOOL space_pressed = FALSE;
+	static BOOL left_button_pressed = FALSE;
 
 	// listen for toggle key
 	short new_toggle_state = GetKeyState(TOGGLE_KEY);
 	if (new_toggle_state != last_toggle_state && new_toggle_state >= 0)
 	{
-		enabled = !enabled;
+		this->enabled = !this->enabled;
 		last_toggle_state = new_toggle_state;
 
-		camera_default_set_patch(enabled);
-		camera_reset_when_respawn_set_patch(enabled);
+		camera_default_set_patch(this->enabled);
+		camera_reset_when_respawn_set_patch(this->enabled);
 	}
 
 	// Disable when space is pressed
 	if (GetKeyState(VK_SPACE) < 0)
 	{
 		/*	BUGFIX:
-		*	When space is kept pressed, LoLCamera saves the last camera position (before it gets centered on the champion)
-		*	When space is released, the camera returns in the last position saved -> weird camera moves
-		*	fix : request polling data for the next loop, so the data saved are synchronized with the new camera
+		*	bug :	When space is kept pressed, LoLCamera saves the last camera position (before it gets centered on the champion)
+		*		  	When space is released, the camera returns in the last position saved -> weird camera moves
+		*	fix :	request polling data for the next loop, so the data saved are synchronized with the new camera
 		*/
 		space_pressed = TRUE;
 		return 0;
@@ -82,10 +101,33 @@ static BOOL camera_is_enabled ()
 
 	// to allow minimap navigation, also disabled if LMB is down
 	if (GetKeyState(VK_LBUTTON) < 0)
-		return 0;
+	{
+		/*	BUGFIX:
+		*	bug: 	When the left mouse button is pressed on the camera and then released, the camera travels all the distance
+		*			from the old position to the champion
+		*	fix:	Save the camera state when the left mouse button is pressed, and restore it when it is released
+		*/
+		if (!left_button_pressed)
+		{
+			// save camera state
+			// todo
+			left_button_pressed = TRUE;
+		}
 
-	// skip if not enabled
-	return enabled;
+		return 0;
+	}
+	else
+	{
+		if (left_button_pressed) {
+			// restore it
+			// todo
+		}
+
+		left_button_pressed = FALSE;
+	}
+
+	// skip the next loop if not enabled
+	return this->enabled;
 }
 
 void camera_init_patch ()
@@ -98,9 +140,25 @@ void camera_init_patch ()
 	memproc_dump(this->mp, text_section, text_section + text_size);
 
 	// Search for camera positionning instructions
-	this->default_camera_addr = camera_search_signature(set_camera_pos_sig, "xxxx????xxxx????xxxx????", "default camera positionning");
-	this->minimap_camera_addr = camera_search_signature(set_camera_pos_click_minimap_sig, "xxxx????xxxx????xxxx????", "minimap camera positionning");
-	this->reset_cam_respawn_addr = camera_search_signature(reset_camera_when_champ_respawns_sig, "xxxx????xxxxxxxxx????xxxxxxxxx????", "Reset when the champion respawns");
+	this->default_camera_addr = camera_search_signature(
+		set_camera_pos_sig, "xxxx????xxxx????xxxx????",
+		"Default camera positionning"
+	);
+
+	this->minimap_camera_addr = camera_search_signature(
+		set_camera_pos_click_minimap_sig, "xxxx????xxxx????xxxx????",
+		"Minimap camera positionning"
+	);
+
+	this->minimap_camera_addr2 = camera_search_signature(
+		set_camera_pos_click_minimap_sig2, "xxxx????xxxx????xxxxxxxx????xxxx????xxxxxxxx????",
+		"Minimap camera positionning 2"
+	);
+
+	this->reset_cam_respawn_addr = camera_search_signature(
+		reset_camera_when_champ_respawns_sig, "xxxx????xxxxxxxxx????xxxxxxxxx????",
+		"Reset when the champion respawns"
+	);
 }
 
 DWORD camera_search_signature (unsigned char *pattern, char *mask, char *name)
@@ -203,6 +261,68 @@ void camera_default_set_patch (BOOL patch_active)
 	}
 }
 
+void camera_minimap_set_patch (BOOL patch_active)
+{
+	if (!this->minimap_camera_addr || !this->minimap_camera_addr2)
+	{
+		warning("Camera minimap : patching isn't possible");
+		return;
+	}
+
+	if (patch_active)
+	{
+		/* We must NOP those bytes :
+		$ ==>  ║·  F30F111D 3C71DF03    movss [dword ds:League_of_Legends.CameraX], xmm3   ; float 450.0000 <-- Here
+		$+8    ║·  F30F1125 4071DF03    movss [dword ds:League_of_Legends.3DF7140], xmm4   ; float 0.0
+		$+10   ║·  F30F112D 4471DF03    movss [dword ds:League_of_Legends.CameraY], xmm5   ; float 8467.621 <-- and here
+		*/
+		char buffer[] = "\x90\x90\x90\x90\x90\x90\x90\x90";
+
+		if (write_to_memory(this->mp->proc, buffer, this->minimap_camera_addr,		  sizeof(buffer)-1)
+		&&  write_to_memory(this->mp->proc, buffer, this->minimap_camera_addr + 0x10, sizeof(buffer)-1))
+		{
+			info("Camera minimap : Patch successful");
+		}
+
+		else
+			warning("Camera minimap : Patch unsuccessful (0x%.8x)", this->minimap_camera_addr);
+
+		/* And these :
+		$ ==>     ║·  F30F1105 3C71DF03      movss [dword ds:League_of_Legends.CameraX], xmm0    ; float 535.3584 <--
+		$+8       ║·  F30F1005 4071DF03      movss xmm0, [dword ds:League_of_Legends.3DF7140]    ; float 0.0
+		$+10      ║·  F30F58C2               addss xmm0, xmm2
+		$+14      ║·  F30F1105 4071DF03      movss [dword ds:League_of_Legends.3DF7140], xmm0    ; float 0.0
+		$+1C      ║·  F30F1005 4471DF03      movss xmm0, [dword ds:League_of_Legends.CameraY]    ; float 4647.248
+		$+24      ║·  F30F58C3               addss xmm0, xmm3
+		$+28      ║·  F30F1105 4471DF03      movss [dword ds:League_of_Legends.CameraY], xmm0    ; float 4647.248 <--
+		*/
+
+		if (write_to_memory(this->mp->proc, buffer, this->minimap_camera_addr2,		   sizeof(buffer)-1)
+		&&  write_to_memory(this->mp->proc, buffer, this->minimap_camera_addr2 + 0x28, sizeof(buffer)-1))
+		{
+			info("Camera minimap 2 : Patch successful");
+		}
+
+		else
+			warning("Camera minimap 2 : Patch unsuccessful (0x%.8x)", this->minimap_camera_addr2);
+
+	}
+
+	else
+	{
+		// Restore the initial bytes
+		if (write_to_memory(this->mp->proc, set_camera_pos_click_minimap_sig, this->minimap_camera_addr, sizeof(set_camera_pos_click_minimap_sig)))
+			info("Camera minimap : Unpatch successful");
+		else
+			warning("Camera minimap : Unpatch unsuccessful (0x%.8x)", this->minimap_camera_addr);
+
+		if (write_to_memory(this->mp->proc, set_camera_pos_click_minimap_sig2, this->minimap_camera_addr2, sizeof(set_camera_pos_click_minimap_sig2)))
+			info("Camera minimap : Unpatch successful");
+		else
+			warning("Camera minimap : Unpatch unsuccessful (0x%.8x)", this->minimap_camera_addr2);
+	}
+}
+
 void camera_load_ini ()
 {
 	// Loading parameters from .ini file :
@@ -246,6 +366,7 @@ void camera_init (MemProc *mp)
 	if (this == NULL)
 		this = malloc(sizeof(Camera));
 
+	this->enabled = TRUE;
 	this->mp = mp;
 
 	camera_load_ini();
@@ -262,6 +383,7 @@ void camera_init (MemProc *mp)
 
 	camera_init_patch();
 	camera_default_set_patch(TRUE);
+	camera_minimap_set_patch(TRUE);
 	camera_reset_when_respawn_set_patch(TRUE);
 }
 
@@ -310,7 +432,6 @@ BOOL camera_update ()
 void camera_main ()
 {
 	Vector2D target;
-
 
 	while (this->active)
 	{
@@ -388,5 +509,6 @@ void camera_unload ()
 	{
 		camera_default_set_patch(FALSE);
 		camera_reset_when_respawn_set_patch(FALSE);
+		camera_minimap_set_patch(FALSE);
 	}
 }

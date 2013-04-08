@@ -34,6 +34,7 @@ struct _Camera
 
 	DWORD default_camera_addr;	// Address of the instructions moving the camera
 	DWORD minimap_camera_addr;	// Address of the instructions moving the camera when you click on the minimap
+	DWORD minimap_camera_addr2;	// Another address for the same purpose
 	DWORD reset_cam_respawn_addr;	// Address of the instructions when the camera resets when the champion respawns
 
 	// From .ini
@@ -46,6 +47,8 @@ struct _Camera
 		  dest_range_max;
 
 	float camera_far_limit;		// Beyond this limit, the camera is considered "far"
+
+	BOOL enabled;
 };
 
 // --------- Constructors ---------

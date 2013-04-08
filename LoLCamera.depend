@@ -277,10 +277,10 @@
 	<string.h>
 	"../BbQueue/BbQueue.h"
 
-1365428804 source:c:\users\spl3en\documents\github\lolcamera\lolcamera\lolcamera.c
+1365462359 source:c:\users\spl3en\documents\github\lolcamera\lolcamera\lolcamera.c
 	"LoLCamera.h"
 
-1365428898 c:\users\spl3en\documents\github\lolcamera\lolcamera\lolcamera.h
+1365462440 c:\users\spl3en\documents\github\lolcamera\lolcamera\lolcamera.h
 	<stdlib.h>
 	<windows.h>
 	<winuser.h>
