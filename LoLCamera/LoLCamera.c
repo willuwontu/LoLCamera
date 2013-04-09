@@ -146,39 +146,35 @@ void camera_init_patch ()
 
 	// Search for camera positionning instructions
 	info("\n------------------------------------------------------------------\nLooking for addresses ...");
+	camera_search_signature(set_camera_pos_sig, &this->default_camera_addr,
+							"xxxx????xxxx????xxxx????", "Default camera positionning");
 
-	this->default_camera_addr = camera_search_signature(
-		set_camera_pos_sig, "xxxx????xxxx????xxxx????",
-		"Default camera positionning"
-	);
-
-	this->minimap_camera_addr = camera_search_signature(
-		set_camera_pos_click_minimap_sig, "xxxx????xxxx????xxxx????",
+	camera_search_signature(
+		set_camera_pos_click_minimap_sig, &this->minimap_camera_addr, "xxxx????xxxx????xxxx????",
 		"Minimap camera positionning"
 	);
 
-	this->minimap_camera_addr2 = camera_search_signature(
-		set_camera_pos_click_minimap_sig2, "xxxx????xxxx????xxxxxxxx????xxxx????xxxxxxxx????",
+	camera_search_signature(
+		set_camera_pos_click_minimap_sig2, &this->minimap_camera_addr2, "xxxx????xxxx????xxxxxxxx????xxxx????xxxxxxxx????",
 		"Minimap camera positionning 2"
 	);
 
-	this->reset_cam_respawn_addr = camera_search_signature(
-		reset_camera_when_champ_respawns_sig, "xxxx????xxxxxxxxx????xxxxxxxxx????",
+	camera_search_signature(
+		reset_camera_when_champ_respawns_sig, &this->reset_cam_respawn_addr,"xxxx????xxxxxxxxx????xxxxxxxxx????",
 		"Reset when the champion respawns"
 	);
 
 	info("\n------------------------------------------------------------------\n");
 }
 
-DWORD camera_search_signature (unsigned char *pattern, char *mask, char *name)
+void camera_search_signature (unsigned char *pattern, DWORD *addr, char *mask, char *name)
 {
 	memproc_search(this->mp, pattern, mask, NULL, SEARCH_TYPE_BYTES);
 	BbQueue *results = memproc_get_res(this->mp);
-	DWORD addr = 0;
 
 	if (bb_queue_get_length(results) <= 0) {
-		warning("%s address not found (already patched ?)", name);
-		return 0;
+		warning("%s address not found (already patched ?)\nUsing the current .ini value : 0x%.8x", name, *addr);
+		return;
 	}
 
 	if (bb_queue_get_length(results) > 1) {
@@ -186,12 +182,10 @@ DWORD camera_search_signature (unsigned char *pattern, char *mask, char *name)
 	}
 
 	MemBlock *memblock = bb_queue_pick_first(results);
-	addr = memblock->addr;
-	info("%s found = 0x%.8x", name, addr);
+	*addr = memblock->addr;
+	info("%s found = 0x%.8x", name, *addr);
 
 	bb_queue_free_all(results, memblock_free);
-
-	return addr;
 }
 
 void camera_reset_when_respawn_set_patch (BOOL patch_active)
@@ -350,9 +344,11 @@ void camera_load_ini ()
 	this->threshold	  = atof  (ini_parser_get_value(parser, "threshold")); // minimum threshold before calculations halted because camera is "close enough"
 	this->sleep_time  = strtol(ini_parser_get_value(parser, "sleep_time"), NULL, 10); // Time slept between two camera updates (in ms)
 	this->poll_data	  = strtol(ini_parser_get_value(parser, "poll_data"), NULL, 5); // Retrieve data from client every X loops
-	this->shop_is_opened_addr = strtol(ini_parser_get_value(parser, "shop_is_opened_addr"), NULL, 16);
 	this->mouse_range_max = atof(ini_parser_get_value(parser, "mouse_range_max"));
 	this->dest_range_max  = atof(ini_parser_get_value(parser, "dest_range_max"));
+	this->shop_is_opened_addr = strtol(ini_parser_get_value(parser, "shop_is_opened_addr"), NULL, 16);
+	this->reset_cam_respawn_addr = strtol(ini_parser_get_value(parser, "reset_cam_respawn_addr"), NULL, 16);
+
 
 	// Input checking
 	if (!this->sleep_time) this->sleep_time = 1;

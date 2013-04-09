@@ -64,7 +64,7 @@ inline void camera_set_active (BOOL active);
 inline Camera *camera_get_instance ();
 
 // Patchers
-DWORD camera_search_signature (unsigned char *pattern, char *mask, char *name);
+void camera_search_signature (unsigned char *pattern, DWORD *addr, char *mask, char *name);
 void camera_default_set_patch (BOOL patch_active);
 void camera_reset_when_respawn_set_patch (BOOL patch_active);
 
