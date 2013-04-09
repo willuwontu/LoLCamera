@@ -127,8 +127,7 @@ static BOOL camera_is_enabled ()
 	}
 
 	// Disable camera when shop opened
-	if (camera_check_if_shop_opened())
-	{
+	if (camera_check_if_shop_opened()) {
 		return 0;
 	}
 
@@ -375,7 +374,6 @@ void camera_init (MemProc *mp)
 	camera_load_ini();
 
 	this->active = TRUE;
-	this->is_shop_opened = FALSE;
 
 	// We wait for the client to be fully ready (in game) before patching
 	this->request_polling = TRUE;
@@ -407,13 +405,9 @@ int camera_check_if_shop_opened ()
 	// isShopOpen = edi+7c
 	addr = addr + 0x7c;
 
-	unsigned char buffer[1] = {0};
-
+	unsigned char buffer[1];
 	read_from_memory(this->mp->proc, buffer, addr, 1);
-
-	this->is_shop_opened = (int) buffer[0];
-
-	return this->is_shop_opened;
+	return (int) buffer[0];
 }
 
 BOOL camera_update ()

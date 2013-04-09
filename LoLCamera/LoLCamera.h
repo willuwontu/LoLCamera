@@ -37,7 +37,7 @@ struct _Camera
 	DWORD minimap_camera_addr;	// Address of the instructions moving the camera when you click on the minimap
 	DWORD minimap_camera_addr2;	// Another address for the same purpose
 	DWORD reset_cam_respawn_addr;	// Address of the instructions when the camera resets when the champion respawns
-	DWORD shop_is_opened_addr;	// Address of the address of the variable containing "isShopOpen" (different of 0 if its the case)
+	DWORD shop_is_opened_addr;	// Address of the pointer to the variable containing "isShopOpen" (different of 0 if its the case)
 
 	float lerp_rate;		// This controls smoothing, smaller values mean slower camera movement
 	float threshold;		// Minimum threshold before calculations halted because camera is "close enough"
@@ -48,8 +48,6 @@ struct _Camera
 		  dest_range_max;
 
 	float camera_far_limit;		// Beyond this limit, the camera is considered "far"
-
-	BOOL is_shop_opened;
 
 	BOOL enabled;
 };
