@@ -127,7 +127,7 @@ static BOOL camera_is_enabled ()
 	}
 
 	// Disable camera when shop opened
-	if (camera_check_if_shop_opened()) {
+	if (camera_shop_is_opened()) {
 		return 0;
 	}
 
@@ -145,6 +145,8 @@ void camera_init_patch ()
 	memproc_dump(this->mp, text_section, text_section + text_size);
 
 	// Search for camera positionning instructions
+	info("\n------------------------------------------------------------------\nLooking for addresses ...");
+
 	this->default_camera_addr = camera_search_signature(
 		set_camera_pos_sig, "xxxx????xxxx????xxxx????",
 		"Default camera positionning"
@@ -164,6 +166,8 @@ void camera_init_patch ()
 		reset_camera_when_champ_respawns_sig, "xxxx????xxxxxxxxx????xxxxxxxxx????",
 		"Reset when the champion respawns"
 	);
+
+	info("\n------------------------------------------------------------------\n");
 }
 
 DWORD camera_search_signature (unsigned char *pattern, char *mask, char *name)
@@ -394,7 +398,7 @@ inline void camera_set_active (BOOL active)
 	this->active = active;
 }
 
-int camera_check_if_shop_opened ()
+int camera_shop_is_opened ()
 {
 	// Shop is open is the address of the pointer to the "isShopOpened"
 	DWORD addr = read_memory_as_int(this->mp->proc, this->shop_is_opened_addr);

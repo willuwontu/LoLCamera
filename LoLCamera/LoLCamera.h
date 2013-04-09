@@ -68,7 +68,7 @@ DWORD camera_search_signature (unsigned char *pattern, char *mask, char *name);
 void camera_default_set_patch (BOOL patch_active);
 void camera_reset_when_respawn_set_patch (BOOL patch_active);
 
-int camera_check_if_shop_opened ();
+int camera_shop_is_opened ();
 
 // --------- Destructors ----------
 void camera_unload ();
