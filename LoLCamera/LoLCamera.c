@@ -126,6 +126,12 @@ static BOOL camera_is_enabled ()
 		left_button_pressed = FALSE;
 	}
 
+	// Disable camera when shop opened
+	if (camera_check_if_shop_opened())
+	{
+		return 0;
+	}
+
 	// skip the next loop if not enabled
 	return this->enabled;
 }
@@ -341,10 +347,7 @@ void camera_load_ini ()
 	this->threshold	  = atof  (ini_parser_get_value(parser, "threshold")); // minimum threshold before calculations halted because camera is "close enough"
 	this->sleep_time  = strtol(ini_parser_get_value(parser, "sleep_time"), NULL, 10); // Time slept between two camera updates (in ms)
 	this->poll_data	  = strtol(ini_parser_get_value(parser, "poll_data"), NULL, 5); // Retrieve data from client every X loops
-	// this->close_limit = atof(ini_parser_get_value(parser, "close_limit")); // don't move the camera when the cursor is near the champion
-	// this->disable_if_too_far = atof(ini_parser_get_value(parser, "disable_if_too_far")); // condition "disable the camera if you go too far"
-	//this->camera_far_limit = atof(ini_parser_get_value(parser, "camera_far_limit"));   // disable the camera if you go too far
-
+	this->shop_is_opened_addr = strtol(ini_parser_get_value(parser, "shop_is_opened_addr"), NULL, 16);
 	this->mouse_range_max = atof(ini_parser_get_value(parser, "mouse_range_max"));
 	this->dest_range_max  = atof(ini_parser_get_value(parser, "dest_range_max"));
 
@@ -372,6 +375,7 @@ void camera_init (MemProc *mp)
 	camera_load_ini();
 
 	this->active = TRUE;
+	this->is_shop_opened = FALSE;
 
 	// We wait for the client to be fully ready (in game) before patching
 	this->request_polling = TRUE;
@@ -383,13 +387,33 @@ void camera_init (MemProc *mp)
 
 	camera_init_patch();
 	camera_default_set_patch(TRUE);
-	camera_minimap_set_patch(TRUE);
+	//camera_minimap_set_patch(TRUE);
 	camera_reset_when_respawn_set_patch(TRUE);
 }
 
 inline void camera_set_active (BOOL active)
 {
 	this->active = active;
+}
+
+int camera_check_if_shop_opened ()
+{
+	// Shop is open is the address of the pointer to the "isShopOpened"
+	DWORD addr = read_memory_as_int(this->mp->proc, this->shop_is_opened_addr);
+
+	if (!addr)
+		return 0;
+
+	// isShopOpen = edi+7c
+	addr = addr + 0x7c;
+
+	unsigned char buffer[1] = {0};
+
+	read_from_memory(this->mp->proc, buffer, addr, 1);
+
+	this->is_shop_opened = (int) buffer[0];
+
+	return this->is_shop_opened;
 }
 
 BOOL camera_update ()

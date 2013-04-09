@@ -32,12 +32,13 @@ struct _Camera
 	MemPos *mouse;	// Mouse position
 	MemPos *dest;	// Right click position
 
+	// From .ini
 	DWORD default_camera_addr;	// Address of the instructions moving the camera
 	DWORD minimap_camera_addr;	// Address of the instructions moving the camera when you click on the minimap
 	DWORD minimap_camera_addr2;	// Another address for the same purpose
 	DWORD reset_cam_respawn_addr;	// Address of the instructions when the camera resets when the champion respawns
+	DWORD shop_is_opened_addr;	// Address of the address of the variable containing "isShopOpen" (different of 0 if its the case)
 
-	// From .ini
 	float lerp_rate;		// This controls smoothing, smaller values mean slower camera movement
 	float threshold;		// Minimum threshold before calculations halted because camera is "close enough"
 	int sleep_time;			// Sleep time at each start of main loop
@@ -47,6 +48,8 @@ struct _Camera
 		  dest_range_max;
 
 	float camera_far_limit;		// Beyond this limit, the camera is considered "far"
+
+	BOOL is_shop_opened;
 
 	BOOL enabled;
 };
@@ -67,6 +70,7 @@ DWORD camera_search_signature (unsigned char *pattern, char *mask, char *name);
 void camera_default_set_patch (BOOL patch_active);
 void camera_reset_when_respawn_set_patch (BOOL patch_active);
 
+int camera_check_if_shop_opened ();
 
 // --------- Destructors ----------
 void camera_unload ();
