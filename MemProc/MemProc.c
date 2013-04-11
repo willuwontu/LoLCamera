@@ -54,9 +54,9 @@ memproc_dump_details (MemProc *mp, int start, int end, int (*boolean_function)(M
 
 			switch (meminfo.Type)
 			{
-				case MEM_IMAGE:	mc->type = MEM_TYPE_IMAGE;   break;
-				case MEM_MAPPED:   mc->type = MEM_TYPE_MAPPED;  break;
-				case MEM_PRIVATE:  mc->type = MEM_TYPE_PRIVATE; break;
+				case MEM_IMAGE:		mc->type = MEM_TYPE_IMAGE;   break;
+				case MEM_MAPPED:	mc->type = MEM_TYPE_MAPPED;  break;
+				case MEM_PRIVATE:	mc->type = MEM_TYPE_PRIVATE; break;
 			}
 
 			console_set_col(0x07);
@@ -254,6 +254,12 @@ memblock_new (void *data, DWORD addr, int size, MemType type)
 	return r;
 }
 
+void
+memproc_set_absolute_addr (MemProc *mp, DWORD *addr)
+{
+	(*addr) = (*addr) + mp->base_addr;
+};
+
 inline void
 memblock_read_from_memory (MemProc *mp, MemBlock *mem)
 {
@@ -269,6 +275,7 @@ memproc_free (MemProc *memproc)
 		free (memproc);
 	}
 }
+
 
 void
 memblock_free (MemBlock *m)

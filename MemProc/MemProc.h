@@ -129,6 +129,9 @@ memproc_search_changed (MemProc *mp, void (*pre_search)(MemChunk *, float prct))
 void
 memblock_read_from_memory (MemProc *mp, MemBlock *mem);
 
+void
+memproc_set_absolute_addr (MemProc *mp, DWORD *addr);
+
 // --------- Destructors ----------
 
 void

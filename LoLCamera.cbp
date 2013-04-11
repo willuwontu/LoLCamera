@@ -39,15 +39,22 @@
 			<Add option="-masm=intel" />
 			<Add option="-Wno-pointer-sign" />
 		</Compiler>
-		<Unit filename="./BbQueue\BbQueue.c">
+		<Linker>
+			<Add library="C:\Program Files\Microsoft SDKs\Windows\v6.0A\Lib\x64\DbgHelp.Lib" />
+		</Linker>
+		<Unit filename=".\BbQueue\BbQueue.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="./BbQueue\BbQueue.h" />
-		<Unit filename="./IniParser\IniParser.c">
+		<Unit filename=".\BbQueue\BbQueue.h" />
+		<Unit filename=".\IniParser\IniParser.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="./IniParser\IniParser.h" />
+		<Unit filename=".\IniParser\IniParser.h" />
 		<Unit filename="LoLCamera.ini" />
+		<Unit filename="LoLCamera\Entity.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="LoLCamera\Entity.h" />
 		<Unit filename="LoLCamera\LoLCamera.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -56,37 +63,32 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="MemPos\MemPos.h" />
+		<Unit filename=".\MemProc\MemChunk.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename=".\MemProc\MemChunk.h" />
+		<Unit filename=".\MemProc\MemProc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename=".\MemProc\MemProc.h" />
+		<Unit filename=".\Vector\Vector2D.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename=".\Vector\Vector2D.h" />
+		<Unit filename=".\Win32Tools\Win32Tools.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename=".\Win32Tools\Win32Tools.h" />
+		<Unit filename=".\Ztring\Ztring.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename=".\Ztring\Ztring.h" />
 		<Unit filename="icon.rc">
 			<Option compilerVar="WINDRES" />
-		</Unit>
-		<Unit filename="main-V1.c">
-			<Option compilerVar="CC" />
-			<Option compile="0" />
-			<Option link="0" />
 		</Unit>
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="./MemProc\MemChunk.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="./MemProc\MemChunk.h" />
-		<Unit filename="./MemProc\MemProc.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="./MemProc\MemProc.h" />
-		<Unit filename="./Vector\Vector2D.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="./Vector\Vector2D.h" />
-		<Unit filename="./Win32Tools\Win32Tools.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="./Win32Tools\Win32Tools.h" />
-		<Unit filename="./Ztring\Ztring.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="./Ztring\Ztring.h" />
 		<Extensions>
 			<code_completion />
 			<debugger />

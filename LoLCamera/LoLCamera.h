@@ -13,8 +13,16 @@
 #include "../Vector/Vector2D.h"
 #include "../MemPos/MemPos.h"
 
-// ---------- Defines -------------
+#include "./Entity.h"
 
+// ---------- Defines -------------
+typedef enum _ChampTeamSlot {
+	CHAMP_F1,
+	CHAMP_F2,
+	CHAMP_F3,
+	CHAMP_F4,
+	CHAMP_F5
+}	ChampTeamSlot;
 
 // ------ Class declaration -------
 typedef struct _Camera Camera;
@@ -49,6 +57,8 @@ struct _Camera
 
 	float camera_far_limit;		// Beyond this limit, the camera is considered "far"
 
+	Entity *champions[5];		// You + 4 allies
+
 	BOOL enabled;
 };
 
@@ -69,6 +79,8 @@ void camera_default_set_patch (BOOL patch_active);
 void camera_reset_when_respawn_set_patch (BOOL patch_active);
 
 int camera_shop_is_opened ();
+void camera_init_champions ();
+
 
 // --------- Destructors ----------
 void camera_unload ();

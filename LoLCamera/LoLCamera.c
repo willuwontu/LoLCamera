@@ -105,12 +105,9 @@ static BOOL camera_is_enabled ()
 		/*	BUGFIX:
 		*	bug: 	When the left mouse button is pressed on the camera and then released, the camera travels all the distance
 		*			from the old position to the champion
-		*	fix:	Save the camera state when the left mouse button is pressed, and restore it when it is released
+		*	fix:	???
 		*/
-		if (!left_button_pressed)
-		{
-			// save camera state
-			// todo
+		if (!left_button_pressed) {
 			left_button_pressed = TRUE;
 		}
 
@@ -119,8 +116,6 @@ static BOOL camera_is_enabled ()
 	else
 	{
 		if (left_button_pressed) {
-			// restore it
-			// todo
 		}
 
 		left_button_pressed = FALSE;
@@ -146,8 +141,10 @@ void camera_init_patch ()
 
 	// Search for camera positionning instructions
 	info("\n------------------------------------------------------------------\nLooking for addresses ...");
-	camera_search_signature(set_camera_pos_sig, &this->default_camera_addr,
-							"xxxx????xxxx????xxxx????", "Default camera positionning");
+	camera_search_signature(
+		set_camera_pos_sig, &this->default_camera_addr,"xxxx????xxxx????xxxx????",
+		"Default camera positionning"
+	);
 
 	camera_search_signature(
 		set_camera_pos_click_minimap_sig, &this->minimap_camera_addr, "xxxx????xxxx????xxxx????",
@@ -332,6 +329,12 @@ void camera_load_ini ()
 	IniParser *parser = ini_parser_new("LoLCamera.ini");
 	ini_parser_reg_and_read(parser);
 
+	if (this->mp->base_addr == 0)
+	{
+		warning("Base address not found. Using default (0x00400000)");
+		this->mp->base_addr = 0x00400000;
+	}
+
 	DWORD camx_addr   = strtol(ini_parser_get_value(parser, "camera_posx_addr"), NULL, 16);
 	DWORD camy_addr   = strtol(ini_parser_get_value(parser, "camera_posy_addr"), NULL, 16);
 	DWORD champx_addr = strtol(ini_parser_get_value(parser, "champion_posx_addr"), NULL, 16);
@@ -348,7 +351,9 @@ void camera_load_ini ()
 	this->dest_range_max  = atof(ini_parser_get_value(parser, "dest_range_max"));
 	this->shop_is_opened_addr = strtol(ini_parser_get_value(parser, "shop_is_opened_addr"), NULL, 16);
 	this->reset_cam_respawn_addr = strtol(ini_parser_get_value(parser, "reset_cam_respawn_addr"), NULL, 16);
-
+	this->minimap_camera_addr2 = strtol(ini_parser_get_value(parser, "minimap_camera_addr2"), NULL, 16);
+	this->minimap_camera_addr = strtol(ini_parser_get_value(parser, "minimap_camera_addr"), NULL, 16);
+	this->default_camera_addr = strtol(ini_parser_get_value(parser, "default_camera_addr"), NULL, 16);
 
 	// Input checking
 	if (!this->sleep_time) this->sleep_time = 1;
@@ -375,6 +380,9 @@ void camera_init (MemProc *mp)
 
 	this->active = TRUE;
 
+	// Retrieve the Champions pointers
+	camera_init_champions();
+
 	// We wait for the client to be fully ready (in game) before patching
 	this->request_polling = TRUE;
 	while (!camera_update())
@@ -387,6 +395,42 @@ void camera_init (MemProc *mp)
 	camera_default_set_patch(TRUE);
 	//camera_minimap_set_patch(TRUE);
 	camera_reset_when_respawn_set_patch(TRUE);
+}
+
+int camera_refresh_champions ()
+{
+	for (int i = 0; i < 5; i++)
+	{
+		if (!entity_refresh(this->champions[i]))
+		{
+			warning("Entity 0x%.8x cannot be refreshed", this->champions[i]->addr);
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
+void camera_init_champions ()
+{
+	/*
+		00A36FD1    57              push edi
+		00A36FD2  ▼ 0F84 FA000000   je League_Of_Legends.00A370D2
+		00A36FD8    8B0D C0F3D802   mov ecx, [dword ds:League_Of_Legends.2D8F3C0]  <-- EntitiesArrayStart
+		00A36FDE    8B2D BCF3D802   mov ebp, [dword ds:League_Of_Legends.2D8F3BC]  <-- EntitiesArrayEnd
+		00A36FE4    3BE9            cmp ebp, ecx
+	*/
+
+	// Todo : sigscanner for entities_array
+	DWORD entities_array = 0x2D8F3BC;
+	DWORD entity_ptr = read_memory_as_int(this->mp->proc, entities_array);
+
+	for (int i = 0; i < 5; i++)
+	{
+		this->champions[i] = entity_new(this->mp, entity_ptr);
+		entity_debug(this->champions[i]);
+		entity_ptr += 4;
+	}
 }
 
 inline void camera_set_active (BOOL active)
@@ -420,7 +464,8 @@ BOOL camera_update ()
 		if (!mempos_refresh(this->cam)
 		||  !mempos_refresh(this->champ)
 		||  !mempos_refresh(this->dest)
-		||  !mempos_refresh(this->mouse))
+		||  !mempos_refresh(this->mouse)
+		||  !camera_refresh_champions())
 		{
 			// Synchronization seems not possible
 			if (!memproc_refresh_handle(this->mp))
@@ -485,7 +530,7 @@ void camera_main ()
             float weight_sum = champ_weight + mouse_weight + dest_weight;
 
             // Compute the target (weighted averages)
-            vector2D_set_pos(&target,
+			vector2D_set_pos(&target,
                 (
                     (this->champ->v.x * champ_weight) +
                     (this->mouse->v.x * mouse_weight) +

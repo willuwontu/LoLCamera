@@ -277,10 +277,10 @@
 	<string.h>
 	"../BbQueue/BbQueue.h"
 
-1365545849 source:c:\users\spl3en\documents\github\lolcamera\lolcamera\lolcamera.c
+1365718665 source:c:\users\spl3en\documents\github\lolcamera\lolcamera\lolcamera.c
 	"LoLCamera.h"
 
-1365545610 c:\users\spl3en\documents\github\lolcamera\lolcamera\lolcamera.h
+1365713166 c:\users\spl3en\documents\github\lolcamera\lolcamera\lolcamera.h
 	<stdlib.h>
 	<windows.h>
 	<winuser.h>
@@ -288,6 +288,7 @@
 	"../IniParser/IniParser.h"
 	"../Vector/Vector2D.h"
 	"../MemPos/MemPos.h"
+	"./Entity.h"
 
 1365424244 c:\users\spl3en\documents\github\lolcamera\win32tools\win32tools.h
 	<stdlib.h>
@@ -308,7 +309,7 @@
 	"../MemProc/MemProc.h"
 	"../Vector/Vector2D.h"
 
-1365424244 c:\users\spl3en\documents\github\lolcamera\memproc\memproc.h
+1365714021 c:\users\spl3en\documents\github\lolcamera\memproc\memproc.h
 	<stdlib.h>
 	"MemChunk.h"
 	"../BbQueue/BbQueue.h"
@@ -327,13 +328,13 @@
 1365424244 source:c:\users\spl3en\documents\github\lolcamera\memproc\memchunk.c
 	"MemChunk.h"
 
-1365424244 source:c:\users\spl3en\documents\github\lolcamera\memproc\memproc.c
+1365714448 source:c:\users\spl3en\documents\github\lolcamera\memproc\memproc.c
 	"MemProc.h"
 
 1365424244 source:c:\users\spl3en\documents\github\lolcamera\vector\vector2d.c
 	"Vector2D.h"
 
-1365424244 source:c:\users\spl3en\documents\github\lolcamera\win32tools\win32tools.c
+1365600172 source:c:\users\spl3en\documents\github\lolcamera\win32tools\win32tools.c
 	"Win32Tools.h"
 
 1365424244 source:c:\users\spl3en\documents\github\lolcamera\ztring\ztring.c
@@ -341,6 +342,15 @@
 
 1365424244 source:c:\users\spl3en\documents\github\lolcamera\icon.rc
 
-1365425222 source:c:\users\spl3en\documents\github\lolcamera\main.c
+1365716135 source:c:\users\spl3en\documents\github\lolcamera\main.c
 	"./LoLCamera/LoLCamera.h"
+
+1365713245 c:\users\spl3en\documents\github\lolcamera\lolcamera\entity.h
+	<stdlib.h>
+	<windows.h>
+	"../MemProc/MemProc.h"
+	"../Vector/Vector2D.h"
+
+1365718047 source:c:\users\spl3en\documents\github\lolcamera\lolcamera\entity.c
+	"Entity.h"
 

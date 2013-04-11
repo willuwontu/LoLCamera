@@ -14,6 +14,8 @@ int main()
 	// Force unpatch at exit
 	atexit(camera_unload);
 
+	enable_debug_privileges();
+
 	while (!quit)
 	{
 		MemProc *mp = memproc_new("League of Legends.exe", "League of Legends (TM) Client");
