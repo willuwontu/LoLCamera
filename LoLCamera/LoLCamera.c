@@ -416,8 +416,8 @@ void camera_init_champions ()
 	/*
 		00A36FD1    57              push edi
 		00A36FD2  ▼ 0F84 FA000000   je League_Of_Legends.00A370D2
-		00A36FD8    8B0D C0F3D802   mov ecx, [dword ds:League_Of_Legends.2D8F3C0]  <-- EntitiesArrayStart
-		00A36FDE    8B2D BCF3D802   mov ebp, [dword ds:League_Of_Legends.2D8F3BC]  <-- EntitiesArrayEnd
+		00A36FD8    8B0D C0F3D802   mov ecx, [dword ds:League_Of_Legends.2D8F3C0]  <-- EntitiesArrayEnd
+		00A36FDE    8B2D BCF3D802   mov ebp, [dword ds:League_Of_Legends.2D8F3BC]  <-- EntitiesArrayStart
 		00A36FE4    3BE9            cmp ebp, ecx
 	*/
 

@@ -16,13 +16,6 @@
 #include "./Entity.h"
 
 // ---------- Defines -------------
-typedef enum _ChampTeamSlot {
-	CHAMP_F1,
-	CHAMP_F2,
-	CHAMP_F3,
-	CHAMP_F4,
-	CHAMP_F5
-}	ChampTeamSlot;
 
 // ------ Class declaration -------
 typedef struct _Camera Camera;
