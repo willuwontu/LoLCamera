@@ -12,6 +12,7 @@
 #include "../IniParser/IniParser.h"
 #include "../Vector/Vector2D.h"
 #include "../MemPos/MemPos.h"
+#include "../Patcher/Patcher.h"
 
 #include "./Entity.h"
 
@@ -22,35 +23,41 @@ typedef struct _Camera Camera;
 
 struct _Camera
 {
-	MemProc *mp;	// Process context
+	MemProc *mp;				// Process context
 
 	// Internal
-	BOOL active;			// Loop state
-	BOOL request_polling; 	// Force to poll data the next loop if TRUE
-
-	MemPos *cam;	// Camera ingame position
-	MemPos *champ;	// User champion position
-	MemPos *mouse;	// Mouse position
-	MemPos *dest;	// Right click position
+	BOOL active;				// Loop state
+	BOOL request_polling; 		// Force to poll data the next loop if TRUE
 
 	// From .ini
-	DWORD default_camera_addr;	// Address of the instructions moving the camera
-	DWORD minimap_camera_addr;	// Address of the instructions moving the camera when you click on the minimap
-	DWORD minimap_camera_addr2;	// Another address for the same purpose
-	DWORD reset_cam_respawn_addr;	// Address of the instructions when the camera resets when the champion respawns
+	DWORD border_screen_addr;	// Address of the instructions moving the camera
+	DWORD respawn_reset_addr;	// Address of the instructions when the camera resets when the champion respawns
+	DWORD allies_cam_addr[2];	// Address of the instructions moving the camera when you press F2-3-4-5
+	DWORD self_cam_addr;		// Address of the instructions moving the camera when you press F1
 	DWORD shop_is_opened_addr;	// Address of the pointer to the variable containing "isShopOpen" (different of 0 if its the case)
+	DWORD entities_array_addr;	// Address of the entities array
 
-	float lerp_rate;		// This controls smoothing, smaller values mean slower camera movement
-	float threshold;		// Minimum threshold before calculations halted because camera is "close enough"
-	int sleep_time;			// Sleep time at each start of main loop
-	int poll_data;			// Number of loops required for polling data
-
-	float mouse_range_max,  // controls the range at which these factors start falling off
+	float lerp_rate;			// This controls smoothing, smaller values mean slower camera movement
+	float threshold;			// Minimum threshold before calculations halted because camera is "close enough"
+	int sleep_time;				// Sleep time at each start of main loop
+	int poll_data;				// Number of loops required for polling data
+	float mouse_range_max,  	// Controls the range at which these factors start falling off
 		  dest_range_max;
 
-	float camera_far_limit;		// Beyond this limit, the camera is considered "far"
+	// List of patchs
+	Patch *F1_pressed;			// Disables the behavior "Center the camera on the champion when F1 is pressed"
+	Patch *F2345_pressed[2];	// Disables the behavior "Center the camera on the ally X when FX is pressed"
+	Patch *border_screen;		// Disables the behavior "Move the camera when the mouse is near the screen border"
+	Patch *respawn_reset;		// Disables the behavior "Center the camera on the champion when you respawn"
 
-	Entity *champions[5];		// You + 4 allies
+	// Entities
+	Entity *champions[5];		// You + 4 allies - NULL if doesn't exist
+
+	// Memory positions
+	MemPos *cam;				// Camera ingame position
+	MemPos *champ;				// User champion position
+	MemPos *mouse;				// Mouse position
+	MemPos *dest;				// Right click position
 
 	BOOL enabled;
 };
@@ -60,19 +67,15 @@ void camera_init (MemProc *mp);
 
 
 // ----------- Methods ------------
-
 void camera_main (void);
 BOOL camera_update ();
 inline void camera_set_active (BOOL active);
 inline Camera *camera_get_instance ();
 
-// Patchers
-void camera_search_signature (unsigned char *pattern, DWORD *addr, char *mask, char *name);
-void camera_default_set_patch (BOOL patch_active);
-void camera_reset_when_respawn_set_patch (BOOL patch_active);
-
+// from LoLCameraMem.c
+void camera_scan_champions ();
+void camera_scan_patch ();
 int camera_shop_is_opened ();
-void camera_init_champions ();
 
 
 // --------- Destructors ----------

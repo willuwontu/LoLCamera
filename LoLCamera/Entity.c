@@ -18,7 +18,6 @@ entity_new (MemProc *mp, DWORD addr)
 
 	if (!entity_refresh(e))
 	{
-		warning("Entity 0x%.8x cannot be read\n", addr);
 		entity_free(e);
 		return NULL;
 	}
@@ -29,6 +28,9 @@ entity_new (MemProc *mp, DWORD addr)
 int
 entity_refresh (Entity *e)
 {
+	if (!e)
+		return 1;
+
 	DWORD entity_data = read_memory_as_int(e->ctxt->proc, e->addr);
 
 	vector2D_set_pos (

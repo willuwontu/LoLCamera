@@ -103,15 +103,15 @@ ztring_print_text (Ztring *z)
 }
 
 void
-ztring_concat_letter (Ztring *z, char c)
+ztring_concat_letter (Ztring *z, unsigned char c)
 {
-	bb_queue_add(z->_text, (void *)(int)c);
+	bb_queue_add (z->_text, (void*) (int) c);
 }
 
 void
 ztring_concat_letter_nth (Ztring *z, char c, int nth)
 {
-	bb_queue_add_nth(z->_text, (void *)(int)c, nth);
+	bb_queue_add_nth(z->_text, (void *) (int) c, nth);
 }
 
 void

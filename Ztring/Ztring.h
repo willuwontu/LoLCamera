@@ -87,7 +87,7 @@ ztring_new_with_text	(char *text);
 
 /* * Ztring * */
 void
-ztring_concat_letter	(Ztring *z, char c);
+ztring_concat_letter	(Ztring *z, unsigned char c);
 
 char *
 ztring_get_text		 (Ztring *z);
