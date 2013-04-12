@@ -167,3 +167,4 @@ pip-log.txt
 # PROJECT IGNORES
 #########################################################################
 LoLCamera.layout
+LoLCamera.depend
