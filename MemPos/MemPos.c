@@ -22,6 +22,28 @@ mempos_new (MemProc *mp, DWORD addrX, DWORD addrY)
 	return p;
 }
 
+MemPos *
+mempos_int_new (MemProc *mp, DWORD addrX, DWORD addrY)
+{
+	MemPos *p;
+
+	if ((p = malloc(sizeof(MemPos))) == NULL)
+		return NULL;
+
+	p->addrX = addrX + mp->base_addr;
+	p->addrY = addrY + mp->base_addr;
+
+	vector2D_set_pos (
+		&p->v,
+		read_memory_as_int(mp->proc, p->addrX),
+		read_memory_as_int(mp->proc, p->addrY)
+	);
+
+	p->ctxt = mp;
+
+	return p;
+}
+
 int
 mempos_refresh (MemPos *p)
 {

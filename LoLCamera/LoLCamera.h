@@ -35,14 +35,26 @@ struct _Camera
 	DWORD allies_cam_addr[2];	// Address of the instructions moving the camera when you press F2-3-4-5
 	DWORD self_cam_addr;		// Address of the instructions moving the camera when you press F1
 	DWORD shop_is_opened_addr;	// Address of the pointer to the variable containing "isShopOpen" (different of 0 if its the case)
-	DWORD entities_array_addr;	// Address of the entities array
+	DWORD entities_addr;		// Address of the entities array
+	DWORD camx_addr, camy_addr;
+	DWORD champx_addr,
+		  champy_addr;
+	DWORD mousex_addr,
+		  mousey_addr;
+	DWORD destx_addr,
+		  desty_addr;
+	DWORD mousex_screen,
+		  mousey_screen,
+		  mouse_screen_addr;
+
 
 	float lerp_rate;			// This controls smoothing, smaller values mean slower camera movement
 	float threshold;			// Minimum threshold before calculations halted because camera is "close enough"
 	int sleep_time;				// Sleep time at each start of main loop
 	int poll_data;				// Number of loops required for polling data
 	float mouse_range_max,  	// Controls the range at which these factors start falling off
-		  dest_range_max;
+		  dest_range_max,
+		  mouse_dest_range_max;
 
 	// List of patchs
 	Patch *F1_pressed;			// Disables the behavior "Center the camera on the champion when F1 is pressed"
@@ -58,9 +70,11 @@ struct _Camera
 	MemPos *champ;				// User champion position
 	MemPos *mouse;				// Mouse position
 	MemPos *dest;				// Right click position
+	MemPos *mouse_screen;		// Mouse screen position
 
 	BOOL enabled;
 };
+
 
 // --------- Constructors ---------
 void camera_init (MemProc *mp);
@@ -70,19 +84,18 @@ void camera_init (MemProc *mp);
 void camera_main (void);
 BOOL camera_update ();
 inline void camera_set_active (BOOL active);
-inline Camera *camera_get_instance ();
+Camera *camera_get_instance ();
 
 // from LoLCameraMem.c
 void camera_scan_champions ();
 void camera_scan_patch ();
+void camera_scan_mouse_screen ();
+
 int camera_shop_is_opened ();
 
 
 // --------- Destructors ----------
 void camera_unload ();
-
-
-
 
 
 

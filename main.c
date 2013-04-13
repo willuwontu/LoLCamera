@@ -19,6 +19,7 @@ int main()
 	while (!quit)
 	{
 		MemProc *mp = memproc_new("League of Legends.exe", "League of Legends (TM) Client");
+		memproc_set_default_baseaddr(mp, 0x00400000);
 
 		if (!mp->proc)
 		{
@@ -27,7 +28,6 @@ int main()
 			while (!memproc_refresh_handle(mp))
 				Sleep(1000);
 		}
-
 		info("Game detected, main loop started");
 
 		camera_init(mp);

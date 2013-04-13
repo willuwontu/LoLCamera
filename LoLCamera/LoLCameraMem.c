@@ -1,9 +1,9 @@
 #include "LoLCamera.h"
 
-static BbQueue *camera_search_signatures (unsigned char *pattern, char *mask, char *name, DWORD **addr, int size);
-static void camera_search_signature (unsigned char *pattern, DWORD *addr, char *mask, char *name);
-static Patch *camera_get_patch (MemProc *mp, char *description, DWORD *addr, unsigned char *sig, char *sig_mask, unsigned char *patch, char *patch_mask);
-static void camera_get_patches (Patch **patches, int size, MemProc *mp, char *description, DWORD **addrs, unsigned char *sig, char *sig_mask, unsigned char *patch, char *patch_mask);
+static BbQueue * camera_search_signatures (unsigned char *pattern, char *mask, char *name, DWORD **addr, int size);
+static void      camera_search_signature  (unsigned char *pattern, DWORD *addr, char *mask, char *name);
+static Patch *   camera_get_patch         (MemProc *mp, char *description, DWORD *addr, unsigned char *sig, char *sig_mask, unsigned char *patch, char *patch_mask);
+static void      camera_get_patches       (Patch **patches, int size, MemProc *mp, char *description, DWORD **addrs, unsigned char *sig, char *sig_mask, unsigned char *patch, char *patch_mask);
 
 void camera_scan_patch ()
 {
@@ -132,13 +132,13 @@ void camera_scan_champions ()
 		00A36FE4    3BE9            cmp ebp, ecx
 	*/
 	// Todo : sigscanner for entities_array
-	if (!this->entities_array_addr)
+	if (!this->entities_addr)
 	{
 		warning("Cannot scan entities");
 		return;
 	}
 
-	DWORD entity_ptr = read_memory_as_int(this->mp->proc, this->entities_array_addr);
+	DWORD entity_ptr = read_memory_as_int(this->mp->proc, this->entities_addr);
 
 	for (int i = 0; i < 5; i++)
 	{
@@ -148,6 +148,22 @@ void camera_scan_champions ()
 
 		entity_ptr += 4;
 	}
+}
+
+void camera_scan_mouse_screen ()
+{
+	Camera *this = camera_get_instance();
+
+	if (!this->mouse_screen_addr)
+	{
+		warning("Cannot get mouse screen coordinates");
+		return;
+	}
+
+	DWORD mouse_screen = read_memory_as_int(this->mp->proc, this->mouse_screen_addr);
+
+	this->mousex_screen = read_memory_as_int(this->mp->proc, mouse_screen + 0x4C);
+	this->mousey_screen = read_memory_as_int(this->mp->proc, mouse_screen + 0x50);
 }
 
 int camera_shop_is_opened ()

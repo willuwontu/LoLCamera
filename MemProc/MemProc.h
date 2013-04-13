@@ -52,7 +52,8 @@ struct _MemProc
 	char *window_name;
 	char *process_name;
 
-	int base_addr;
+	DWORD base_addr;
+	DWORD default_baseaddr;
 
 }	MemProc;
 
@@ -131,6 +132,9 @@ memblock_read_from_memory (MemProc *mp, MemBlock *mem);
 
 void
 memproc_set_absolute_addr (MemProc *mp, DWORD *addr);
+
+void
+memproc_set_default_baseaddr (MemProc *mp, int default_baseaddr);
 
 // --------- Destructors ----------
 

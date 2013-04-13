@@ -562,7 +562,7 @@ _error (char *msg, ...)
 	va_list args;
 	console_set_col(0x0C);
 
-	printf("[!] Error : ");
+	printf("[!] ");
 
 	va_start (args, msg);
 		vfprintf (stdout, msg, args);
@@ -580,7 +580,7 @@ _warning (char *msg, ...)
 	va_list args;
 	console_set_col(0x0E);
 
-	printf("[*] Warning : ");
+	printf("[-] ");
 
 	va_start (args, msg);
 		vfprintf (stdout, msg, args);
@@ -597,7 +597,7 @@ _info (char *msg, ...)
 	va_list args;
 	console_set_col(0x02);
 
-	printf("[+] Info : ");
+	printf("[+] ");
 
 	va_start (args, msg);
 		vfprintf (stdout, msg, args);

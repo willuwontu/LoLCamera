@@ -80,12 +80,23 @@ memproc_dump (MemProc *mp, int start, int end)
 	memproc_dump_details(mp, start, end, memproc_dump_helper, NULL);
 }
 
+void
+memproc_set_default_baseaddr (MemProc *mp, int default_baseaddr)
+{
+	mp->default_baseaddr = default_baseaddr;
+}
+
 int
 memproc_refresh_handle (MemProc *mp)
 {
 	if (mp->process_name != NULL)
 	{
-		mp->base_addr = get_baseaddr(mp->process_name);
+		if ((mp->base_addr = get_baseaddr(mp->process_name)) == 0
+		  && mp->default_baseaddr != 0)
+		{
+			mp->base_addr = mp->default_baseaddr;
+		}
+
 		mp->pid = get_pid_by_name(mp->process_name);
 	}
 
