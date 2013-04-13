@@ -154,16 +154,13 @@ void camera_scan_mouse_screen ()
 {
 	Camera *this = camera_get_instance();
 
-	if (!this->mouse_screen_addr)
+	if (!this->mouse_screen_ptr)
 	{
 		warning("Cannot get mouse screen coordinates");
 		return;
 	}
 
-	DWORD mouse_screen = read_memory_as_int(this->mp->proc, this->mouse_screen_addr);
-
-	this->mousex_screen_addr = read_memory_as_int(this->mp->proc, mouse_screen + 0x4C);
-	this->mousey_screen_addr = read_memory_as_int(this->mp->proc, mouse_screen + 0x50);
+	this->mouse_screen_addr = read_memory_as_int(this->mp->proc, this->mouse_screen_ptr);
 }
 
 int camera_shop_is_opened ()

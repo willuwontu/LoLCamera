@@ -116,7 +116,11 @@ void camera_init (MemProc *mp)
 	this->champ 	   = mempos_new(this->mp, this->champx_addr,   this->champy_addr);
 	this->mouse 	   = mempos_new(this->mp, this->mousex_addr,   this->mousey_addr);
 	this->dest  	   = mempos_new(this->mp, this->destx_addr,    this->desty_addr);
-	this->mouse_screen = mempos_new(this->mp, this->mousex_screen_addr, this->mousey_screen_addr);
+	this->mouse_screen = mempos_int_new(
+		this->mp,
+		this->mouse_screen_addr + 0x4C - mp->base_addr,
+		this->mouse_screen_addr + 0x50 - mp->base_addr
+	);
 
 	// We wait for the client to be fully ready (in game) before patching
 	this->request_polling = TRUE;
@@ -171,6 +175,7 @@ BOOL camera_update ()
 		||  !mempos_refresh(this->champ)
 		||  !mempos_refresh(this->dest)
 		||  !mempos_refresh(this->mouse)
+		||  !mempos_int_refresh(this->mouse_screen)
 		||  !camera_refresh_champions())
 		{
 			// Synchronization seems not possible
@@ -186,6 +191,8 @@ BOOL camera_update ()
 			Sleep(3000);
 			return FALSE;
 		}
+
+		//printf("%d %d\n", (int) this->mouse_screen->v.x, (int) this->mouse_screen->v.y);
 
 		if (trying_sync) {
 			info("LoLCamera is working now\n");
@@ -282,7 +289,7 @@ void camera_load_ini ()
 	this->mousey_addr = strtol(ini_parser_get_value(parser, "mouse_posy_addr"), NULL, 16);
 	this->destx_addr  = strtol(ini_parser_get_value(parser, "dest_posx_addr"), NULL, 16);
 	this->desty_addr  = strtol(ini_parser_get_value(parser, "dest_posy_addr"), NULL, 16);
-	this->mouse_screen_addr = strtol(ini_parser_get_value(parser, "mouse_screen_addr"), NULL, 16);
+	this->mouse_screen_ptr = strtol(ini_parser_get_value(parser, "mouse_screen_ptr"), NULL, 16);
 	this->shop_is_opened_addr = strtol(ini_parser_get_value(parser, "shop_is_opened_addr"), NULL, 16);
 	this->respawn_reset_addr = strtol(ini_parser_get_value(parser, "respawn_reset_addr"), NULL, 16);
 	this->border_screen_addr = strtol(ini_parser_get_value(parser, "border_screen_addr"), NULL, 16);
@@ -308,7 +315,7 @@ void camera_load_ini ()
         { .addr = this->border_screen_addr, .str = "border_screen_addr" }, //              ████░░      ░░████        |  imgur.com/74bnbGP  |
         { .addr = this->champx_addr,        .str = "champion_posx_addr" }, //            ██░░              ░░██      \____________  _______/
         { .addr = this->champy_addr,        .str = "champion_posy_addr" }, //          ██                    ░░██                 |/
-        { .addr = this->mouse_screen_addr,  .str = "mouse_screen_addr" },  //        ██              ██  ██  ░░██                 `
+        { .addr = this->mouse_screen_ptr,   .str = "mouse_screen_ptr" },   //        ██              ██  ██  ░░██                 `
                                                                            //      ██░░              ██  ██      ██
         { .addr = this->camx_addr,          .str = "camera_posx_addr" },   //      ██                ██  ██      ██
         { .addr = this->camy_addr,          .str = "camera_posy_addr" },   //      ██          ░░░░        ░░░░  ██

@@ -31,6 +31,9 @@ struct _MemPos
 MemPos *
 mempos_new (MemProc *memproc, DWORD addrX, DWORD addrY);
 
+MemPos *
+mempos_int_new (MemProc *mp, DWORD addrX, DWORD addrY);
+
 
 // ----------- Methods ------------
 
@@ -41,6 +44,9 @@ mempos_refresh (MemPos *p);
 void
 mempos_set (MemPos *p, float newX, float newY);
 
+
+int
+mempos_int_refresh (MemPos *p);
 
 
 

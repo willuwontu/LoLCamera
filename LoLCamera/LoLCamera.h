@@ -41,9 +41,8 @@ struct _Camera
 	DWORD champx_addr, champy_addr;	// Address of the data : championX / championY
 	DWORD mousex_addr, mousey_addr; // Address of the data : mouseX / mouseY
 	DWORD destx_addr, desty_addr;   // Address of the data : destX / destY (right click)
-	DWORD mousex_screen_addr,   	// Address of the data : mouse on the screen pos X
-		  mousey_screen_addr,   	// Address of the data : mouse on the screen pos Y
-		  mouse_screen_addr;		// Address of the pointer to the structure containing mouseScreenX/Y
+	DWORD mouse_screen_ptr;			// Address of the pointer to the pointer to the structure containing mouseScreenX/Y
+	DWORD mouse_screen_addr;		// Address of the pointer to the structure containing mouseScreenX/Y
 
 	float lerp_rate;				// This controls smoothing, smaller values mean slower camera movement
 	float threshold;				// Minimum threshold before calculations halted because camera is "close enough"
