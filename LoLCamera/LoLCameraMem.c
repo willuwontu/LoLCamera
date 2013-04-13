@@ -162,8 +162,8 @@ void camera_scan_mouse_screen ()
 
 	DWORD mouse_screen = read_memory_as_int(this->mp->proc, this->mouse_screen_addr);
 
-	this->mousex_screen = read_memory_as_int(this->mp->proc, mouse_screen + 0x4C);
-	this->mousey_screen = read_memory_as_int(this->mp->proc, mouse_screen + 0x50);
+	this->mousex_screen_addr = read_memory_as_int(this->mp->proc, mouse_screen + 0x4C);
+	this->mousey_screen_addr = read_memory_as_int(this->mp->proc, mouse_screen + 0x50);
 }
 
 int camera_shop_is_opened ()

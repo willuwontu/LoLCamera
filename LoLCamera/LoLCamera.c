@@ -92,85 +92,6 @@ static BOOL camera_is_enabled ()
 	return this->enabled;
 }
 
-void camera_load_ini ()
-{
-	// Loading parameters from .ini file :
-	IniParser *parser = ini_parser_new("LoLCamera.ini");
-	ini_parser_reg_and_read(parser);
-
-	// Addresses
-	this->camx_addr   = strtol(ini_parser_get_value(parser, "camera_posx_addr"), NULL, 16);
-	this->camy_addr   = strtol(ini_parser_get_value(parser, "camera_posy_addr"), NULL, 16);
-	this->champx_addr = strtol(ini_parser_get_value(parser, "champion_posx_addr"), NULL, 16);
-	this->champy_addr = strtol(ini_parser_get_value(parser, "champion_posy_addr"), NULL, 16);
-	this->mousex_addr = strtol(ini_parser_get_value(parser, "mouse_posx_addr"), NULL, 16);
-	this->mousey_addr = strtol(ini_parser_get_value(parser, "mouse_posy_addr"), NULL, 16);
-	this->destx_addr  = strtol(ini_parser_get_value(parser, "dest_posx_addr"), NULL, 16);
-	this->desty_addr  = strtol(ini_parser_get_value(parser, "dest_posy_addr"), NULL, 16);
-	this->mouse_screen_addr = strtol(ini_parser_get_value(parser, "mouse_screen_addr"), NULL, 16);
-	this->shop_is_opened_addr = strtol(ini_parser_get_value(parser, "shop_is_opened_addr"), NULL, 16);
-	this->respawn_reset_addr = strtol(ini_parser_get_value(parser, "respawn_reset_addr"), NULL, 16);
-	this->border_screen_addr = strtol(ini_parser_get_value(parser, "border_screen_addr"), NULL, 16);
-	this->allies_cam_addr[0] = strtol(ini_parser_get_value(parser, "allies_cam_addr0"), NULL, 16);
-	this->allies_cam_addr[1] = strtol(ini_parser_get_value(parser, "allies_cam_addr1"), NULL, 16);
-	this->self_cam_addr = strtol(ini_parser_get_value(parser, "self_cam_addr"), NULL, 16);
-	this->entities_addr = strtol(ini_parser_get_value(parser, "entities_addr"), NULL, 16);
-
-	// Settings
-	this->lerp_rate	  = atof  (ini_parser_get_value(parser, "lerp_rate")); // this controls smoothing, smaller values mean slower camera movement
-	this->threshold	  = atof  (ini_parser_get_value(parser, "threshold")); // minimum threshold before calculations halted because camera is "close enough"
-	this->sleep_time  = strtol(ini_parser_get_value(parser, "sleep_time"), NULL, 10); // Time slept between two camera updates (in ms)
-	this->poll_data	  = strtol(ini_parser_get_value(parser, "poll_data"), NULL, 10); // Retrieve data from client every X loops
-	this->mouse_range_max = atof(ini_parser_get_value(parser, "mouse_range_max"));
-	this->dest_range_max  = atof(ini_parser_get_value(parser, "dest_range_max"));
-	this->mouse_dest_range_max  = atof(ini_parser_get_value(parser, "mouse_dest_range_max"));
-
-	// Addresses - Input checking
-	struct AddrStr { DWORD addr; char *str; } tabAddr [] = {
-
-        { .addr = this->shop_is_opened_addr,.str = "shop_is_opened_addr" },//	That kirby has been watching for me since the beggining of the project, it deserves its place in the source code :)
-        { .addr = this->respawn_reset_addr, .str = "respawn_reset_addr" }, //                  ██████████            ,---------------------.
-        { .addr = this->border_screen_addr, .str = "border_screen_addr" }, //              ████░░      ░░████        |  imgur.com/74bnbGP  |
-        { .addr = this->champx_addr,        .str = "champion_posx_addr" }, //            ██░░              ░░██      \____________  _______/
-        { .addr = this->champy_addr,        .str = "champion_posy_addr" }, //          ██                    ░░██                 |/
-        { .addr = this->mouse_screen_addr,  .str = "mouse_screen_addr" },  //        ██              ██  ██  ░░██                 `
-                                                                           //      ██░░              ██  ██      ██
-        { .addr = this->camx_addr,          .str = "camera_posx_addr" },   //      ██                ██  ██      ██
-        { .addr = this->camy_addr,          .str = "camera_posy_addr" },   //      ██          ░░░░        ░░░░  ██
-        { .addr = this->allies_cam_addr[0], .str = "allies_cam_addr0" },   //      ██░░    ░░                ░░  ██
-        { .addr = this->allies_cam_addr[1], .str = "allies_cam_addr1" },   //        ██░░  ██        ██      ██░░██
-        { .addr = this->mousex_addr,        .str = "mouse_posx_addr" },    //          ████░░              ░░████
-        { .addr = this->mousey_addr,        .str = "mouse_posy_addr" },    //            ████░░░░        ░░████
-        { .addr = this->destx_addr,         .str = "dest_posx_addr" },     //          ██░░░░██████████████░░░░██
-        { .addr = this->desty_addr,         .str = "dest_posy_addr" },     //        ██░░░░░░░░░░████████░░░░░░░░██
-        { .addr = this->self_cam_addr,      .str = "self_cam_addr" },      //          ██████████        ████████
-        { .addr = this->entities_addr,      .str = "entities_addr" },      //
-	};
-
-	for (int i = 0; i < sizeof(tabAddr) / sizeof(struct AddrStr); i++)
-		if (!tabAddr[i].addr)
-			warning("\"%*s\" cannot be read in .ini file", 30 - strlen(tabAddr[i].str), tabAddr[i].str);
-
-	// Settings - Input checking
-	struct SettingVal {
-		union {float *f; int *i;} p;
-		union {float  f; int  i;} v;
-	} tabSet [] = {
-		// If the settings is not found in the .ini, set the value to its default value :
-		{ .p.i = &this->sleep_time,	.v.i = 1.0},
-		{ .p.i = &this->poll_data,	.v.i = 5.0}
-	};
-
-	for (int i = 0; i < sizeof(tabSet) / sizeof(struct SettingVal); i++)
-	{
-		if (*(tabSet[i].p.i) == 0)
-			(*tabSet[i].p.i) = tabSet[i].v.i;
-	}
-
-	// Cleaning
-	ini_parser_free(parser);
-}
-
 void camera_init (MemProc *mp)
 {
 	if (this == NULL)
@@ -195,7 +116,7 @@ void camera_init (MemProc *mp)
 	this->champ 	   = mempos_new(this->mp, this->champx_addr,   this->champy_addr);
 	this->mouse 	   = mempos_new(this->mp, this->mousex_addr,   this->mousey_addr);
 	this->dest  	   = mempos_new(this->mp, this->destx_addr,    this->desty_addr);
-	this->mouse_screen = mempos_new(this->mp, this->mousex_screen, this->mousey_screen);
+	this->mouse_screen = mempos_new(this->mp, this->mousex_screen_addr, this->mousey_screen_addr);
 
 	// We wait for the client to be fully ready (in game) before patching
 	this->request_polling = TRUE;
@@ -344,6 +265,85 @@ void camera_main ()
 		// Update the camera client
 		mempos_set(this->cam, this->cam->v.x, this->cam->v.y);
 	}
+}
+
+void camera_load_ini ()
+{
+	// Loading parameters from .ini file :
+	IniParser *parser = ini_parser_new("LoLCamera.ini");
+	ini_parser_reg_and_read(parser);
+
+	// Addresses
+	this->camx_addr   = strtol(ini_parser_get_value(parser, "camera_posx_addr"), NULL, 16);
+	this->camy_addr   = strtol(ini_parser_get_value(parser, "camera_posy_addr"), NULL, 16);
+	this->champx_addr = strtol(ini_parser_get_value(parser, "champion_posx_addr"), NULL, 16);
+	this->champy_addr = strtol(ini_parser_get_value(parser, "champion_posy_addr"), NULL, 16);
+	this->mousex_addr = strtol(ini_parser_get_value(parser, "mouse_posx_addr"), NULL, 16);
+	this->mousey_addr = strtol(ini_parser_get_value(parser, "mouse_posy_addr"), NULL, 16);
+	this->destx_addr  = strtol(ini_parser_get_value(parser, "dest_posx_addr"), NULL, 16);
+	this->desty_addr  = strtol(ini_parser_get_value(parser, "dest_posy_addr"), NULL, 16);
+	this->mouse_screen_addr = strtol(ini_parser_get_value(parser, "mouse_screen_addr"), NULL, 16);
+	this->shop_is_opened_addr = strtol(ini_parser_get_value(parser, "shop_is_opened_addr"), NULL, 16);
+	this->respawn_reset_addr = strtol(ini_parser_get_value(parser, "respawn_reset_addr"), NULL, 16);
+	this->border_screen_addr = strtol(ini_parser_get_value(parser, "border_screen_addr"), NULL, 16);
+	this->allies_cam_addr[0] = strtol(ini_parser_get_value(parser, "allies_cam_addr0"), NULL, 16);
+	this->allies_cam_addr[1] = strtol(ini_parser_get_value(parser, "allies_cam_addr1"), NULL, 16);
+	this->self_cam_addr = strtol(ini_parser_get_value(parser, "self_cam_addr"), NULL, 16);
+	this->entities_addr = strtol(ini_parser_get_value(parser, "entities_addr"), NULL, 16);
+
+	// Settings
+	this->lerp_rate	  = atof  (ini_parser_get_value(parser, "lerp_rate")); // this controls smoothing, smaller values mean slower camera movement
+	this->threshold	  = atof  (ini_parser_get_value(parser, "threshold")); // minimum threshold before calculations halted because camera is "close enough"
+	this->sleep_time  = strtol(ini_parser_get_value(parser, "sleep_time"), NULL, 10); // Time slept between two camera updates (in ms)
+	this->poll_data	  = strtol(ini_parser_get_value(parser, "poll_data"), NULL, 10); // Retrieve data from client every X loops
+	this->mouse_range_max = atof(ini_parser_get_value(parser, "mouse_range_max"));
+	this->dest_range_max  = atof(ini_parser_get_value(parser, "dest_range_max"));
+	this->mouse_dest_range_max  = atof(ini_parser_get_value(parser, "mouse_dest_range_max"));
+
+	// Addresses - Input checking
+	struct AddrStr { DWORD addr; char *str; } tabAddr [] = {
+
+        { .addr = this->shop_is_opened_addr,.str = "shop_is_opened_addr" },//	That kirby has been watching for me since the beggining of the project, it deserves its place in the source code :)
+        { .addr = this->respawn_reset_addr, .str = "respawn_reset_addr" }, //                  ██████████            ,---------------------.
+        { .addr = this->border_screen_addr, .str = "border_screen_addr" }, //              ████░░      ░░████        |  imgur.com/74bnbGP  |
+        { .addr = this->champx_addr,        .str = "champion_posx_addr" }, //            ██░░              ░░██      \____________  _______/
+        { .addr = this->champy_addr,        .str = "champion_posy_addr" }, //          ██                    ░░██                 |/
+        { .addr = this->mouse_screen_addr,  .str = "mouse_screen_addr" },  //        ██              ██  ██  ░░██                 `
+                                                                           //      ██░░              ██  ██      ██
+        { .addr = this->camx_addr,          .str = "camera_posx_addr" },   //      ██                ██  ██      ██
+        { .addr = this->camy_addr,          .str = "camera_posy_addr" },   //      ██          ░░░░        ░░░░  ██
+        { .addr = this->allies_cam_addr[0], .str = "allies_cam_addr0" },   //      ██░░    ░░                ░░  ██
+        { .addr = this->allies_cam_addr[1], .str = "allies_cam_addr1" },   //        ██░░  ██        ██      ██░░██
+        { .addr = this->mousex_addr,        .str = "mouse_posx_addr" },    //          ████░░              ░░████
+        { .addr = this->mousey_addr,        .str = "mouse_posy_addr" },    //            ████░░░░        ░░████
+        { .addr = this->destx_addr,         .str = "dest_posx_addr" },     //          ██░░░░██████████████░░░░██
+        { .addr = this->desty_addr,         .str = "dest_posy_addr" },     //        ██░░░░░░░░░░████████░░░░░░░░██
+        { .addr = this->self_cam_addr,      .str = "self_cam_addr" },      //          ██████████        ████████
+        { .addr = this->entities_addr,      .str = "entities_addr" },      //
+	};
+
+	for (int i = 0; i < sizeof(tabAddr) / sizeof(struct AddrStr); i++)
+		if (!tabAddr[i].addr)
+			warning("\"%*s\" cannot be read in .ini file", 30 - strlen(tabAddr[i].str), tabAddr[i].str);
+
+	// Settings - Input checking
+	struct SettingVal {
+		union {float *f; int *i;} p;
+		union {float  f; int  i;} v;
+	} tabSet [] = {
+		// If the settings is not found in the .ini, set the value to its default value :
+		{ .p.i = &this->sleep_time,	.v.i = 1.0},
+		{ .p.i = &this->poll_data,	.v.i = 5.0}
+	};
+
+	for (int i = 0; i < sizeof(tabSet) / sizeof(struct SettingVal); i++)
+	{
+		if (*(tabSet[i].p.i) == 0)
+			(*tabSet[i].p.i) = tabSet[i].v.i;
+	}
+
+	// Cleaning
+	ini_parser_free(parser);
 }
 
 inline Camera *camera_get_instance ()
