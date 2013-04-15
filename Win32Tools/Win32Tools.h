@@ -26,12 +26,15 @@
 	(pNTHdr->OptionalHeader.DataDirectory[IDE].VirtualAddress)
 
 #define warning(msg, ...) \
-	do {_warning("(%s)" msg, __FUNCTION__, ##__VA_ARGS__);} while(0)
+	do {_warning("[?] (%s) " msg "\n", __FUNCTION__, ##__VA_ARGS__);} while(0)
 
 #define error(msg, ...) \
-	do {_error("(%s)" msg, __FUNCTION__, ##__VA_ARGS__);} while(0)
+	do {_error("[!] (%s) " msg "\n", __FUNCTION__, ##__VA_ARGS__);} while(0)
 
 #define info(msg, ...) \
+	do {_info("[+] " msg "\n", ##__VA_ARGS__);} while(0)
+
+#define infob(msg, ...) \
 	do {_info(msg, ##__VA_ARGS__);} while(0)
 
 

@@ -32,6 +32,7 @@ struct _Camera
 	// From .ini
 	DWORD border_screen_addr;		// Address of the instructions moving the camera
 	DWORD respawn_reset_addr;		// Address of the instructions when the camera resets when the champion respawns
+	DWORD locked_camera_addr;		// Address of the instructions moving the camera when camera mode is active
 	DWORD allies_cam_addr[2];		// Address of the instructions moving the camera when you press F2-3-4-5
 	DWORD self_cam_addr;			// Address of the instructions moving the camera when you press F1
 
@@ -59,6 +60,7 @@ struct _Camera
 	Patch *F2345_pressed[2];		// Disables the behavior "Center the camera on the ally X when FX is pressed"
 	Patch *border_screen;			// Disables the behavior "Move the camera when the mouse is near the screen border"
 	Patch *respawn_reset;			// Disables the behavior "Center the camera on the champion when you respawn"
+	Patch *locked_camera;			// Disables the behavior "Center the camera on the champion when locked camera mode is active"
 
 	// Entities
 	Entity *champions[5];			// Current played champion + 4 allies - NULL if doesn't exist

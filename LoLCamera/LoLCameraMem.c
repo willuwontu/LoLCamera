@@ -81,6 +81,52 @@ void camera_scan_patch ()
 			"xxxxxxxx"
 	);
 
+	this->locked_camera = camera_get_patch (
+
+		this->mp, "Center the camera on the champion when you are in locked camera mode",
+		&this->locked_camera_addr,
+
+		/*	00A37AAC  ║·▼ 74 39                jz short League_of_Legends.00A37AE7
+			00A37AAE  ║·  F30F1040 6C          movss xmm0, [dword ds:eax+6C]                                 ; float 0.0
+			00A37AB3  ║·  F30F1105 3C71DF03    movss [dword ds:League_of_Legends.CameraX], xmm0              ; float 0.0, 0.0, 0.0, 0.0
+			00A37ABB  ║·  F30F1040 70          movss xmm0, [dword ds:eax+70]                                 ; float 0.0, 0.0, 0.0, 0.0
+			00A37AC0  ║·  F30F1105 4071DF03    movss [dword ds:League_of_Legends.3DF7140], xmm0              ; float 0.0, 0.0, 0.0, 0.0
+			00A37AC8  ║·  F30F1040 74          movss xmm0, [dword ds:eax+74]                                 ; float 0.0, 0.0, 0.0, 0.0
+			00A37ACD  ║·  F30F1105 4471DF03    movss [dword ds:League_of_Legends.CameraY], xmm0              ; float 0.0, 0.0, 0.0, 0.0
+		*/
+		(unsigned char []) {
+			0x74,0x39,
+			0xF3,0x0F,0x10,0x40,0x6C,
+			0xF3,0x0F,0x11,0x05,0x3C,0x71,0xDF,0x03,
+			0xF3,0x0F,0x10,0x40,0x70,
+			0xF3,0x0F,0x11,0x05,0x40,0x71,0xDF,0x03,
+			0xF3,0x0F,0x10,0x40,0x74,
+			0xF3,0x0F,0x11,0x05,0x44,0x71,0xDF,0x03
+		},	"xx"
+			"xxxxx"
+			"xxxx????"
+			"xxxxx"
+			"xxxx????"
+			"xxxxx"
+			"xxxx????",
+
+		(unsigned char []) {
+			0x90,0x90,								    // xx
+			0x90,0x90,0x90,0x90,0x90,					// xxxxx
+			0x90,0x90,0x90,0x90,0x90,0x90,0x90,0x90, 	// xxxxxxxx
+			0x90,0x90,0x90,0x90,0x90,					// xxxxx
+			0x90,0x90,0x90,0x90,0x90,0x90,0x90,0x90, 	// xxxxxxxx
+			0x90,0x90,0x90,0x90,0x90,				 	// xxxxx
+			0x90,0x90,0x90,0x90,0x90,0x90,0x90,0x90, 	// xxxxxxxx
+		},	"??"
+			"?????"
+			"xxxxxxxx"
+			"xxxxx"
+			"xxxxxxxx"
+			"xxxxx"
+			"xxxxxxxx"
+	);
+
 	camera_get_patches (this->F2345_pressed, 2,
 
 		this->mp, "Center the camera on the ally X when FX is pressed",
@@ -214,7 +260,7 @@ static void camera_get_patches (Patch **patches, int size, MemProc *mp, char *de
 static void camera_search_signature (unsigned char *pattern, DWORD *addr, char *mask, char *name)
 {
 	Camera *this = camera_get_instance();
-	info("Looking for \"%s\" ...", name);
+	infob("Looking for \"%s\" ...", name);
 
 	memproc_search(this->mp, pattern, mask, NULL, SEARCH_TYPE_BYTES);
 	BbQueue *results = memproc_get_res(this->mp);
@@ -227,7 +273,7 @@ static void camera_search_signature (unsigned char *pattern, DWORD *addr, char *
 
 	if (bb_queue_get_length(results) > 1)
 	{
-		warning("Multiple occurences of %s found (%d found) :", name, bb_queue_get_length(results));
+		warning("Multiple occurences of \"%s\" found (%d found) :", name, bb_queue_get_length(results));
 
 		foreach_bbqueue_item (results, memblock) {
 			printf(" -> 0x%.8x\n", (int) memblock->addr);
@@ -236,6 +282,7 @@ static void camera_search_signature (unsigned char *pattern, DWORD *addr, char *
 
 	memblock = bb_queue_pick_first(results);
 	*addr = memblock->addr;
+	printf(" -> 0x%.8x\n", (int) memblock->addr);
 
 	bb_queue_free_all(results, memblock_free);
 }
@@ -243,7 +290,7 @@ static void camera_search_signature (unsigned char *pattern, DWORD *addr, char *
 static BbQueue *camera_search_signatures (unsigned char *pattern, char *mask, char *name, DWORD **addr, int size)
 {
 	Camera *this = camera_get_instance();
-	info("Looking for \"%s\" ...", name);
+	infob("Looking for \"%s\" ...", name);
 
 	memproc_search(this->mp, pattern, mask, NULL, SEARCH_TYPE_BYTES);
 	BbQueue *addresses = bb_queue_new();
@@ -277,10 +324,15 @@ static BbQueue *camera_search_signatures (unsigned char *pattern, char *mask, ch
 
 	int loop = 0;
 
+	printf(" ->");
+
 	foreach_bbqueue_item (results, memblock) {
 		bb_queue_add_raw(addresses, memblock->addr);
 		*(addr[loop++]) = memblock->addr;
+		printf(" 0x%.8x -", (int) memblock->addr);
 	}
+
+	printf("\n");
 
 	bb_queue_free_all(results, memblock_free);
 

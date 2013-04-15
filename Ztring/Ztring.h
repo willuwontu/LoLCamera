@@ -76,7 +76,7 @@ struct _File
 	* * * * * * * * * */
 
 Ztring *
-ztring_new			  (void);
+ztring_new			  	(void);
 
 Ztring *
 ztring_new_with_text	(char *text);
@@ -90,19 +90,19 @@ void
 ztring_concat_letter	(Ztring *z, unsigned char c);
 
 char *
-ztring_get_text		 (Ztring *z);
+ztring_get_text		 	(Ztring *z);
 
 void
 ztring_get_text_buffer 	(Ztring *z, char *buffer, int maxsize);
 
 void
-ztring_concat		   (Ztring *z, char *text);
+ztring_concat		   	(Ztring *z, char *text);
 
 void
 ztring_concat_letter_nth (Ztring *z, char c, int nth);
 
 void
-ztring_concat_nth	   (Ztring *z, char *text, int nth);
+ztring_concat_nth	   	(Ztring *z, char *text, int nth);
 
 void
 ztring_concat_ztring	(Ztring *ztr1, Ztring *ztr2);
@@ -111,11 +111,13 @@ void
 ztring_concat_ztring_nth (Ztring *ztr1, Ztring *ztr2, int nth);
 
 void
-ztring_print_text	   (Ztring *z);
+ztring_print_text	   	(Ztring *z);
 
 int
-ztring_get_len		  (Ztring *z);
+ztring_get_len		  	(Ztring *z);
 
+void
+ztr_debug				(Ztring *z);
 /* * String * */
 char *
 str_repeat (char *repeat_pattern, int n);
@@ -157,7 +159,7 @@ void
 str_debug			   (const char *str);
 
 void
-str_debug_len		   (const char *str, int len);
+str_debug_len		   (const unsigned char *str, int len);
 
 char *
 str_bet				 (const char *str, const char *start, const char *end);

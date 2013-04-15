@@ -998,13 +998,46 @@ str_repeat (char *repeat_pattern, int n)
 }
 
 void
-str_debug_len (const char *str, int len)
+str_debug_len (const unsigned char *str, int len)
 {
-	int i;
-	for (i = 0; i < len; i++)
+	printf("String debug Data :\n");
+
+	for (int i = 0; i < len; i++)
 	{
-		printf("(%d)[%x] = [%c]\n", i, str[i], str[i]);
+		printf("%c", str[i]);
 	}
+
+	printf("\n");
+
+	for (int i = 0; i < len; i++)
+	{
+		printf("%4c ", str[i]);
+	}
+
+	printf("\n");
+
+	for (int i = 0; i < len; i++)
+	{
+		printf("%4d ", str[i]);
+	}
+
+	printf("\n");
+
+	for (int i = 0; i < len; i++)
+	{
+		printf("%4d ", i);
+	}
+
+	printf("\n");
+}
+
+void
+ztr_debug (Ztring *z)
+{
+	char buffer[bb_queue_get_length(z->_text) + 1];
+	ztring_get_text_buffer(z, buffer, -1);
+
+	str_debug_len(buffer, ztring_get_len(z));
 }
 
 void

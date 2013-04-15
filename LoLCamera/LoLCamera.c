@@ -25,6 +25,7 @@ static BOOL camera_is_enabled ()
 		patch_set_active(this->F2345_pressed[0], this->enabled);
 		patch_set_active(this->F2345_pressed[1], this->enabled);
 		patch_set_active(this->respawn_reset, this->enabled);
+		patch_set_active(this->locked_camera, this->enabled);
 	}
 
 	// Disable when space is pressed
@@ -133,6 +134,7 @@ void camera_init (MemProc *mp)
 	patch_set_active(this->F2345_pressed[0], TRUE);
 	patch_set_active(this->F2345_pressed[1], TRUE);
 	patch_set_active(this->respawn_reset, TRUE);
+	patch_set_active(this->locked_camera, TRUE);
 
 	this->active = TRUE;
 }
@@ -306,6 +308,7 @@ void camera_load_ini ()
 	this->mouse_range_max = atof(ini_parser_get_value(parser, "mouse_range_max"));
 	this->dest_range_max  = atof(ini_parser_get_value(parser, "dest_range_max"));
 	this->mouse_dest_range_max  = atof(ini_parser_get_value(parser, "mouse_dest_range_max"));
+	this->locked_camera_addr  = atof(ini_parser_get_value(parser, "locked_camera_addr"));
 
 	// Addresses - Input checking
 	struct AddrStr { DWORD addr; char *str; } tabAddr [] = {
@@ -367,5 +370,6 @@ void camera_unload ()
 		patch_set_active(this->F2345_pressed[0], FALSE);
 		patch_set_active(this->F2345_pressed[1], FALSE);
 		patch_set_active(this->respawn_reset, FALSE);
+		patch_set_active(this->locked_camera, FALSE);
 	}
 }
