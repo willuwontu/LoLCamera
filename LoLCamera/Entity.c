@@ -45,6 +45,18 @@ entity_refresh (Entity *e)
 	return (!(e->v.x == 0.0 && e->v.y == 0.0));
 }
 
+inline BOOL
+entity_is_dead (Entity *e)
+{
+	return e->hp == 0 && e->hp_max != 0;
+}
+
+inline BOOL
+entity_is_alive (Entity *e)
+{
+	return e->hp != 0 && e->hp_max != 0;
+}
+
 void
 entity_debug (Entity *e)
 {

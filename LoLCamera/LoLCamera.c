@@ -39,6 +39,7 @@ static BOOL camera_is_enabled ()
 		space_pressed = TRUE;
 		return 0;
 	}
+
 	else if (space_pressed == TRUE) // on release
 	{
 		this->request_polling = TRUE;

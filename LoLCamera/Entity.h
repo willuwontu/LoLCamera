@@ -36,6 +36,11 @@ entity_new (MemProc *mp, DWORD addr);
 
 // ----------- Methods ------------
 
+inline BOOL
+entity_is_dead (Entity *e);
+
+inline BOOL
+entity_is_alive (Entity *e);
 
 int
 entity_refresh (Entity *e);
