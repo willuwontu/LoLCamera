@@ -185,6 +185,12 @@ memproc_search (MemProc *mp, unsigned char *pattern, char *mask, void (*pre_sear
 	int total;
 	int loop = 1;
 
+	if (mp->memchunks == NULL)
+	{
+		warning("No memchunks stored, you must call %s() first", str_make_macro(memproc_dump));
+		return;
+	}
+
 	mp->mask_len = strlen(mask);
 
 	foreach_bbqueue_item (mp->memchunks, mc)

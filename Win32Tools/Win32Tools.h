@@ -35,7 +35,7 @@
 	do {_info("[+] " msg "\n", ##__VA_ARGS__);} while(0)
 
 #define infob(msg, ...) \
-	do {_info(msg, ##__VA_ARGS__);} while(0)
+	do {_info("[+] " msg, ##__VA_ARGS__);} while(0)
 
 
 #define PUSH_POS 	0
@@ -189,7 +189,7 @@ screen_capture (int x, int y, int width, int height, char *filename);
 void
 debug_mask_pattern (char *mask, unsigned char *pattern);
 
-void
+int
 read_from_memory (HANDLE process, unsigned char *buffer, DWORD addr, unsigned int size);
 
 int

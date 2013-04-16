@@ -13,6 +13,7 @@
 #include "../Vector/Vector2D.h"
 #include "../MemPos/MemPos.h"
 #include "../Patcher/Patcher.h"
+#include "../Scanner/Scanner.h"
 
 #include "./Entity.h"
 
@@ -36,7 +37,7 @@ struct _Camera
 	DWORD allies_cam_addr[2];		// Address of the instructions moving the camera when you press F2-3-4-5
 	DWORD self_cam_addr;			// Address of the instructions moving the camera when you press F1
 
-	DWORD shop_is_opened_addr;		// Address of the data : pointer to the variable containing "isShopOpen" (different of 0 if its the case)
+	DWORD shop_is_opened_ptr;		// Address of the data : address of the pointer to the variable containing "isShopOpen" (different of 0 if its the case)
 	DWORD entities_addr;			// Address of the data : entities array
 	DWORD camx_addr, camy_addr; 	// Address of the data : cameraX, cameray
 	DWORD champx_addr, champy_addr;	// Address of the data : championX / championY
@@ -44,6 +45,7 @@ struct _Camera
 	DWORD destx_addr, desty_addr;   // Address of the data : destX / destY (right click)
 	DWORD mouse_screen_ptr;			// Address of the pointer to the pointer to the structure containing mouseScreenX/Y
 	DWORD mouse_screen_addr;		// Address of the pointer to the structure containing mouseScreenX/Y
+	DWORD shop_is_opened_addr;		// Address of the data : address of the variable containing "isShopOpen" (different of 0 if its the case)
 
 	float lerp_rate;				// This controls smoothing, smaller values mean slower camera movement
 	float threshold;				// Minimum threshold before calculations halted because camera is "close enough"
@@ -72,6 +74,8 @@ struct _Camera
 	MemPos *dest;					// Right click position
 	MemPos *mouse_screen;			// Mouse screen position
 
+	BOOL shop_opened;
+
 	BOOL enabled;
 };
 
@@ -90,8 +94,10 @@ Camera *camera_get_instance ();
 // from LoLCameraMem.c
 void camera_scan_champions ();
 void camera_scan_patch ();
-void camera_scan_mouse_screen ();
-int camera_shop_is_opened ();
+BOOL camera_scan_mouse_screen ();
+BOOL camera_refresh_shop_is_opened ();
+BOOL camera_scan_shop_is_opened ();
+
 
 
 // --------- Destructors ----------

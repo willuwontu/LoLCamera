@@ -33,6 +33,9 @@ entity_refresh (Entity *e)
 
 	DWORD entity_data = read_memory_as_int(e->ctxt->proc, e->addr);
 
+	if (!entity_data)
+		return 0;
+
 	vector2D_set_pos (
 		&e->v,
 		read_memory_as_float(e->ctxt->proc, entity_data + EOFF_POSX),

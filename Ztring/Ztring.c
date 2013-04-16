@@ -80,6 +80,30 @@ ztring_new (void)
 	return z;
 }
 
+Buffer *
+buffer_new (int size)
+{
+	Buffer *b;
+
+	if ((b = malloc(sizeof(Buffer))) == NULL)
+		return NULL;
+
+	b->size = size;
+	b->data = malloc(size);
+
+	return b;
+}
+
+Buffer *
+buffer_new_ptr (unsigned char *ptr, int size)
+{
+	Buffer *b = buffer_new(size);
+	memcpy(b->data, ptr, size);
+
+	return b;
+}
+
+
 Ztring *
 ztring_new_with_text (char *text)
 {
@@ -105,7 +129,7 @@ ztring_print_text (Ztring *z)
 void
 ztring_concat_letter (Ztring *z, unsigned char c)
 {
-	bb_queue_add (z->_text, (void*) (int) c);
+	bb_queue_add_raw (z->_text, (void *) (int) c);
 }
 
 void
@@ -156,11 +180,25 @@ ztring_get_text(Ztring *z)
 	char *text = malloc(bb_queue_get_length(z->_text) + 1);
 	int index = 0;
 
-	BbChild *c = NULL;
-
-	foreach_bbqueue(z->_text, c)
+	foreach_bbqueue_item_raw (z->_text, char c)
 	{
-		text[index++] = (int)(c->data);
+		text[index++] = c;
+	}
+
+	text[index] = '\0';
+
+	return text;
+}
+
+char *
+ztring_get_text_reversed (Ztring *z)
+{
+	char *text = malloc(bb_queue_get_length(z->_text) + 1);
+	int index = 0;
+
+	foreach_bbqueue_item_reversed_raw (z->_text, char c)
+	{
+		text[index++] = c;
 	}
 
 	text[index] = '\0';
@@ -172,9 +210,8 @@ void
 ztring_get_text_buffer (Ztring *z, char *buffer, int maxsize)
 {
 	int index = 0;
-	void *c;
 
-	foreach_bbqueue_item (z->_text, c)
+	foreach_bbqueue_item (z->_text, void *c)
 	{
 		if (index < maxsize)
 			buffer[index++] = (char)(int) c;
@@ -1018,7 +1055,7 @@ str_debug_len (const unsigned char *str, int len)
 
 	for (int i = 0; i < len; i++)
 	{
-		printf("%4d ", str[i]);
+		printf("%4.2x ", str[i]);
 	}
 
 	printf("\n");
@@ -1032,12 +1069,11 @@ str_debug_len (const unsigned char *str, int len)
 }
 
 void
-ztr_debug (Ztring *z)
+ztring_debug (Ztring *z)
 {
-	char buffer[bb_queue_get_length(z->_text) + 1];
-	ztring_get_text_buffer(z, buffer, -1);
-
+	char *buffer = ztring_get_text(z);
 	str_debug_len(buffer, ztring_get_len(z));
+	free(buffer);
 }
 
 void
@@ -1049,12 +1085,21 @@ ztring_clear(Ztring *z)
 	}
 }
 
+char *
+ztring_release (Ztring *z)
+{
+	char *str = ztring_get_text(z);
+	ztring_free(z);
+	return str;
+}
+
+
 void
 ztring_free (Ztring *z)
 {
 	if (z != NULL)
 	{
-		bb_queue_free_all(z->_text, free);
+		bb_queue_clear(z->_text);
 		free(z);
 	}
 }

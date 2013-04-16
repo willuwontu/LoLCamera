@@ -23,7 +23,7 @@ patch_new (char *description, MemProc *mp, DWORD addr, unsigned char *signature,
 
 	bb_queue_add(patch_list, p);
 
-	// init
+	// Init
 	p->active = FALSE;
 	p->addr = addr;
 	p->patch = patch;
@@ -50,7 +50,7 @@ patch_set_active (Patch *p, BOOL active)
 
 	if (!p->addr)
 	{
-		warning("Patch \"%s\" is not possible", p->description);
+		warning("%sPatch \"%s\" is not possible", (active) ? "" : "Un", p->description);
 		return;
 	}
 

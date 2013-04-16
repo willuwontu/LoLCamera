@@ -104,11 +104,11 @@
 #define bb_queue_pick_last_child(q)	 ((q)->last)
 #define bb_queue_pick_first_child(q)	((q)->first)
 
-#define break_foreach					   \
+#define break_foreach					   	\
 do {										\
-	__child_foreach = (BbChild *) -1;	   \
-	continue;							   \
-} while (0)								 \
+	__child_foreach = (BbChild *) -1;	   	\
+	continue;							   	\
+} while (0)								   	\
 
 #define foreach_bbqueue(queue, child)			   	\
 	for (										   	\
@@ -128,7 +128,7 @@ do {										\
 		__bb_loop = (BbChild*)0								 \
 	)														   \
 		for (												   \
-			(item) = __child_foreach->data;						\
+			item = __child_foreach->data;						\
 			__bb_loop != (BbChild*) 1;						  \
 			__bb_loop = (BbChild*) 1							\
 		)													   \
@@ -143,7 +143,7 @@ do {										\
 		__bb_loop = (BbChild*)0								 \
 	)														   \
 		for (												   \
-			(item) = (int) __child_foreach->data;				\
+			item = (int) __child_foreach->data;				\
 			__bb_loop != (BbChild*) 1;						  \
 			__bb_loop = (BbChild*) 1							\
 		)													   \
@@ -158,10 +158,27 @@ do {										\
 		__bb_loop = (BbChild*)0								 \
 	)														   \
 		for (												   \
-			(item) = __child_foreach->data;					 \
+			item = __child_foreach->data;					 \
 			__bb_loop != (BbChild*) 1;						  \
 			__bb_loop = (BbChild*) 1							\
 		)													   \
+
+
+#define foreach_bbqueue_item_reversed_raw(queue, item)			\
+	for (													   	\
+		BbChild *__child_foreach = (queue)->last,				\
+		*__bb_loop = 0;										 	\
+		__child_foreach != NULL;								\
+		__child_foreach = (__child_foreach != (BbChild *)-1) ?  \
+		 __child_foreach->prev : NULL,						  	\
+		__bb_loop = (BbChild*)0								 	\
+	)														   	\
+		for (												   	\
+			item = (int) __child_foreach->data;			 	\
+			__bb_loop != (BbChild*) 1;						  	\
+			__bb_loop = (BbChild*) 1							\
+		)													   	\
+
 
 #define bb_queue_add_array(queue, data, count)	  	\
 do {													\

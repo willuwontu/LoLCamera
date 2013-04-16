@@ -34,7 +34,7 @@ get_pid_by_name (char *proc_name)
 	return dwPID;
 }
 
-void
+int
 read_from_memory (HANDLE process, unsigned char *buffer, DWORD addr, unsigned int size)
 {
 	unsigned int bytes_left = size;
@@ -42,12 +42,18 @@ read_from_memory (HANDLE process, unsigned char *buffer, DWORD addr, unsigned in
 	unsigned int total_read = 0;
 	static unsigned char tempbuf[128*1024];
 	DWORD bytes_read;
+	int res = 0;
 
 	while (bytes_left)
 	{
 		bytes_to_read = (bytes_left > sizeof(tempbuf)) ? sizeof(tempbuf) : bytes_left;
 
-		ReadProcessMemory(process, (LPCVOID) addr + total_read, tempbuf, bytes_to_read, &bytes_read);
+		if (!ReadProcessMemory(process, (LPCVOID) addr + total_read, tempbuf, bytes_to_read, &bytes_read))
+		{
+			res = GetLastError();
+			if (res != ERROR_PARTIAL_COPY)
+				warning("> GetLastError() = %d (http://msdn.microsoft.com/en-us/library/windows/desktop/ms681382%28v=vs.85%29.aspx)", res);
+		}
 
 		if (bytes_read != bytes_to_read)
 			break;
@@ -57,6 +63,8 @@ read_from_memory (HANDLE process, unsigned char *buffer, DWORD addr, unsigned in
 		bytes_left -= bytes_read;
 		total_read += bytes_read;
 	}
+
+	return res;
 }
 
 int
@@ -66,7 +74,7 @@ write_to_memory (HANDLE process, unsigned char *buffer, DWORD addr, unsigned int
 
 	if (!WriteProcessMemory(process, (PVOID) addr, buffer, size, &bytes_read))
 	{
-		warning("WriteProcessMemory failed.");
+		warning("WriteProcessMemory failed. (0x%.8x -> 0x%.8x)", addr, addr + size);
 		return 0;
 	}
 
@@ -355,7 +363,7 @@ read_memory_as_int (HANDLE process, DWORD address)
 
 	if (!ReadProcessMemory(process, (PVOID) address, buffer, 4, &bytes_read))
 	{
-		warning("ReadProcessMemory failed.");
+		warning("ReadProcessMemory failed. (0x%.8x)", address);
 		return 0;
 	}
 
@@ -372,7 +380,7 @@ write_memory_as_int (HANDLE process, DWORD address, unsigned int value)
 
 	if (!WriteProcessMemory(process, (PVOID) address, buffer, 4, &bytes_read))
 	{
-		warning("WriteProcessMemory failed.");
+		warning("WriteProcessMemory failed. (0x%.8x)", address);
 		return 0;
 	}
 
@@ -404,7 +412,7 @@ write_memory_as_float (HANDLE process, DWORD address, float value)
 
 	if (!WriteProcessMemory(process, (PVOID) address, buffer, sizeof(float), &bytes_read))
 	{
-		warning("WriteProcessMemory failed.");
+		warning("WriteProcessMemory failed. (0x%.8x)", address);
 		return 0;
 	}
 
@@ -458,13 +466,11 @@ get_path_from_process (HANDLE process, char *buffer)
 	return 1;
 }
 
-
-int
+EXPORT_FUNCTION int
 bytes_to_int32 (unsigned char *bytes)
 {
 	return (((bytes[0] | (bytes[1] << 8)) | (bytes[2] << 0x10)) | (bytes[3] << 0x18));
 }
-
 
 int
 is_win_nt (void)
@@ -476,7 +482,7 @@ is_win_nt (void)
 	return (osv.dwPlatformId == VER_PLATFORM_WIN32_NT);
 }
 
-float
+EXPORT_FUNCTION float
 bytes_to_float (unsigned char *bytes)
 {
 	float res;

@@ -47,8 +47,6 @@ mempos_refresh (MemPos *p)
 		read_memory_as_float(p->ctxt->proc, p->addrX),
 		read_memory_as_float(p->ctxt->proc, p->addrY)
 	);
-
-
 	return (!(p->v.x == 0.0 && p->v.y == 0.0));
 }
 
@@ -61,7 +59,10 @@ mempos_int_refresh (MemPos *p)
 		read_memory_as_int(p->ctxt->proc, p->addrY)
 	);
 
-	return (!(p->v.x == 0 && p->v.y == 0));
+	if (p->v.x == 0 && p->v.y == 0)
+		return FALSE;
+
+	return TRUE;
 }
 
 void

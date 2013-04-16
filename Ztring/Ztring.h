@@ -62,6 +62,13 @@ struct _Ztring
 }	Ztring;
 
 typedef
+struct _Buffer
+{
+	int size;
+	unsigned char *data;
+}	Buffer;
+
+typedef
 struct _File
 {
 	char *data;
@@ -81,9 +88,18 @@ ztring_new			  	(void);
 Ztring *
 ztring_new_with_text	(char *text);
 
+Buffer *
+buffer_new (int size);
+
+Buffer *
+buffer_new_ptr (unsigned char *ptr, int size);
+
+
 	/** * * * * * * * *
 	*	 @Methods	*
 	* * * * * * * * * */
+/* * Buffer * */
+
 
 /* * Ztring * */
 void
@@ -91,6 +107,9 @@ ztring_concat_letter	(Ztring *z, unsigned char c);
 
 char *
 ztring_get_text		 	(Ztring *z);
+
+char *
+ztring_get_text_reversed (Ztring *z);
 
 void
 ztring_get_text_buffer 	(Ztring *z, char *buffer, int maxsize);
@@ -117,7 +136,7 @@ int
 ztring_get_len		  	(Ztring *z);
 
 void
-ztr_debug				(Ztring *z);
+ztring_debug			(Ztring *z);
 /* * String * */
 char *
 str_repeat (char *repeat_pattern, int n);
@@ -226,6 +245,8 @@ ztring_free	 (Ztring *z);
 void
 ztring_clear	(Ztring *z);
 
+char *
+ztring_release (Ztring *z);
 
 
 #endif

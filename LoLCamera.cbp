@@ -71,6 +71,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="Patcher\Patcher.h" />
+		<Unit filename="Scanner\Scanner.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Scanner\Scanner.h" />
 		<Unit filename="Vector\Vector2D.c">
 			<Option compilerVar="CC" />
 		</Unit>
