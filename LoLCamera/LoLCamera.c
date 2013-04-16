@@ -6,12 +6,16 @@
 // Singleton
 static Camera *this = NULL;
 
-static BOOL camera_is_enabled ()
+typedef enum {
+    Normal,
+    CenterCam,
+    NoMove,
+    NoUpdate
+} CameraTrackingMode;
+
+static CameraTrackingMode camera_is_enabled ()
 {
 	static short last_toggle_state = 0;
-	static BOOL space_pressed = FALSE;
-	// static BOOL left_button_pressed = FALSE;
-	static BOOL middle_button_pressed = FALSE;
 
 	// listen for toggle key
 	short new_toggle_state = GetKeyState(TOGGLE_KEY);
@@ -30,50 +34,28 @@ static BOOL camera_is_enabled ()
 
 	// Disable when space is pressed
 	if (GetKeyState(VK_SPACE) < 0 || (GetKeyState(VK_F1) < 0))
-	{
-		/*	BUGFIX:
-		*	bug :	When space (or F1) is kept pressed, LoLCamera saves the last camera position (before it gets centered on the champion)
-		*		  	When space (or F1) is released, the camera returns in the last position saved -> weird camera moves
-		*	fix :	request polling data for the next loop, so the data saved are synchronized with the new camera
-		*/
-		space_pressed = TRUE;
-		return 0;
-	}
-
-	else if (space_pressed == TRUE) // on release
-	{
-		this->request_polling = TRUE;
-		space_pressed = FALSE;
-	}
+    {
+        this->request_polling = TRUE;
+        return CenterCam;
+    }
 
 	// to allow minimap navigation, also disabled if LMB is down
 	if (GetKeyState(VK_LBUTTON) < 0)
-		return 0;
+		return NoMove;
 
 	//
 	if (GetKeyState(VK_MBUTTON) < 0)
-	{
-		if (!middle_button_pressed) {
-			middle_button_pressed = TRUE;
-		}
-
-		return 0;
-	}
-	else
-	{
-		if (middle_button_pressed) {
-		}
-
-		middle_button_pressed = FALSE;
-	}
+        return NoMove;
 
 	// Disable camera when shop opened
-	if (this->shop_opened) {
-		return 0;
-	}
+	if (this->shop_opened)
+        return NoMove;
 
 	// skip the next loop if not enabled
-	return this->enabled;
+	if (!this->enabled)
+        return NoUpdate;
+
+    return Normal;
 }
 
 void camera_init (MemProc *mp)
@@ -228,11 +210,9 @@ void camera_main ()
 		Sleep(this->sleep_time);
 
 		// Check if enabled
-		if (!camera_is_enabled())
-			continue;
+		CameraTrackingMode camera_mode = camera_is_enabled();
 
-		 // Retrieve the positions from the client
-		if (!camera_update())
+		if (camera_mode == NoUpdate || !camera_update())
 			continue;
 
         float distance_mouse_champ = vector2D_distance(&this->mouse->v, &this->champ->v);
@@ -276,15 +256,23 @@ void camera_main ()
                 target.y -= distance_mouse_champ / 10.0; // <-- 10.0 is an arbitrary value
         }
 
-		// Smoothing
+        // Smoothing
 		if (abs(target.x - this->cam->v.x) > this->threshold)
 			this->cam->v.x += (target.x - this->cam->v.x) * this->lerp_rate;
 
 		if (abs(target.y - this->cam->v.y) > this->threshold)
 			this->cam->v.y += (target.y - this->cam->v.y) * this->lerp_rate;
 
-		// Update the camera client
-		mempos_set(this->cam, this->cam->v.x, this->cam->v.y);
+        if (camera_mode == NoMove)
+            continue;
+
+        // update the ingame gamera position
+        if (camera_mode == CenterCam)
+        {
+            mempos_set(this->cam, this->champ->v.x, this->champ->v.y);
+        }
+        else
+            mempos_set(this->cam, this->cam->v.x, this->cam->v.y);
 	}
 }
 
