@@ -94,6 +94,9 @@ buffer_new (int size);
 Buffer *
 buffer_new_ptr (unsigned char *ptr, int size);
 
+Buffer *
+buffer_new_ptr_noalloc (unsigned char *ptr, int size);
+
 
 	/** * * * * * * * *
 	*	 @Methods	*
@@ -247,6 +250,9 @@ ztring_clear	(Ztring *z);
 
 char *
 ztring_release (Ztring *z);
+
+void
+buffer_free (Buffer *b);
 
 
 #endif

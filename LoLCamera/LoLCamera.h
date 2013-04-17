@@ -38,7 +38,8 @@ struct _Camera
 	DWORD self_cam_addr;			// Address of the instructions moving the camera when you press F1
 
 	DWORD shop_is_opened_ptr;		// Address of the data : address of the pointer to the variable containing "isShopOpen" (different of 0 if its the case)
-	DWORD entities_addr;			// Address of the data : entities array
+	DWORD entities_addr;			// Address of the data : entities array start
+	DWORD entities_addr_end;		// Address of the data : entities array end
 	DWORD camx_addr, camy_addr; 	// Address of the data : cameraX, cameray
 	DWORD champx_addr, champy_addr;	// Address of the data : championX / championY
 	DWORD mousex_addr, mousey_addr; // Address of the data : mouseX / mouseY
@@ -98,6 +99,8 @@ BOOL camera_scan_mouse_screen ();
 BOOL camera_refresh_shop_is_opened ();
 BOOL camera_scan_shop_is_opened ();
 
+
+void camera_scan_variables ();
 
 
 // --------- Destructors ----------

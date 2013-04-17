@@ -11,7 +11,7 @@ void camera_scan_patch ()
 
 	// Search for camera positionning instructions
 	info("------------------------------------------------------------------");
-	info("Looking for addresses ...");
+	info("Looking for patch addresses ...");
 
 	this->border_screen = camera_get_patch (
 
@@ -155,6 +155,109 @@ void camera_scan_patch ()
 			"xxx"
 			"xxx"
 	);
+}
+
+void camera_scan_campos ()
+{
+	Camera *this = camera_get_instance();
+	char *description = "CameraX/CameraY";
+
+	BbQueue *res = memscan_search(this->mp, description,
+		(unsigned char []) {
+		 /* 00A37E2A  ║·  F30F1115 <<3C71DF03>>	movss [dword ds:League_of_Legends.CameraX], xmm2	; float 450.0000  <-- CameraX
+			00A37E32  ║·  F30F110D 4071DF03		movss [dword ds:League_of_Legends.3DF7140], xmm1	; float 0.0
+			00A37E3A  ║·  F30F1105 <<4471DF03>>	movss [dword ds:League_of_Legends.CameraY], xmm0	; float 3897.000  <-- CameraY
+		*/
+			0xF3,0x0F,0x11,0x15,0x3C,0x71,0xDF,0x03,
+			0xF3,0x0F,0x11,0x0D,0x40,0x71,0xDF,0x03,
+			0xF3,0x0F,0x11,0x05,0x44,0x71,0xDF,0x03
+		},	"xxxx????"
+			"xxxx????"
+			"xxxx????",
+
+			"xxxx????"
+			"xxxxxxxx"
+			"xxxx????"
+	);
+
+	if (!res)
+	{
+		warning("Cannot find %s address\nUsing the .ini value : 0x%.8x\n", description, this->entities_addr);
+		return;
+	}
+
+	Buffer *cameraX = bb_queue_pick_first(res);
+	Buffer *cameraY = bb_queue_pick_last(res);
+
+	DWORD camx_addr_ptr, camy_addr_ptr;
+	memcpy(&camx_addr_ptr, cameraX->data, sizeof(DWORD));
+	memcpy(&camy_addr_ptr, cameraY->data, sizeof(DWORD));
+
+	if (camx_addr_ptr != 0 && camy_addr_ptr != 0)
+	{
+		this->camx_addr = camx_addr_ptr - this->mp->base_addr;
+		this->camy_addr = camy_addr_ptr - this->mp->base_addr;
+	}
+	else
+		warning("Cannot find camera position");
+
+	bb_queue_free_all(res, buffer_free);
+}
+
+void camera_scan_entities_arr ()
+{
+	Camera *this = camera_get_instance();
+
+	BbQueue *res = memscan_search (this->mp, "eArrEnd/eArrStart",
+	/*
+		00A36FD1    57              		push edi
+		00A36FD2  ▼ 0F84 FA000000   		je League_Of_Legends.00A370D2
+		00A36FD8    8B0D <<<C0F3D802>>>   	mov ecx, [dword ds:League_Of_Legends.2D8F3C0]  <-- eArrEnd
+		00A36FDE    8B2D <<<BCF3D802>>>   	mov ebp, [dword ds:League_Of_Legends.2D8F3BC]  <-- eArrStart
+		00A36FE4    3BE9            		cmp ebp, ecx
+	*/
+			"\x57"
+			"\x0F\x84\xFA\x00\x00\x00"
+			"\x8B\x0D\xC0\xF3\xD8\x02"
+			"\x8B\x2D\xBC\xF3\xD8\x02"
+			"\x3B\xE9",
+
+			"x"
+			"xxxxxx"
+			"xx????"
+			"xx????"
+			"xx",
+
+			NULL // <-- request the same mask than search_mask
+	);
+
+	if (!res)
+	{
+		warning("Cannot find entities array address\nUsing the .ini value : 0x%.8x\n", this->entities_addr);
+		return;
+	}
+
+	Buffer *eArrEnd   = bb_queue_pick_first(res),
+		   *eArrStart = bb_queue_pick_last(res);
+
+	memcpy(&this->entities_addr, eArrStart->data, eArrStart->size);
+	memcpy(&this->entities_addr_end, eArrEnd->data, eArrEnd->size);
+
+	bb_queue_free_all(res, buffer_free);
+
+	if (!this->entities_addr)
+	{
+		warning("Cannot scan entities");
+		return;
+	}
+}
+
+void camera_scan_variables ()
+{
+	info("------------------------------------------------------------------");
+	info("Searching for variables address ...");
+	camera_scan_campos();
+	camera_scan_entities_arr();
 
 	info("------------------------------------------------------------------");
 }
@@ -162,68 +265,9 @@ void camera_scan_patch ()
 void camera_scan_champions ()
 {
 	Camera *this = camera_get_instance();
-	/*
-		00A36FD1    57              push edi
-		00A36FD2  ▼ 0F84 FA000000   je League_Of_Legends.00A370D2
-		00A36FD8    8B0D C0F3D802   mov ecx, [dword ds:League_Of_Legends.2D8F3C0]  <-- eArrEnd
-		00A36FDE    8B2D BCF3D802   mov ebp, [dword ds:League_Of_Legends.2D8F3BC]  <-- eArrStart
-		00A36FE4    3BE9            cmp ebp, ecx
-	*/
-	// Todo : sigscanner for entities_array
-	BbQueue *res;
-	{
-		res = memscan_search (
-			this->mp,
-		   &this->entities_addr,
-				"\x57"
-				"\x0F\x84\xFA\x00\x00\x00"
-				"\x8B\x0D\xC0\xF3\xD8\x02"
-				"\x8B\x2D\xBC\xF3\xD8\x02"
-				"\x3B\xE9",
-				"?"
-				"??????"
-				"??xxxx"
-				"??xxxx"
-				"??",
-				NULL
-		);
-
-		if (!res)
-		{
-			warning("Cannot find entities array address\nUsing the .ini value : 0x%.8x\n", this->entities_addr);
-			return;
-		}
-	}
-
-	DWORD addr_end;
-	{
-		Ztring *z1 = bb_queue_pick_nth(res, 1);
-		Ztring *z2 = bb_queue_pick_nth(res, 2);
-
-		Buffer eArrEnd = {
-			.size = ztring_get_len(z1),
-			.data = ztring_get_text(z1)
-		};
-
-		Buffer eArrStart = {
-			.size = ztring_get_len(z2),
-			.data = ztring_get_text(z2)
-		};
-
-		memcpy(&this->entities_addr, eArrStart.data, eArrStart.size);
-		memcpy(&addr_end, eArrEnd.data, eArrEnd.size);
-
-		bb_queue_free_all(res, ztring_free);
-	}
-
-	if (!this->entities_addr)
-	{
-		warning("Cannot scan entities");
-		return;
-	}
 
 	DWORD entity_ptr     = read_memory_as_int(this->mp->proc, this->entities_addr);
-	DWORD entity_ptr_end = read_memory_as_int(this->mp->proc, addr_end);
+	DWORD entity_ptr_end = read_memory_as_int(this->mp->proc, this->entities_addr_end);
 
 	for (int i = 0; entity_ptr != entity_ptr_end; entity_ptr+=4, i++)
 	{
@@ -240,6 +284,9 @@ void camera_scan_champions ()
 				i, e->v.x, e->v.y, e->hp, e->hp_max);
 		}
 	}
+
+
+	info("------------------------------------------------------------------");
 }
 
 BOOL camera_scan_mouse_screen ()

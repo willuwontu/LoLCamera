@@ -103,6 +103,30 @@ buffer_new_ptr (unsigned char *ptr, int size)
 	return b;
 }
 
+Buffer *
+buffer_new_ptr_noalloc (unsigned char *ptr, int size)
+{
+	Buffer *b = NULL;
+
+	if ((b = malloc(sizeof(Buffer))) == NULL)
+		return NULL;
+
+	b->size = size;
+	b->data = ptr;
+
+	return b;
+}
+
+void
+buffer_free (Buffer *b)
+{
+	if (b)
+	{
+		free(b->data);
+		free(b);
+	}
+}
+
 
 Ztring *
 ztring_new_with_text (char *text)

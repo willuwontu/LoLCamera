@@ -24,7 +24,7 @@
 // ----------- Methods ------------
 
 
-BbQueue *memscan_search (MemProc *mp, DWORD *addr, unsigned char *pattern, unsigned char *search_mask, unsigned char *res_mask);
+BbQueue *memscan_search (MemProc *mp, char *desc, unsigned char *pattern, unsigned char *search_mask, unsigned char *res_mask);
 BbQueue *scan_search (unsigned char *pattern, unsigned char *mask);
 
 

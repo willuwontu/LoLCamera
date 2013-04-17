@@ -35,6 +35,7 @@ static CameraTrackingMode camera_is_enabled ()
 	// Disable when space is pressed
 	if (GetKeyState(VK_SPACE) < 0 || (GetKeyState(VK_F1) < 0))
     {
+    	// Polling data is requested because we want to center the camera exactly where the champion is
         this->request_polling = TRUE;
         return CenterCam;
     }
@@ -84,7 +85,10 @@ void camera_init (MemProc *mp)
 	// Zeroing
 	memset(this->champions, 0, sizeof(Entity *));
 
-	// Signature scanning
+	// Scanning for variables address
+	camera_scan_variables();
+
+	// Signature scanning for patches
 	camera_scan_patch();
 	camera_scan_champions();
 	camera_scan_mouse_screen();
@@ -120,14 +124,16 @@ void camera_init (MemProc *mp)
 BOOL camera_refresh_champions ()
 {
 	// We can't rely on this information to decide if LoLCam is synchronized;
-	// MemPos already do that job correctly
+	// MemPos already does that job correctly
 	// returns TRUE so it's ignored in camera_update()
 	if (!this->active)
 		return TRUE;
 
 	BOOL already_scanned = FALSE;
+	DWORD entity_ptr     = read_memory_as_int(this->mp->proc, this->entities_addr);
+	DWORD entity_ptr_end = read_memory_as_int(this->mp->proc, this->entities_addr_end);
 
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; entity_ptr != entity_ptr_end; entity_ptr+=4, i++)
 	{
 		if (!entity_refresh(this->champions[i]))
 		{
@@ -277,7 +283,9 @@ void camera_main ()
             mempos_set(this->cam, this->champ->v.x, this->champ->v.y);
         }
         else
-            mempos_set(this->cam, this->cam->v.x, this->cam->v.y);
+		{
+			mempos_set(this->cam, this->cam->v.x, this->cam->v.y);
+		}
 	}
 }
 
@@ -337,6 +345,7 @@ void camera_load_ini ()
         { .addr = this->entities_addr,      .str = "entities_addr" },      //
 	};
 
+	// Todo : corresponding scanning function corresponding to each data to get directly in the client
 	for (int i = 0; i < sizeof(tabAddr) / sizeof(struct AddrStr); i++)
 		if (!tabAddr[i].addr)
 			warning("\"%*s\" cannot be read in .ini file", 30 - strlen(tabAddr[i].str), tabAddr[i].str);

@@ -59,10 +59,7 @@ mempos_int_refresh (MemPos *p)
 		read_memory_as_int(p->ctxt->proc, p->addrY)
 	);
 
-	if (p->v.x == 0 && p->v.y == 0)
-		return FALSE;
-
-	return TRUE;
+	return (!(p->v.x == 0 && p->v.y == 0));
 }
 
 void
