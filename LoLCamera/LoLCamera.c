@@ -217,6 +217,8 @@ void camera_main ()
 
         float distance_mouse_champ = vector2D_distance(&this->mouse->v, &this->champ->v);
         float distance_dest_champ = vector2D_distance(&this->dest->v, &this->champ->v);
+        float distance_mouse_dest = vector2D_distance(&this->dest->v, &this->mouse->v);
+
         {
             // weighted averages
             float champ_weight = 1.0;
@@ -224,7 +226,7 @@ void camera_main ()
             float dest_weight = 1.0;
 
             // these values control how quickly the weights fall off the further you are
-            // from the ceiling distance
+            // from the falloff distance
             float dest_falloff_rate = 0.001;
             float mouse_falloff_rate = 0.002;
 
@@ -234,6 +236,9 @@ void camera_main ()
 
             if (distance_mouse_champ > this->mouse_range_max)
                 mouse_weight = 1 / (((distance_mouse_champ - this->mouse_range_max) * mouse_falloff_rate) + 1.0);
+            else if (distance_mouse_dest > this->mouse_dest_range_max)
+                // increase mouse weight if far from dest
+                mouse_weight += (distance_mouse_dest - this->mouse_dest_range_max) / 1000.0;
 
             float weight_sum = champ_weight + mouse_weight + dest_weight;
 
@@ -253,7 +258,7 @@ void camera_main ()
 
             // The camera goes farther when the camera is moving to the south
             if (this->mouse->v.y < this->champ->v.y)
-                target.y -= distance_mouse_champ / 10.0; // <-- 10.0 is an arbitrary value
+                target.y -= distance_mouse_champ / 8.0; // <-- arbitrary value
         }
 
         // Smoothing
