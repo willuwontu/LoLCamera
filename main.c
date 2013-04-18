@@ -28,6 +28,7 @@ int main()
 			while (!memproc_refresh_handle(mp))
 				Sleep(1000);
 		}
+
 		info("Game detected, main loop started");
 
 		camera_init(mp);

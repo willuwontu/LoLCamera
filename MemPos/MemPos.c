@@ -10,14 +10,9 @@ mempos_new (MemProc *mp, DWORD addrX, DWORD addrY)
 
 	p->addrX = addrX + mp->base_addr;
 	p->addrY = addrY + mp->base_addr;
-
-	vector2D_set_pos (
-		&p->v,
-		read_memory_as_float(mp->proc, p->addrX),
-		read_memory_as_float(mp->proc, p->addrY)
-	);
-
 	p->ctxt = mp;
+
+	mempos_refresh(p);
 
 	return p;
 }
@@ -39,15 +34,29 @@ mempos_int_new (MemProc *mp, DWORD addrX, DWORD addrY)
 	return p;
 }
 
+void
+mempos_init (MemPos *p, MemProc *mp, DWORD addrX, DWORD addrY)
+{
+	p->ctxt = mp;
+	p->addrX = addrX + mp->base_addr;
+	p->addrY = addrY + mp->base_addr;
+
+	mempos_refresh(p);
+}
+
 int
 mempos_refresh (MemPos *p)
 {
+	p->v.x = -1.0;
+	p->v.y = -1.0;
+
 	vector2D_set_pos (
 		&p->v,
 		read_memory_as_float(p->ctxt->proc, p->addrX),
 		read_memory_as_float(p->ctxt->proc, p->addrY)
 	);
-	return (!(p->v.x == 0.0 && p->v.y == 0.0));
+
+	return (!(p->v.x == -1.0 && p->v.y == -1.0));
 }
 
 int

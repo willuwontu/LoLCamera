@@ -182,7 +182,7 @@ void camera_scan_campos ()
 
 	if (!res)
 	{
-		warning("Cannot find %s address\nUsing the .ini value : 0x%.8x\n", description, this->entities_addr);
+		warning("Cannot find %s address\nUsing the .ini value : 0x%.8x", description, this->entities_addr);
 		return;
 	}
 
@@ -233,7 +233,7 @@ void camera_scan_entities_arr ()
 
 	if (!res)
 	{
-		warning("Cannot find entities array address\nUsing the .ini value : 0x%.8x\n", this->entities_addr);
+		warning("Cannot find entities array address\nUsing the .ini value : 0x%.8x", this->entities_addr);
 		return;
 	}
 
@@ -262,31 +262,36 @@ void camera_scan_variables ()
 	info("------------------------------------------------------------------");
 }
 
-void camera_scan_champions ()
+BOOL camera_scan_champions ()
 {
 	Camera *this = camera_get_instance();
 
-	DWORD entity_ptr     = read_memory_as_int(this->mp->proc, this->entities_addr);
-	DWORD entity_ptr_end = read_memory_as_int(this->mp->proc, this->entities_addr_end);
-
-	for (int i = 0; entity_ptr != entity_ptr_end; entity_ptr+=4, i++)
+	if (!this->entity_ptr || !this->entity_ptr_end)
 	{
-		if (this->champions[i] != NULL)
-			entity_free(this->champions[i]);
-
-		Entity *e = this->champions[i] = entity_new(this->mp, entity_ptr);
-
-		if (e == NULL && i != 0)
-			info("  --> Ally %d not found", i);
-		else
-		{
-			info("  --> Ally %d found (pos: x=%.0f y=%.0f hp=%.0f hpmax=%.0f)",
-				i, e->v.x, e->v.y, e->hp, e->hp_max);
-		}
+		warning("Cannot read entity array boundaries");
+		return FALSE;
 	}
 
+	for (int i = 0; this->entity_ptr != this->entity_ptr_end; this->entity_ptr += 4, i++)
+	{
+		Entity *e = this->champions[i];
+
+		if (e == NULL)
+		{
+			this->champions[i] = e = entity_new(this->mp, this->entity_ptr);
+		}
+		else
+			entity_init(e, this->mp, this->entity_ptr);
+
+		if (e == NULL && i != 0) // 0 = self
+			info("  --> Ally %d not found", i);
+		else
+			info("  --> Ally %d found (pos: x=%.0f y=%.0f hp=%.0f hpmax=%.0f)", i, e->p.v.x, e->p.v.y, e->hp, e->hp_max);
+	}
 
 	info("------------------------------------------------------------------");
+
+	return TRUE;
 }
 
 BOOL camera_scan_mouse_screen ()
@@ -330,13 +335,12 @@ BOOL camera_refresh_shop_is_opened ()
 {
 	Camera *this = camera_get_instance();
 
-	unsigned char buffer[1];
+	unsigned char buffer[1] = {0xFF};
 	read_from_memory(this->mp->proc, buffer, this->shop_is_opened_addr, 1);
 	this->shop_opened = (int) buffer[0];
 
-	return TRUE;
+	return (buffer[0] != 0xFF);
 }
-
 
 // ------------ Scanners ------------
 

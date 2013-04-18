@@ -67,12 +67,9 @@ void camera_init (MemProc *mp)
 	this->enabled = TRUE;
 	this->mp = mp;
 	this->active = FALSE;
-
 	this->F2345_pressed[0] = NULL;
 	this->F2345_pressed[1] = NULL;
 	this->shop_opened = FALSE;
-
-	camera_load_ini();
 
 	// Dumping process
 	// TODO : get .text section offset + size properly (shouldn't be really necessarly though)
@@ -85,8 +82,26 @@ void camera_init (MemProc *mp)
 	// Zeroing
 	memset(this->champions, 0, sizeof(Entity *));
 
+	/*
+		1) Read static vars from .ini
+		2) Wait for client ingame
+		2) Read & erase static vars from client
+		3) Force unpatch with statics vars
+		4)
+	*/
+
+	// 1) Read static vars from .ini
+	camera_load_ini();
+
+	// 2) Wait for client ingame
+	camera_wait_ingame();
+
 	// Scanning for variables address
 	camera_scan_variables();
+
+	// Scanning for static variable addresses
+	this->entity_ptr     = read_memory_as_int(this->mp->proc, this->entities_addr);
+	this->entity_ptr_end = read_memory_as_int(this->mp->proc, this->entities_addr_end);
 
 	// Signature scanning for patches
 	camera_scan_patch();
@@ -105,13 +120,6 @@ void camera_init (MemProc *mp)
 		this->mouse_screen_addr + 0x50 - mp->base_addr
 	);
 
-	// We wait for the client to be fully ready (in game) before patching
-	this->request_polling = TRUE;
-
-	while (!camera_update()) {
-		warning("Loading screen detected");
-	}
-
 	patch_set_active(this->border_screen, TRUE);
 	patch_set_active(this->F2345_pressed[0], TRUE);
 	patch_set_active(this->F2345_pressed[1], TRUE);
@@ -121,15 +129,31 @@ void camera_init (MemProc *mp)
 	this->active = TRUE;
 }
 
+void camera_wait_ingame ()
+{
+	// todo : sigscanner for loading_state_addr
+	// % of loading at 0x01B1E255
+	DWORD res;
+	DWORD loading_state_addr = 0x01B0A04C;
+	DWORD loaded = FALSE;
+
+	while (!loaded)
+	{
+		res = read_memory_as_int(this->mp->proc, loading_state_addr);
+
+		if (!res)
+		{
+			warning("Loading screen detected. Sleep during 3s.");
+			Sleep(3000);
+		}
+
+		else
+			loaded = TRUE;
+	}
+}
+
 BOOL camera_refresh_champions ()
 {
-	// We can't rely on this information to decide if LoLCam is synchronized;
-	// MemPos already does that job correctly
-	// returns TRUE so it's ignored in camera_update()
-	if (!this->active)
-		return TRUE;
-
-	BOOL already_scanned = FALSE;
 	DWORD entity_ptr     = read_memory_as_int(this->mp->proc, this->entities_addr);
 	DWORD entity_ptr_end = read_memory_as_int(this->mp->proc, this->entities_addr_end);
 
@@ -138,14 +162,10 @@ BOOL camera_refresh_champions ()
 		if (!entity_refresh(this->champions[i]))
 		{
 			if (this->champions[i])
-				warning("Entity 0x%.8x cannot be refreshed", this->champions[i]->addr);
-
-			// We can't rely on this information to decide if LoLCam is synchronized
-			// However, we can try to fix this issue by loading again the entities array adresses
-			if (!already_scanned)
-				camera_scan_champions ();
-
-			already_scanned = TRUE;
+			{
+				warning("Entity 0x%.8x cannot be refreshed", this->champions[i]->entity_data);
+				return FALSE;
+			}
 		}
 	}
 
@@ -160,45 +180,54 @@ inline void camera_set_active (BOOL active)
 BOOL camera_update ()
 {
 	static unsigned int frame_count = 0;
-	static BOOL trying_sync = FALSE;
+
+	struct refreshFunctions { BOOL (*func)(); void *arg; char *desc; } refresh_funcs [] =
+	{
+		{.func = mempos_refresh, 				.arg = this->cam,  			.desc = "this->cam MemPos"},
+		{.func = mempos_refresh, 				.arg = this->champ,			.desc = "this->champ MemPos"},
+		{.func = mempos_refresh,				.arg = this->dest, 			.desc = "this->dest MemPos"},
+		{.func = mempos_refresh,				.arg = this->mouse, 		.desc = "this->mouse MemPos"},
+		{.func = mempos_int_refresh,			.arg = this->mouse_screen,	.desc = "this->mouse_screen MemPos"},
+		{.func = camera_refresh_champions,		.arg = NULL,				.desc = "Entities array"},
+		{.func = camera_refresh_shop_is_opened,	.arg = NULL,				.desc = "Shop opened"},
+	};
 
 	if (frame_count++ % this->poll_data == 0 || this->request_polling)
 	{
-		if (!mempos_refresh(this->cam)
-		||  !mempos_refresh(this->champ)
-		||  !mempos_refresh(this->dest)
-		||  !mempos_refresh(this->mouse)
-		||  !mempos_int_refresh(this->mouse_screen)
-		||  !camera_refresh_champions()
-		||  !camera_refresh_shop_is_opened())
+		for (int i = 0; i < sizeof(refresh_funcs) / sizeof(struct refreshFunctions); i++)
 		{
-			// Synchronization seems not possible
-			if (!memproc_refresh_handle(this->mp))
+			BOOL (*func)() = refresh_funcs[i].func;
+			void *arg = refresh_funcs[i].arg;
+			char *desc = refresh_funcs[i].desc;
+
+			if (!(func(arg)))
 			{
-				info("Client not detected anymore.");
-				this->active = FALSE;
+				warning("\"%s\" : Refresh failed", desc);
+
+				//  Detect if client is disconnected
+				if (!memproc_refresh_handle(this->mp))
+				{
+					info("Client not detected anymore.");
+					this->active = FALSE;
+					return FALSE;
+				}
+
+				// Resynchronize with the process
+				if (!camera_scan_shop_is_opened()
+				||	!camera_scan_mouse_screen()
+				||	!camera_scan_champions())
+				{
+					warning("Synchronization with the client isn't possible - Retrying in 3s.");
+					Sleep(3000);
+				}
+				else
+				{
+					info("LoLCamera re-sync done");
+					return FALSE;
+				}
+
 				return FALSE;
 			}
-
-			if (trying_sync == TRUE) // One try before pausing
-			{
-				warning("Synchronization with the client isn't possible - Retrying in 3s.");
-				Sleep(3000);
-			}
-
-			trying_sync = TRUE;
-
-			// Resynchronize with the process
-			camera_scan_shop_is_opened();
-			camera_scan_mouse_screen();
-			camera_scan_champions();
-
-			return FALSE;
-		}
-
-		else if (trying_sync) {
-			info("LoLCamera is working now\n");
-			trying_sync = FALSE;
 		}
 
 		this->request_polling = FALSE;
@@ -312,6 +341,7 @@ void camera_load_ini ()
 	this->allies_cam_addr[1] = strtol(ini_parser_get_value(parser, "allies_cam_addr1"), NULL, 16);
 	this->self_cam_addr = strtol(ini_parser_get_value(parser, "self_cam_addr"), NULL, 16);
 	this->entities_addr = strtol(ini_parser_get_value(parser, "entities_addr"), NULL, 16);
+	this->entities_addr_end = strtol(ini_parser_get_value(parser, "entities_addr_end"), NULL, 16);
 	this->locked_camera_addr = strtol(ini_parser_get_value(parser, "locked_camera_addr"), NULL, 16);
 
 	// Settings
@@ -343,6 +373,7 @@ void camera_load_ini ()
         { .addr = this->desty_addr,         .str = "dest_posy_addr" },     //        ██░░░░░░░░░░████████░░░░░░░░██
         { .addr = this->self_cam_addr,      .str = "self_cam_addr" },      //          ██████████        ████████
         { .addr = this->entities_addr,      .str = "entities_addr" },      //
+        { .addr = this->entities_addr_end,  .str = "entities_addr_end" },  //
 	};
 
 	// Todo : corresponding scanning function corresponding to each data to get directly in the client

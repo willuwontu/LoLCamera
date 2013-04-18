@@ -14,7 +14,6 @@
 #include "../MemPos/MemPos.h"
 #include "../Patcher/Patcher.h"
 #include "../Scanner/Scanner.h"
-
 #include "./Entity.h"
 
 // ---------- Defines -------------
@@ -47,6 +46,9 @@ struct _Camera
 	DWORD mouse_screen_ptr;			// Address of the pointer to the pointer to the structure containing mouseScreenX/Y
 	DWORD mouse_screen_addr;		// Address of the pointer to the structure containing mouseScreenX/Y
 	DWORD shop_is_opened_addr;		// Address of the data : address of the variable containing "isShopOpen" (different of 0 if its the case)
+
+	// Static addresses
+	DWORD entity_ptr,entity_ptr_end;//
 
 	float lerp_rate;				// This controls smoothing, smaller values mean slower camera movement
 	float threshold;				// Minimum threshold before calculations halted because camera is "close enough"
@@ -93,11 +95,12 @@ inline void camera_set_active (BOOL active);
 Camera *camera_get_instance ();
 
 // from LoLCameraMem.c
-void camera_scan_champions ();
+BOOL camera_scan_champions ();
 void camera_scan_patch ();
 BOOL camera_scan_mouse_screen ();
 BOOL camera_refresh_shop_is_opened ();
 BOOL camera_scan_shop_is_opened ();
+void camera_wait_ingame ();
 
 
 void camera_scan_variables ();

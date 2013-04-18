@@ -10,6 +10,7 @@
 
 #include "../MemProc/MemProc.h"
 #include "../Vector/Vector2D.h"
+#include "../MemPos/MemPos.h"
 
 // ---------- Defines -------------
 
@@ -18,11 +19,11 @@
 typedef
 struct _Entity
 {
-	Vector2D v;
+	MemPos p;
 	float hp, hp_max;
 
-	DWORD addr;
 	MemProc *ctxt;
+	DWORD entity_data; // <-- ptr to the structure
 
 }	Entity;
 
@@ -33,6 +34,8 @@ struct _Entity
 Entity *
 entity_new (MemProc *mp, DWORD addr);
 
+BOOL
+entity_init (Entity *e, MemProc *mp, DWORD addr);
 
 // ----------- Methods ------------
 

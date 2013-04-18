@@ -44,6 +44,9 @@ mempos_refresh (MemPos *p);
 void
 mempos_set (MemPos *p, float newX, float newY);
 
+void
+mempos_init (MemPos *p, MemProc *mp, DWORD addrX, DWORD addrY);
+
 
 int
 mempos_int_refresh (MemPos *p);
