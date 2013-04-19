@@ -100,7 +100,7 @@ void camera_scan_patch ();
 BOOL camera_scan_mouse_screen ();
 BOOL camera_refresh_shop_is_opened ();
 BOOL camera_scan_shop_is_opened ();
-void camera_wait_ingame ();
+void camera_wait_for_ingame ();
 
 
 void camera_scan_variables ();

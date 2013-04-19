@@ -71,17 +71,8 @@ void camera_init (MemProc *mp)
 	this->F2345_pressed[1] = NULL;
 	this->shop_opened = FALSE;
 
-	// Dumping process
-	// TODO : get .text section offset + size properly (shouldn't be really necessarly though)
-	DWORD text_section = this->mp->base_addr + 0x1000;
-	unsigned int text_size = 0x008B7000;
-
-	info("Dumping process...");
-	memproc_dump(this->mp, text_section, text_section + text_size);
-
 	// Zeroing
 	memset(this->champions, 0, sizeof(Entity *));
-
 	/*
 		1) Read static vars from .ini
 		2) Wait for client ingame
@@ -94,7 +85,14 @@ void camera_init (MemProc *mp)
 	camera_load_ini();
 
 	// 2) Wait for client ingame
-	camera_wait_ingame();
+	camera_wait_for_ingame();
+
+	// Dumping process
+	// TODO : get .text section offset + size properly (shouldn't be really necessarly though)
+	DWORD text_section = this->mp->base_addr + 0x1000;
+	unsigned int text_size = 0x008B7000;
+	info("Dumping process...");
+	memproc_dump(this->mp, text_section, text_section + text_size);
 
 	// Scanning for variables address
 	camera_scan_variables();
@@ -129,7 +127,7 @@ void camera_init (MemProc *mp)
 	this->active = TRUE;
 }
 
-void camera_wait_ingame ()
+void camera_wait_for_ingame ()
 {
 	// todo : sigscanner for loading_state_addr
 	// % of loading at 0x01B1E255
