@@ -155,7 +155,7 @@ BOOL camera_refresh_champions ()
 	DWORD entity_ptr     = read_memory_as_int(this->mp->proc, this->entities_addr);
 	DWORD entity_ptr_end = read_memory_as_int(this->mp->proc, this->entities_addr_end);
 
-	for (int i = 0; entity_ptr != entity_ptr_end; entity_ptr+=4, i++)
+	for (int i = 0; entity_ptr != entity_ptr_end && i < 10; entity_ptr+=4, i++)
 	{
 		if (!entity_refresh(this->champions[i]))
 		{

@@ -272,14 +272,12 @@ BOOL camera_scan_champions ()
 		return FALSE;
 	}
 
-	for (int i = 0; this->entity_ptr != this->entity_ptr_end && i < 5; this->entity_ptr += 4, i++)
+	for (int i = 0; this->entity_ptr != this->entity_ptr_end && i < 10; this->entity_ptr += 4, i++)
 	{
 		Entity *e = this->champions[i];
 
 		if (e == NULL)
-		{
 			this->champions[i] = e = entity_new(this->mp, this->entity_ptr);
-		}
 		else
 			entity_init(e, this->mp, this->entity_ptr);
 
