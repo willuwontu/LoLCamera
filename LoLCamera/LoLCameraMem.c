@@ -284,7 +284,12 @@ BOOL camera_scan_champions ()
 		if (e == NULL && i != 0) // 0 = self
 			info("  --> Ally %d not found", i);
 		else
-			info("  --> Ally %d found (pos: x=%.0f y=%.0f hp=%.0f hpmax=%.0f)", i, e->p.v.x, e->p.v.y, e->hp, e->hp_max);
+		{
+			if (i < 5)
+				info("  --> Ally %d found (pos: x=%.0f y=%.0f hp=%.0f hpmax=%.0f - 0x%.8x)", i, e->p.v.x, e->p.v.y, e->hp, e->hp_max, this->entity_ptr);
+			else
+				info("  --> Ennemy %d found (pos: x=%.0f y=%.0f hp=%.0f hpmax=%.0f - 0x%.8x)", i, e->p.v.x, e->p.v.y, e->hp, e->hp_max, this->entity_ptr);
+		}
 	}
 
 	info("------------------------------------------------------------------");

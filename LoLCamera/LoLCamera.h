@@ -68,7 +68,9 @@ struct _Camera
 	Patch *locked_camera;			// Disables the behavior "Center the camera on the champion when locked camera mode is active"
 
 	// Entities
-	Entity *champions[10];			// Current played champion + 4 allies - NULL if doesn't exist
+	Entity *champions[10];			// Current played champion + 4 allies + 5 ennemies - NULL if doesn't exist
+	Entity *focused_ally;			// The focused ally champion (NULL if none or self)
+	int team_size;					// Size of the -team- of the array actually, FIXME
 
 	// Memory positions
 	MemPos *cam;					// Camera ingame position
@@ -101,6 +103,7 @@ BOOL camera_scan_mouse_screen ();
 BOOL camera_refresh_shop_is_opened ();
 BOOL camera_scan_shop_is_opened ();
 void camera_wait_for_ingame ();
+
 
 
 void camera_scan_variables ();

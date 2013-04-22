@@ -13,6 +13,9 @@ typedef enum {
     NoUpdate
 } CameraTrackingMode;
 
+static void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode);
+
+
 static CameraTrackingMode camera_is_enabled ()
 {
 	static short last_toggle_state = 0;
@@ -36,7 +39,9 @@ static CameraTrackingMode camera_is_enabled ()
 	if (GetKeyState(VK_SPACE) < 0 || (GetKeyState(VK_F1) < 0))
     {
     	// Polling data is requested because we want to center the camera exactly where the champion is
+    	// Also disable the focusing champ feature if enabled
         this->request_polling = TRUE;
+        this->focused_ally = NULL;
         return CenterCam;
     }
 
@@ -44,9 +49,15 @@ static CameraTrackingMode camera_is_enabled ()
 	if (GetKeyState(VK_LBUTTON) < 0)
 		return NoMove;
 
-	//
+	// Drag : TODO
 	if (GetKeyState(VK_MBUTTON) < 0)
         return NoMove;
+
+	// Focusing ally champion
+	if (GetKeyState(VK_F2) < 0 && this->team_size > 1) this->focused_ally = this->champions[1];
+	if (GetKeyState(VK_F3) < 0 && this->team_size > 2) this->focused_ally = this->champions[2];
+	if (GetKeyState(VK_F4) < 0 && this->team_size > 3) this->focused_ally = this->champions[3];
+	if (GetKeyState(VK_F5) < 0 && this->team_size > 4) this->focused_ally = this->champions[4];
 
 	// Disable camera when shop opened
 	if (this->shop_opened)
@@ -69,6 +80,7 @@ void camera_init (MemProc *mp)
 	this->active = FALSE;
 	this->F2345_pressed[0] = NULL;
 	this->F2345_pressed[1] = NULL;
+	this->focused_ally = NULL;
 	this->shop_opened = FALSE;
 
 	// Zeroing
@@ -154,6 +166,8 @@ BOOL camera_refresh_champions ()
 {
 	DWORD entity_ptr     = read_memory_as_int(this->mp->proc, this->entities_addr);
 	DWORD entity_ptr_end = read_memory_as_int(this->mp->proc, this->entities_addr_end);
+
+	this->team_size = (entity_ptr_end - entity_ptr) / 4;
 
 	for (int i = 0; entity_ptr != entity_ptr_end && i < 10; entity_ptr+=4, i++)
 	{
@@ -248,51 +262,8 @@ void camera_main ()
 		if (camera_mode == NoUpdate || !camera_update())
 			continue;
 
-        float distance_mouse_champ = vector2D_distance(&this->mouse->v, &this->champ->v);
-        float distance_dest_champ = vector2D_distance(&this->dest->v, &this->champ->v);
-        float distance_mouse_dest = vector2D_distance(&this->dest->v, &this->mouse->v);
-
-        {
-            // weighted averages
-            float champ_weight = 1.0;
-            float mouse_weight = 1.0;
-            float dest_weight = 1.0;
-
-            // these values control how quickly the weights fall off the further you are
-            // from the falloff distance
-            float dest_falloff_rate = 0.001;
-            float mouse_falloff_rate = 0.002;
-
-            // adjust weights based on distance
-            if (distance_dest_champ > this->dest_range_max)
-                dest_weight = 1 / (((distance_dest_champ - this->dest_range_max) * dest_falloff_rate) + 1.0);
-
-            if (distance_mouse_champ > this->mouse_range_max)
-                mouse_weight = 1 / (((distance_mouse_champ - this->mouse_range_max) * mouse_falloff_rate) + 1.0);
-            else if (distance_mouse_dest > this->mouse_dest_range_max)
-                // increase mouse weight if far from dest
-                mouse_weight += (distance_mouse_dest - this->mouse_dest_range_max) / 1000.0;
-
-            float weight_sum = champ_weight + mouse_weight + dest_weight;
-
-            // Compute the target (weighted averages)
-			vector2D_set_pos(&target,
-                (
-                    (this->champ->v.x * champ_weight) +
-                    (this->mouse->v.x * mouse_weight) +
-                    (this->dest->v.x * dest_weight)
-                 ) / weight_sum,
-                (
-                    (this->champ->v.y * champ_weight) +
-                    (this->mouse->v.y * mouse_weight) +
-                    (this->dest->v.y * dest_weight)
-                ) / weight_sum
-            );
-
-            // The camera goes farther when the camera is moving to the south
-            if (this->mouse->v.y < this->champ->v.y)
-                target.y -= distance_mouse_champ / 8.0; // <-- arbitrary value
-        }
+		// Compute target
+		camera_compute_target(&target, camera_mode);
 
         // Smoothing
 		if (abs(target.x - this->cam->v.x) > this->threshold)
@@ -301,19 +272,96 @@ void camera_main ()
 		if (abs(target.y - this->cam->v.y) > this->threshold)
 			this->cam->v.y += (target.y - this->cam->v.y) * this->lerp_rate;
 
+		// Keep this just before mempos_set(this->cam, x, y)
         if (camera_mode == NoMove)
             continue;
 
         // update the ingame gamera position
-        if (camera_mode == CenterCam)
-        {
-            mempos_set(this->cam, this->champ->v.x, this->champ->v.y);
-        }
-        else
-		{
-			mempos_set(this->cam, this->cam->v.x, this->cam->v.y);
-		}
+		mempos_set(this->cam, this->cam->v.x, this->cam->v.y);
 	}
+}
+
+void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
+{
+	switch (camera_mode)
+	{
+		case Normal:
+		{
+			float distance_mouse_champ = vector2D_distance(&this->mouse->v, &this->champ->v);
+			float distance_dest_champ = vector2D_distance(&this->dest->v, &this->champ->v);
+			float distance_mouse_dest = vector2D_distance(&this->dest->v, &this->mouse->v);
+
+			float champ_weight = 1.0;
+			float mouse_weight = 1.0;
+			float dest_weight = 1.0;
+			float ally_weight = (this->focused_ally) ? 1.0 : 0.0;
+			float ally_x = 0.0, ally_y = 0.0;
+
+			if (this->focused_ally)
+			{
+				ally_x = this->focused_ally->p.v.x * ally_weight;
+				ally_y = this->focused_ally->p.v.y * ally_weight;
+			}
+
+			float weight_sum;
+			{
+				// weighted averages
+				// these values control how quickly the weights fall off the further you are
+				// from the falloff distance
+				float dest_falloff_rate = 0.001;
+				float mouse_falloff_rate = 0.002;
+
+				// adjust weights based on distance
+				if (distance_dest_champ > this->dest_range_max)
+					dest_weight = 1 / (((distance_dest_champ - this->dest_range_max) * dest_falloff_rate) + 1.0);
+
+				if (distance_mouse_champ > this->mouse_range_max)
+					mouse_weight = 1 / (((distance_mouse_champ - this->mouse_range_max) * mouse_falloff_rate) + 1.0);
+
+				else if (distance_mouse_dest > this->mouse_dest_range_max)
+					// increase mouse weight if far from dest
+					mouse_weight += (distance_mouse_dest - this->mouse_dest_range_max) / 1000.0;
+
+				weight_sum = champ_weight + mouse_weight + dest_weight + ally_weight;
+			}
+
+            // Compute the target (weighted averages)
+			vector2D_set_pos(target,
+                (
+                    (this->champ->v.x * champ_weight) +
+                    (this->mouse->v.x * mouse_weight) +
+                    (this->dest->v.x * dest_weight) +
+                    (ally_x)
+                 ) / weight_sum,
+                (
+                    (this->champ->v.y * champ_weight) +
+                    (this->mouse->v.y * mouse_weight) +
+                    (this->dest->v.y * dest_weight) +
+                    (ally_y)
+                ) / weight_sum
+            );
+
+            // The camera goes farther when the camera is moving to the south
+            if (this->mouse->v.y < this->champ->v.y)
+                target->y -= distance_mouse_champ / 8.0; // <-- arbitrary value
+		}
+		break;
+
+		case CenterCam:
+			// Target the champion
+            vector2D_set_pos(target, this->champ->v.x, this->champ->v.y);
+		break;
+
+		case NoMove:
+		case NoUpdate:
+			// Do nothing, this code isn't going to be reached anyway
+		break;
+
+		default:
+			warning("Unknown camera behavior");
+		break;
+	}
+
 }
 
 void camera_load_ini ()
