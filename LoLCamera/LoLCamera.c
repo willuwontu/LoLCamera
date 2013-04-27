@@ -273,12 +273,22 @@ void camera_main ()
 		// Compute target
 		camera_compute_target(&target, camera_mode);
 
+        // adjust camera smoothing rate when center camera
+        float local_lerp_rate = this->lerp_rate;
+        if (camera_mode == CenterCam)
+        {
+            local_lerp_rate = local_lerp_rate * 5;
+        }
+        // clamp the lerp rate
+        if (local_lerp_rate > 0.9)
+            local_lerp_rate = 0.9;
+
         // Smoothing
 		if (abs(target.x - this->cam->v.x) > this->threshold)
-			this->cam->v.x += (target.x - this->cam->v.x) * this->lerp_rate;
+			this->cam->v.x += (target.x - this->cam->v.x) * local_lerp_rate;
 
 		if (abs(target.y - this->cam->v.y) > this->threshold)
-			this->cam->v.y += (target.y - this->cam->v.y) * this->lerp_rate;
+			this->cam->v.y += (target.y - this->cam->v.y) * local_lerp_rate;
 
 		// Keep this just before mempos_set(this->cam, x, y)
         if (camera_mode == NoMove)
