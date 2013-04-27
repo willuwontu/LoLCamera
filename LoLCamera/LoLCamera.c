@@ -32,7 +32,7 @@ void camera_focus_entity (Entity *e)
 static CameraTrackingMode camera_is_enabled ()
 {
 	static short last_toggle_state = 0;
-	static BOOL mbutton_pressed = FALSE;
+	static int mbutton_pressed = 0;
 	BOOL champ_is_dead = entity_is_dead(this->champions[0]);
 
 	// listen for toggle key
@@ -68,23 +68,34 @@ static CameraTrackingMode camera_is_enabled ()
 	if (GetKeyState(VK_LBUTTON) < 0)
 		return NoMove;
 
+	// Disable camera when shop opened
+	if (this->shop_opened)
+        return NoMove;
+
 	// Drag : TODO
 	if (GetKeyState(VK_MBUTTON) < 0)
 	{
-		if (!mbutton_pressed)
+		switch (mbutton_pressed)
 		{
-			this->drag_pos = this->mouse->v;
-			mbutton_pressed = TRUE;
+			case 0:
+				this->drag_pos = this->mouse->v;
+				this->request_polling = TRUE;
+				mbutton_pressed = 1;
+			break;
+
+			case 1:
+				this->drag_pos = this->mouse->v;
+				mbutton_pressed = 2;
+			break;
+
+			case 2:
+			break;
 		}
 
 		return Drag;
 	}
 	else
-		mbutton_pressed = FALSE;
-
-	// Disable camera when shop opened
-	if (this->shop_opened)
-        return NoMove;
+		mbutton_pressed = 0;
 
 	// Following ally & ennemies champions
 	if (GetKeyState(VK_F2)  < 0 && this->team_size > 1) camera_focus_entity(this->champions[1]);
@@ -375,7 +386,6 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 {
 	float ally_weight = 0.0;
 	float ally_x = 0.0, ally_y = 0.0;
-	float drag_weight = 0.0;
 	float drag_x = 0.0, drag_y = 0.0;
 
 	switch (camera_mode)
@@ -407,13 +417,10 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 		}
 		break;
 
-
 		case Drag:
-			drag_weight = 2.0;
-			drag_x = this->mouse->v.x;
-			drag_y = this->mouse->v.y;
-			goto ShareAllyMode;
-
+			drag_x = (this->drag_pos.x - this->mouse->v.x) * 10;
+			drag_y = (this->drag_pos.y - this->mouse->v.y) * 10;
+			goto ShareAllyMode; // Drag *must* follow with case ShareAlly then NormalMode
 
 		ShareAllyMode:
 		case ShareAlly:
@@ -424,8 +431,7 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 				ally_x = this->focused_ally->p.v.x * ally_weight;
 				ally_y = this->focused_ally->p.v.y * ally_weight;
 			}
-			goto NormalMode;
-
+			goto NormalMode; // We must go to case Normal
 
 		NormalMode:
 		case Normal:
@@ -457,7 +463,7 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 					// increase mouse weight if far from dest
 					mouse_weight += (distance_mouse_dest - this->mouse_dest_range_max) / 1000.0;
 
-				weight_sum = champ_weight + mouse_weight + dest_weight + ally_weight + drag_weight;
+				weight_sum = champ_weight + mouse_weight + dest_weight + ally_weight;
 			}
 
             // Compute the target (weighted averages)
@@ -466,16 +472,16 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
                     (this->champ->v.x * champ_weight) +
                     (this->mouse->v.x * mouse_weight) +
                     (this->dest->v.x * dest_weight) +
-                    (ally_x * ally_weight) +
-					(drag_x * drag_weight)
-                 ) / weight_sum,
+                    (ally_x * ally_weight)
+                 ) / weight_sum
+					+ drag_x,
                 (
                     (this->champ->v.y * champ_weight) +
                     (this->mouse->v.y * mouse_weight) +
                     (this->dest->v.y * dest_weight) +
-                    (ally_y * ally_weight) +
-					(drag_y * drag_weight)
+                    (ally_y * ally_weight)
                 ) / weight_sum
+					+ drag_y
             );
 
             // The camera goes farther when the camera is moving to the south
