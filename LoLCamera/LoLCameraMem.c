@@ -252,15 +252,169 @@ void camera_scan_entities_arr ()
 	}
 }
 
+void camera_scan_loading ()
+{
+	Camera *this = camera_get_instance();
+
+	BbQueue *res = memscan_search (this->mp, "loadingState",
+	/*
+		00A45799  ║► └F30F100D 40D88101            movss xmm1, [dword ds:League_of_Legends.181D840]                  ; float 0.05694580
+		00A457A1  ║·  F30F1015 B4DB6E01            movss xmm2, [dword ds:League_of_Legends.16EDBB4]                  ; float 10.00000
+		00A457A9  ║·  0F28C1                       movaps xmm0, xmm1
+		00A457AC  ║·  F30F5905 B4A0B001            mulss xmm0, [dword ds:League_of_Legends.1B0A0B4]                  ; float 0.004300000
+		00A457B4  ║·  F30F5805 349FD301            addss xmm0, [dword ds:League_of_Legends.1D39F34]                  ; float 3.239630
+		00A457BC  ║·  0F2FC2                       comiss xmm0, xmm2
+		00A457BF  ║·  F30F590D <<4CA0B001>>        mulss xmm1, [dword ds:League_of_Legends.1B0A04C]                  ; float 0.002000000
+		00A457C7  ║·  F30F580D 389FD301            addss xmm1, [dword ds:League_of_Legends.1D39F38]                  ; float 1.506778
+	*/
+		(unsigned char[]) {
+			0xF3,0x0F,0x10,0x0D,0x40,0xD8,0x81,0x01,
+			0xF3,0x0F,0x10,0x15,0xB4,0xDB,0x6E,0x01,
+			0x0F,0x28,0xC1,
+			0xF3,0x0F,0x59,0x05,0xB4,0xA0,0xB0,0x01,
+			0xF3,0x0F,0x58,0x05,0x34,0x9F,0xD3,0x01,
+			0x0F,0x2F,0xC2,
+			0xF3,0x0F,0x59,0x0D,0x4C,0xA0,0xB0,0x01,
+			0xF3,0x0F,0x58,0x0D,0x38,0x9F,0xD3,0x01
+		},
+
+		"xxxx????"
+		"xxxx????"
+		"xxx"
+		"xxxx????"
+		"xxxx????"
+		"xxx"
+		"xxxx????"
+		"xxxx????",
+
+		"xxxxxxxx"
+		"xxxxxxxx"
+		"xxx"
+		"xxxxxxxx"
+		"xxxxxxxx"
+		"xxx"
+		"xxxx????"
+		"xxxxxxxx"
+	);
+
+	if (!res)
+	{
+		warning("Cannot find loading state address\nUsing the .ini value : 0x%.8x", this->loading_state_addr);
+		return;
+	}
+
+	Buffer *loading_state_addr = bb_queue_pick_first(res);
+	memcpy(&this->loading_state_addr, loading_state_addr->data, loading_state_addr->size);
+
+	bb_queue_free_all(res, buffer_free);
+
+	if (!this->loading_state_addr)
+	{
+		warning("Cannot scan loading state");
+		return;
+	}
+}
+
+void camera_scan_game_struct ()
+{
+	Camera *this = camera_get_instance();
+
+	BbQueue *res = memscan_search (this->mp, "gameStruct",
+	/*
+		00A0B08F    ║·  A1 2871DF03                  mov eax, [dword ds:League_of_Legends.GameStruct]                  ; GameStruct
+		00A0B094    ║·  83F8 01                      cmp eax, 1                                                        ; Cascaded IF (cases 1..3, 4 exits)
+		00A0B097    ║·  53                           push ebx
+		00A0B098    ║·  B3 01                        mov bl, 1
+		00A0B09A    ║·  885C24 0F                    mov [byte ss:arg.3+3], bl
+		00A0B09E    ║·▼ 75 2E                        jne short League_of_Legends.00A0B0CE
+	*/
+		(unsigned char[]) {
+			0xA1,0x28,0x71,0xDF,0x03,
+			0x83,0xF8,0x01,
+			0x53,
+			0xB3,0x01,
+			0x88,0x5C,0x24,0x0F,
+			0x75,0x2E
+		},
+
+		"x????"
+		"xxx"
+		"x"
+		"xx"
+		"xxxx"
+		"xx",
+
+		NULL // same
+	);
+
+	if (!res)
+	{
+		warning("Cannot find game struct address\nUsing the .ini value : 0x%.8x", this->game_struct_addr);
+		return;
+	}
+
+	Buffer *game_struct_addr = bb_queue_pick_first(res);
+	memcpy(&this->game_struct_addr, game_struct_addr->data, game_struct_addr->size);
+
+	bb_queue_free_all(res, buffer_free);
+
+	if (!this->game_struct_addr)
+	{
+		warning("Cannot scan game struct");
+		return;
+	}
+}
+
 void camera_scan_variables ()
 {
+	Camera *this = camera_get_instance();
+
 	info("------------------------------------------------------------------");
 	info("Searching for variables address ...");
+
+	/*
+		entities_addr = 0x2d8f3bc			OK	camera_scan_entities_arr
+		entities_addr_end = 0x2d8f3c0		OK	camera_scan_entities_arr
+		camera_posx_addr = 0x039f713c		OK	camera_scan_campos
+		camera_posy_addr = 0x039f7144		OK	camera_scan_campos
+		champion_posx_addr = 0x039f7318		OK	camera_scan_game_struct
+		champion_posy_addr = 0x039f7320		OK	camera_scan_game_struct
+		mouse_posx_addr = 0x039f7324		OK	camera_scan_game_struct
+		mouse_posy_addr = 0x039f732c		OK	camera_scan_game_struct
+		dest_posx_addr = 0x039f73F8			OK	camera_scan_game_struct
+		dest_posy_addr = 0x039f7400			OK	camera_scan_game_struct
+		mouse_screen_ptr = 0x039f39a4		OK	camera_scan_mouse_screen
+		loading_state_addr = 0x01B0A04C  	OK	camera_scan_loading
+	*/
+
 	camera_scan_campos();
 	camera_scan_entities_arr();
+	camera_scan_loading();
+	camera_scan_mouse_screen();
+	camera_scan_game_struct();
+
+	if (this->game_struct_addr != 0)
+	{
+		// 00A38400    ║·  D99E F0010000                fstp [dword ds:esi+1F0]
+		this->champx_addr = this->game_struct_addr + 0x1F0 - this->mp->base_addr;
+		// 00A38412    ║·  D99E F8010000                fstp [dword ds:esi+1F8]
+		this->champy_addr = this->game_struct_addr + 0x1F8 - this->mp->base_addr;
+
+		// 00A383D5    ║·  F30F1186 FC010000            movss [dword ds:esi+1FC], xmm0
+		this->mousex_addr = this->game_struct_addr + 0x1FC - this->mp->base_addr;
+		// 00A383F5    ║·  F30F1186 04020000            movss [dword ds:esi+204], xmm0
+		this->mousey_addr = this->game_struct_addr + 0x204 - this->mp->base_addr;
+
+		// 00A3B34C    ║·  F30F1183 D0020000            movss [dword ds:ebx+2D0], xmm0
+		this->destx_addr  = this->game_struct_addr + 0x2D0 - this->mp->base_addr;
+		// 00A3B36C    ║·  F30F1183 D8020000            movss [dword ds:ebx+2D8], xmm0
+		this->desty_addr  = this->game_struct_addr + 0x2D8 - this->mp->base_addr;
+	}
+
 
 	info("------------------------------------------------------------------");
 }
+
 
 BOOL camera_scan_champions ()
 {
@@ -301,35 +455,115 @@ BOOL camera_scan_mouse_screen ()
 {
 	Camera *this = camera_get_instance();
 
-	if (!this->mouse_screen_ptr)
+	BbQueue *res = memscan_search (this->mp, "mouseScreenPtr",
+		/*
+		00AD00B5    ║·  8B0D <<A439DF03>>            mov ecx, [dword ds:League_of_Legends.3DF39A4]
+		00AD00BB    ║·  8B01                         mov eax, [dword ds:ecx]
+		00AD00BD    ║·  8B40 5C                      mov eax, [dword ds:eax+5C]
+		00AD00C0    ║·  8D5424 08                    lea edx, [local.64]
+		00AD00C4    ║·  52                           push edx
+		00AD00C5    ║·  8D5424 10                    lea edx, [local.63]
+		00AD00C9    ║·  52                           push edx
+		*/
+		(unsigned char[]) {
+			0x8B,0x0D,0xA4,0x39,0xDF,0x03,
+			0x8B,0x01,
+			0x8B,0x40,0x5C,
+			0x8D,0x54,0x24,0x08,
+			0x52,
+			0x8D,0x54,0x24,0x10,
+			0x52
+		},
+		"xx????"
+		"xx"
+		"xxx"
+		"xxxx"
+		"x"
+		"xxxx"
+		"x",
+		NULL // same
+	);
+
+	if (!res)
 	{
-		warning("Cannot get mouse screen coordinates");
+		warning("Cannot find mouse_screen_ptr address\nUsing the .ini value : 0x%.8x", this->mouse_screen_ptr);
 		return FALSE;
 	}
 
-	this->mouse_screen_addr = read_memory_as_int(this->mp->proc, this->mouse_screen_ptr);
+	Buffer *mouse_screen_ptr = bb_queue_pick_first(res);
+	memcpy(&this->mouse_screen_ptr, mouse_screen_ptr->data, mouse_screen_ptr->size);
 
-	if (this->mouse_screen != NULL)
+	bb_queue_free_all(res, buffer_free);
+
+	if (!this->mouse_screen_ptr)
 	{
-		this->mouse_screen->addrX = this->mouse_screen_addr + 0x4C;
-		this->mouse_screen->addrY = this->mouse_screen_addr + 0x50;
+		warning("Cannot scan mouse_screen_ptr");
+		return FALSE;
 	}
 
-	return (this->mouse_screen_addr != 0);
+	DWORD mouse_screen_addr = read_memory_as_int(this->mp->proc, this->mouse_screen_ptr);
+
+	if (mouse_screen_addr != 0)
+	{
+		this->mouse_screen_addr = mouse_screen_addr;
+
+		if (this->mouse_screen != NULL)
+		{
+			this->mouse_screen->addrX = this->mouse_screen_addr + 0x4C;
+			this->mouse_screen->addrY = this->mouse_screen_addr + 0x50;
+		}
+	}
+
+	return (mouse_screen_addr != 0);
 }
 
 BOOL camera_scan_shop_is_opened ()
 {
 	Camera *this = camera_get_instance();
 
-	// Shop is open is the address of the pointer to the "isShopOpened"
-	this->shop_is_opened_addr = read_memory_as_int(this->mp->proc, this->shop_is_opened_ptr);
+	BbQueue *res = memscan_search (this->mp, "shopIsOpened",
+	/*	00A382C6    ║► └8B0D <<90A0D301>>            mov ecx, [dword ds:League_of_Legends.1D3A090]
+		00A382CC    ║·  33C0                         xor eax, eax
+		00A382CE    ║·  3BC8                         cmp ecx, eax
+		00A382D0    ║·▼ 74 1F                        je short League_of_Legends.00A382F1 */
+		(unsigned char[]) {
+			0x8B,0x0D,0x90,0xA0,0xD3,0x01,
+			0x33,0xC0,
+			0x3B,0xC8,
+			0x74,0x1F
+		},
+		"xx????"
+		"xx"
+		"xx"
+		"xx",
+		NULL // same
+	);
 
-	if (!this->shop_is_opened_addr)
+	if (!res)
+	{
+		warning("Cannot find shop_is_opened_ptr address\nUsing the .ini value : 0x%.8x", this->shop_is_opened_ptr);
+		return FALSE;
+	}
+
+	Buffer *shop_is_opened_ptr = bb_queue_pick_first(res);
+	memcpy(&this->shop_is_opened_ptr, shop_is_opened_ptr->data, shop_is_opened_ptr->size);
+
+	bb_queue_free_all(res, buffer_free);
+
+	if (!this->shop_is_opened_ptr)
+	{
+		warning("Cannot scan shop_is_opened_ptr");
+		return FALSE;
+	}
+
+	// Shop is open is the address of the pointer to the "isShopOpened"
+	DWORD shop_is_opened_addr = read_memory_as_int(this->mp->proc, this->shop_is_opened_ptr);
+
+	if (!shop_is_opened_addr)
 		return FALSE;
 
 	// isShopOpen = edi+7c
-	this->shop_is_opened_addr = this->shop_is_opened_addr + 0x7c;
+	this->shop_is_opened_addr = shop_is_opened_addr + 0x7c;
 
 	return TRUE;
 }

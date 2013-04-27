@@ -47,6 +47,9 @@ struct _Camera
 	DWORD mouse_screen_addr;		// Address of the pointer to the structure containing mouseScreenX/Y
 	DWORD shop_is_opened_addr;		// Address of the data : address of the variable containing "isShopOpen" (different of 0 if its the case)
 
+	DWORD loading_state_addr;		// Adress of the data : loading state
+	DWORD game_struct_addr;		// Adress of the data : loading state
+
 	// Static addresses
 	DWORD entity_ptr,entity_ptr_end;//
 
@@ -107,6 +110,7 @@ void camera_wait_for_ingame ();
 
 
 void camera_scan_variables ();
+void camera_scan_loading ();
 
 
 // --------- Destructors ----------

@@ -43,6 +43,10 @@ static CameraTrackingMode camera_is_enabled ()
 		patch_set_active(this->locked_camera, this->enabled);
 	}
 
+	// skip the next loop if not enabled
+	if (!this->enabled)
+        return NoUpdate;
+
 	// Disable when space / F1 is pressed
 	if (GetKeyState(VK_SPACE) < 0 || (GetKeyState(VK_F1) < 0))
     {
@@ -61,6 +65,10 @@ static CameraTrackingMode camera_is_enabled ()
 	if (GetKeyState(VK_MBUTTON) < 0)
         return NoMove;
 
+	// Disable camera when shop opened
+	if (this->shop_opened)
+        return NoMove;
+
 	// Focusing ally champion
 	if (GetKeyState(VK_F2) < 0 && this->team_size > 1) camera_focus_ally(1);
 	if (GetKeyState(VK_F3) < 0 && this->team_size > 2) camera_focus_ally(2);
@@ -70,14 +78,7 @@ static CameraTrackingMode camera_is_enabled ()
 	if (this->focused_ally != NULL)
 		return FollowAlly;
 
-	// Disable camera when shop opened
-	if (this->shop_opened)
-        return NoMove;
-
-	// skip the next loop if not enabled
-	if (!this->enabled)
-        return NoUpdate;
-
+	// If the champion is dead, set free mode
 	if (entity_is_dead(this->champions[0]))
 		return Free;
 
@@ -97,6 +98,11 @@ void camera_init (MemProc *mp)
 	this->focused_ally = NULL;
 	this->shop_opened = FALSE;
 
+	// TODO : get .text section offset + size properly (shouldn't be really necessarly though)
+	DWORD text_section = this->mp->base_addr + 0x1000;
+	unsigned int text_size = 0x008B7000;
+
+
 	// Zeroing
 	memset(this->champions, 0, sizeof(Entity *));
 	/*
@@ -110,13 +116,15 @@ void camera_init (MemProc *mp)
 	// 1) Read static vars from .ini
 	camera_load_ini();
 
+	// Get loading screen address
+	info("Dumping process...");
+	memproc_dump(this->mp, text_section, text_section + text_size);
+	camera_scan_loading();
+
 	// 2) Wait for client ingame
 	camera_wait_for_ingame();
 
 	// Dumping process
-	// TODO : get .text section offset + size properly (shouldn't be really necessarly though)
-	DWORD text_section = this->mp->base_addr + 0x1000;
-	unsigned int text_size = 0x008B7000;
 	info("Dumping process...");
 	memproc_dump(this->mp, text_section, text_section + text_size);
 
@@ -130,7 +138,6 @@ void camera_init (MemProc *mp)
 	// Signature scanning for patches
 	camera_scan_patch();
 	camera_scan_champions();
-	camera_scan_mouse_screen();
 	camera_scan_shop_is_opened();
 
 	// Init data from the client
@@ -138,6 +145,7 @@ void camera_init (MemProc *mp)
 	this->champ 	   = mempos_new (this->mp, this->champx_addr,   this->champy_addr);
 	this->mouse 	   = mempos_new (this->mp, this->mousex_addr,   this->mousey_addr);
 	this->dest  	   = mempos_new (this->mp, this->destx_addr,    this->desty_addr);
+
 	this->mouse_screen = mempos_int_new (
 		this->mp,
 		this->mouse_screen_addr + 0x4C - mp->base_addr,
@@ -155,24 +163,10 @@ void camera_init (MemProc *mp)
 
 void camera_wait_for_ingame ()
 {
-	// todo : sigscanner for loading_state_addr
-	// % of loading at 0x01B1E255
-	DWORD res;
-	DWORD loading_state_addr = 0x01B0A04C;
-	DWORD loaded = FALSE;
-
-	while (!loaded)
+	while (!read_memory_as_int(this->mp->proc, this->loading_state_addr))
 	{
-		res = read_memory_as_int(this->mp->proc, loading_state_addr);
-
-		if (!res)
-		{
-			warning("Loading screen detected. Sleep during 3s.");
-			Sleep(3000);
-		}
-
-		else
-			loaded = TRUE;
+		warning("Loading screen detected. Sleep during 3s.");
+		Sleep(3000);
 	}
 }
 
@@ -320,13 +314,13 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 			Entity *ally = this->focused_ally;
 			float distance_ally_champ = vector2D_distance(&ally->p.v, &this->champ->v);
 
-			if (distance_ally_champ > 3000.0) // is "far" (offscreen)
+			if (distance_ally_champ > 3000.0) // 3000.0 = is "far" (offscreen)
 			{
 				vector2D_set_pos(target, ally->p.v.x, ally->p.v.y);
 				break;
 			}
 
-			// else : continue in normal case but don't ignore ally
+			// else : continue in normal case but don't ignore ally weight
 			ally_weight = 1.0;
 			ally_x = this->focused_ally->p.v.x * ally_weight;
 			ally_y = this->focused_ally->p.v.y * ally_weight;
@@ -340,14 +334,14 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 
 			float champ_weight = 1.0;
 			float mouse_weight = 1.0;
-			float dest_weight = 1.0;
+			float dest_weight  = 1.0;
 
 			float weight_sum;
 			{
 				// weighted averages
 				// these values control how quickly the weights fall off the further you are
 				// from the falloff distance
-				float dest_falloff_rate = 0.001;
+				float dest_falloff_rate  = 0.001;
 				float mouse_falloff_rate = 0.002;
 
 				// adjust weights based on distance
@@ -428,6 +422,7 @@ void camera_load_ini ()
 	this->entities_addr = strtol(ini_parser_get_value(parser, "entities_addr"), NULL, 16);
 	this->entities_addr_end = strtol(ini_parser_get_value(parser, "entities_addr_end"), NULL, 16);
 	this->locked_camera_addr = strtol(ini_parser_get_value(parser, "locked_camera_addr"), NULL, 16);
+	this->loading_state_addr = strtol(ini_parser_get_value(parser, "loading_state_addr"), NULL, 16);
 
 	// Settings
 	this->lerp_rate	  = atof  (ini_parser_get_value(parser, "lerp_rate")); // this controls smoothing, smaller values mean slower camera movement
@@ -440,13 +435,13 @@ void camera_load_ini ()
 
 	// Addresses - Input checking
 	struct AddrStr { DWORD addr; char *str; } tabAddr [] = {
-        { .addr = this->shop_is_opened_ptr,.str = "shop_is_opened_ptr" },//	That kirby has been watching for me since the beggining of the project, it deserves its place in the source code :)
+        { .addr = this->shop_is_opened_ptr,.str = "shop_is_opened_ptr" },  //
         { .addr = this->respawn_reset_addr, .str = "respawn_reset_addr" }, //
-        { .addr = this->border_screen_addr, .str = "border_screen_addr" }, //                  ██████████            ,---------------------.
-        { .addr = this->champx_addr,        .str = "champion_posx_addr" }, //              ████░░      ░░████        |  imgur.com/74bnbGP  |
-        { .addr = this->champy_addr,        .str = "champion_posy_addr" }, //            ██░░              ░░██      \____________  _______/
-        { .addr = this->locked_camera_addr, .str = "locked_camera_addr" }, //          ██                    ░░██                 |/
-        { .addr = this->mouse_screen_ptr,   .str = "mouse_screen_ptr" },   //        ██              ██  ██  ░░██                 `
+        { .addr = this->border_screen_addr, .str = "border_screen_addr" }, //                  ██████████
+        { .addr = this->champx_addr,        .str = "champion_posx_addr" }, //              ████░░      ░░████
+        { .addr = this->champy_addr,        .str = "champion_posy_addr" }, //            ██░░              ░░██
+        { .addr = this->locked_camera_addr, .str = "locked_camera_addr" }, //          ██                    ░░██
+        { .addr = this->mouse_screen_ptr,   .str = "mouse_screen_ptr" },   //        ██              ██  ██  ░░██
                                                                            //      ██░░              ██  ██      ██
         { .addr = this->camx_addr,          .str = "camera_posx_addr" },   //      ██                ██  ██      ██
         { .addr = this->camy_addr,          .str = "camera_posy_addr" },   //      ██          ░░░░        ░░░░  ██
@@ -459,12 +454,13 @@ void camera_load_ini ()
         { .addr = this->self_cam_addr,      .str = "self_cam_addr" },      //          ██████████        ████████
         { .addr = this->entities_addr,      .str = "entities_addr" },      //
         { .addr = this->entities_addr_end,  .str = "entities_addr_end" },  //
+        { .addr = this->loading_state_addr, .str = "loading_state_addr" }, //
 	};
 
 	// Todo : corresponding scanning function corresponding to each data to get directly in the client
 	for (int i = 0; i < sizeof(tabAddr) / sizeof(struct AddrStr); i++)
 		if (!tabAddr[i].addr)
-			warning("\"%*s\" cannot be read in .ini file", 30 - strlen(tabAddr[i].str), tabAddr[i].str);
+			warning("\"%s\" cannot be read in .ini file", tabAddr[i].str);
 
 	// Settings - Input checking
 	struct SettingVal {

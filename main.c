@@ -9,14 +9,12 @@ int main()
 {
 	info("Sources : https://github.com/Spl3en/LoLCamera");
 
-	int quit = 0;
+	enable_debug_privileges();
 
 	// Force unpatch at exit
 	atexit(camera_unload);
 
-	enable_debug_privileges();
-
-	while (!quit)
+	while (1)
 	{
 		MemProc *mp = memproc_new("League of Legends.exe", "League of Legends (TM) Client");
 		memproc_set_default_baseaddr(mp, 0x00400000);
