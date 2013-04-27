@@ -14,7 +14,8 @@ typedef enum {
     NoUpdate,
     FollowAlly,
     ShareAlly,
-    Free
+    Free,
+    Drag
 
 } CameraTrackingMode;
 
@@ -31,6 +32,7 @@ void camera_focus_entity (Entity *e)
 static CameraTrackingMode camera_is_enabled ()
 {
 	static short last_toggle_state = 0;
+	static BOOL mbutton_pressed = FALSE;
 	BOOL champ_is_dead = entity_is_dead(this->champions[0]);
 
 	// listen for toggle key
@@ -68,7 +70,17 @@ static CameraTrackingMode camera_is_enabled ()
 
 	// Drag : TODO
 	if (GetKeyState(VK_MBUTTON) < 0)
-        return NoMove;
+	{
+		if (!mbutton_pressed)
+		{
+			this->drag_pos = this->mouse->v;
+			mbutton_pressed = TRUE;
+		}
+
+		return Drag;
+	}
+	else
+		mbutton_pressed = FALSE;
 
 	// Disable camera when shop opened
 	if (this->shop_opened)
@@ -118,6 +130,7 @@ void camera_init (MemProc *mp)
 	this->F2345_pressed[1] = NULL;
 	this->focused_ally = NULL;
 	this->shop_opened = FALSE;
+	this->drag_pos = vector2D_new();
 
 	// TODO : get .text section offset + size properly (shouldn't be really necessarly though)
 	DWORD text_section = this->mp->base_addr + 0x1000;
@@ -138,7 +151,7 @@ void camera_init (MemProc *mp)
 	if (camera_wait_for_ingame())
 	{
 		// Dumping the process again (loading screen detected)
-		memproc_free(this->mp);
+		memproc_clear(this->mp);
 		info("Dumping process again after loading screen...");
 		memproc_dump(this->mp, text_section, text_section + text_size);
 	}
@@ -337,6 +350,9 @@ static void camera_compute_lerp_rate (float *lerp_rate, CameraTrackingMode camer
 		case NoUpdate:
 		break;
 
+		case Drag:
+		break;
+
 		default:
 		break;
 	}
@@ -359,9 +375,12 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 {
 	float ally_weight = 0.0;
 	float ally_x = 0.0, ally_y = 0.0;
+	float drag_weight = 0.0;
+	float drag_x = 0.0, drag_y = 0.0;
 
 	switch (camera_mode)
 	{
+
 		case Free:
 			vector2D_set_pos(target,
                 (
@@ -375,6 +394,7 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
             );
 		break;
 
+
 		case FollowAlly:
 		{
 			Entity *ally = this->focused_ally;
@@ -387,12 +407,27 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 		}
 		break;
 
-		case ShareAlly:
-			// ShareAlly is a Normal camera behavior + ally weight
-			ally_weight = 1.0;
-			ally_x = this->focused_ally->p.v.x * ally_weight;
-			ally_y = this->focused_ally->p.v.y * ally_weight;
 
+		case Drag:
+			drag_weight = 2.0;
+			drag_x = this->mouse->v.x;
+			drag_y = this->mouse->v.y;
+			goto ShareAllyMode;
+
+
+		ShareAllyMode:
+		case ShareAlly:
+			if (this->focused_ally != NULL)
+			{
+				// ShareAlly is a Normal camera behavior + ally weight
+				ally_weight = 1.0;
+				ally_x = this->focused_ally->p.v.x * ally_weight;
+				ally_y = this->focused_ally->p.v.y * ally_weight;
+			}
+			goto NormalMode;
+
+
+		NormalMode:
 		case Normal:
 		{
 			float distance_mouse_champ = vector2D_distance(&this->mouse->v, &this->champ->v);
@@ -422,7 +457,7 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 					// increase mouse weight if far from dest
 					mouse_weight += (distance_mouse_dest - this->mouse_dest_range_max) / 1000.0;
 
-				weight_sum = champ_weight + mouse_weight + dest_weight + ally_weight;
+				weight_sum = champ_weight + mouse_weight + dest_weight + ally_weight + drag_weight;
 			}
 
             // Compute the target (weighted averages)
@@ -431,13 +466,15 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
                     (this->champ->v.x * champ_weight) +
                     (this->mouse->v.x * mouse_weight) +
                     (this->dest->v.x * dest_weight) +
-                    (ally_x)
+                    (ally_x * ally_weight) +
+					(drag_x * drag_weight)
                  ) / weight_sum,
                 (
                     (this->champ->v.y * champ_weight) +
                     (this->mouse->v.y * mouse_weight) +
                     (this->dest->v.y * dest_weight) +
-                    (ally_y)
+                    (ally_y * ally_weight) +
+					(drag_y * drag_weight)
                 ) / weight_sum
             );
 

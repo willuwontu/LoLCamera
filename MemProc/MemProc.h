@@ -139,6 +139,9 @@ memproc_set_default_baseaddr (MemProc *mp, int default_baseaddr);
 // --------- Destructors ----------
 
 void
+memproc_clear (MemProc *memproc);
+
+void
 memproc_free (MemProc *memproc);
 
 

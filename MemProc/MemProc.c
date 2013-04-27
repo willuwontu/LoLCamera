@@ -293,6 +293,14 @@ memproc_free (MemProc *memproc)
 	}
 }
 
+void
+memproc_clear (MemProc *memproc)
+{
+	if (memproc != NULL)
+	{
+		bb_queue_free_all(memproc->memchunks, memchunk_free);
+	}
+}
 
 void
 memblock_free (MemBlock *m)

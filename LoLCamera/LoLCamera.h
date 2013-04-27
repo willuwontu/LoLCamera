@@ -48,7 +48,7 @@ struct _Camera
 	DWORD shop_is_opened_addr;		// Address of the data : address of the variable containing "isShopOpen" (different of 0 if its the case)
 
 	DWORD loading_state_addr;		// Adress of the data : loading state
-	DWORD game_struct_addr;		// Adress of the data : loading state
+	DWORD game_struct_addr;			// Adress of the data : loading state
 
 	// Static addresses
 	DWORD entity_ptr,entity_ptr_end;//
@@ -57,6 +57,7 @@ struct _Camera
 	float threshold;				// Minimum threshold before calculations halted because camera is "close enough"
 	int sleep_time;					// Sleep time at each start of main loop
 	int poll_data;					// Number of loops required for polling data
+	Vector2D drag_pos;				// Position IG where the drag started
 
 									// Controls the range at which these factors start falling off :
 	float mouse_range_max,			// mouse-champ range
