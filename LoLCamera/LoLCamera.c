@@ -13,21 +13,25 @@ typedef enum {
     NoMove,
     NoUpdate,
     FollowAlly,
+    ShareAlly,
     Free
 
 } CameraTrackingMode;
 
 static void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode);
 static void camera_compute_lerp_rate (float *lerp_rate, CameraTrackingMode camera_mode);
+BOOL camera_entity_is_near (Entity *e);
 
-void camera_focus_ally (int entity_index)
+
+void camera_focus_entity (Entity *e)
 {
-	this->focused_ally = this->champions[entity_index];
+	this->focused_ally = e;
 }
 
 static CameraTrackingMode camera_is_enabled ()
 {
 	static short last_toggle_state = 0;
+	BOOL champ_is_dead = entity_is_dead(this->champions[0]);
 
 	// listen for toggle key
 	short new_toggle_state = GetKeyState(TOGGLE_KEY);
@@ -70,17 +74,33 @@ static CameraTrackingMode camera_is_enabled ()
 	if (this->shop_opened)
         return NoMove;
 
-	// Focusing ally champion
-	if (GetKeyState(VK_F2) < 0 && this->team_size > 1) camera_focus_ally(1);
-	if (GetKeyState(VK_F3) < 0 && this->team_size > 2) camera_focus_ally(2);
-	if (GetKeyState(VK_F4) < 0 && this->team_size > 3) camera_focus_ally(3);
-	if (GetKeyState(VK_F5) < 0 && this->team_size > 4) camera_focus_ally(4);
+	// Following ally & ennemies champions
+	if (GetKeyState(VK_F2)  < 0 && this->team_size > 1) camera_focus_entity(this->champions[1]);
+	if (GetKeyState(VK_F3)  < 0 && this->team_size > 2) camera_focus_entity(this->champions[2]);
+	if (GetKeyState(VK_F4)  < 0 && this->team_size > 3) camera_focus_entity(this->champions[3]);
+	if (GetKeyState(VK_F5)  < 0 && this->team_size > 4) camera_focus_entity(this->champions[4]);
+	if (GetKeyState(VK_F6)  < 0 && this->team_size > 5) camera_focus_entity(this->champions[5]);
+	if (GetKeyState(VK_F7)  < 0 && this->team_size > 6) camera_focus_entity(this->champions[6]);
+	if (GetKeyState(VK_F8)  < 0 && this->team_size > 7) camera_focus_entity(this->champions[7]);
+	if (GetKeyState(VK_F9)  < 0 && this->team_size > 8) camera_focus_entity(this->champions[8]);
+	if (GetKeyState(VK_F10) < 0 && this->team_size > 9) camera_focus_entity(this->champions[9]);
 
 	if (this->focused_ally != NULL)
-		return FollowAlly;
+	{
+		// When we are in "dead" spectator mode, it's not important to change camera mode.
+		if (entity_is_dead(this->focused_ally) && !champ_is_dead)
+			this->focused_ally = NULL;
+		else
+		{
+			if (camera_entity_is_near(this->focused_ally))
+				return ShareAlly;
+			else
+				return FollowAlly;
+		}
+	}
 
-	// If the champion is dead, set free mode
-	if (entity_is_dead(this->champions[0]))
+	// If our champion is dead, set free mode
+	if (champ_is_dead)
 		return Free;
 
     return Normal;
@@ -103,18 +123,10 @@ void camera_init (MemProc *mp)
 	DWORD text_section = this->mp->base_addr + 0x1000;
 	unsigned int text_size = 0x008B7000;
 
-
 	// Zeroing
 	memset(this->champions, 0, sizeof(Entity *));
-	/*
-		1) Read static vars from .ini
-		2) Wait for client ingame
-		2) Read & erase static vars from client
-		3) Force unpatch with statics vars
-		4)
-	*/
 
-	// 1) Read static vars from .ini
+	// Read static vars from .ini
 	camera_load_ini();
 
 	// Get loading screen address
@@ -122,22 +134,20 @@ void camera_init (MemProc *mp)
 	memproc_dump(this->mp, text_section, text_section + text_size);
 	camera_scan_loading();
 
-	// 2) Wait for client ingame
+	// Wait for client ingame
 	camera_wait_for_ingame();
 
 	// Dumping process
 	info("Dumping process...");
 	memproc_dump(this->mp, text_section, text_section + text_size);
 
-	// Scanning for variables address
+	// Scanning for variables (**static** address)
 	camera_scan_variables();
-
-	// Scanning for static variable addresses
-	this->entity_ptr     = read_memory_as_int(this->mp->proc, this->entities_addr);
-	this->entity_ptr_end = read_memory_as_int(this->mp->proc, this->entities_addr_end);
 
 	// Signature scanning for patches
 	camera_scan_patch();
+
+	// Scanning for variables (pointers)
 	camera_scan_champions();
 	camera_scan_shop_is_opened();
 
@@ -234,7 +244,7 @@ BOOL camera_update ()
 				}
 
 				// Resynchronize with the process
-				if (!camera_scan_shop_is_opened()
+				if (!camera_scan_variables()
 				||	!camera_scan_mouse_screen()
 				||	!camera_scan_champions())
 				{
@@ -314,6 +324,10 @@ static void camera_compute_lerp_rate (float *lerp_rate, CameraTrackingMode camer
 		break;
 
 		case FollowAlly:
+			local_lerp_rate = local_lerp_rate * 5;
+		break;
+
+		case ShareAlly:
 		break;
 
 		case Normal:
@@ -328,6 +342,17 @@ static void camera_compute_lerp_rate (float *lerp_rate, CameraTrackingMode camer
 	}
 
 	*lerp_rate = local_lerp_rate;
+}
+
+BOOL camera_entity_is_near (Entity *e)
+{
+	if (e == NULL)
+		return FALSE;
+
+	float distance_ally_champ = vector2D_distance(&e->p.v, &this->champ->v);
+
+	return (distance_ally_champ < 3000.0);
+
 }
 
 void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
@@ -353,19 +378,20 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 		case FollowAlly:
 		{
 			Entity *ally = this->focused_ally;
-			float distance_ally_champ = vector2D_distance(&ally->p.v, &this->champ->v);
 
-			if (distance_ally_champ > 3000.0) // 3000.0 = is "far" (offscreen)
+			if (!camera_entity_is_near(ally))
 			{
 				vector2D_set_pos(target, ally->p.v.x, ally->p.v.y);
 				break;
 			}
+		}
+		break;
 
-			// else : continue in normal case but don't ignore ally weight
+		case ShareAlly:
+			// ShareAlly is a Normal camera behavior + ally weight
 			ally_weight = 1.0;
 			ally_x = this->focused_ally->p.v.x * ally_weight;
 			ally_y = this->focused_ally->p.v.y * ally_weight;
-		}
 
 		case Normal:
 		{

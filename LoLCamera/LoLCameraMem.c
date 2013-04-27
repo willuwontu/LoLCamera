@@ -5,7 +5,7 @@ static void      camera_search_signature  (unsigned char *pattern, DWORD *addr, 
 static Patch *   camera_get_patch         (MemProc *mp, char *description, DWORD *addr, unsigned char *sig, char *sig_mask, unsigned char *patch, char *patch_mask);
 static void      camera_get_patches       (Patch **patches, int size, MemProc *mp, char *description, DWORD **addrs, unsigned char *sig, char *sig_mask, unsigned char *patch, char *patch_mask);
 
-void camera_scan_patch ()
+BOOL camera_scan_patch ()
 {
 	Camera *this = camera_get_instance();
 
@@ -155,9 +155,11 @@ void camera_scan_patch ()
 			"xxx"
 			"xxx"
 	);
+
+	return TRUE;
 }
 
-void camera_scan_campos ()
+BOOL camera_scan_campos ()
 {
 	Camera *this = camera_get_instance();
 	char *description = "CameraX/CameraY";
@@ -183,7 +185,7 @@ void camera_scan_campos ()
 	if (!res)
 	{
 		warning("Cannot find %s address\nUsing the .ini value : 0x%.8x", description, this->entities_addr);
-		return;
+		return FALSE;
 	}
 
 	Buffer *cameraX = bb_queue_pick_first(res);
@@ -192,19 +194,21 @@ void camera_scan_campos ()
 	DWORD camx_addr_ptr, camy_addr_ptr;
 	memcpy(&camx_addr_ptr, cameraX->data, sizeof(DWORD));
 	memcpy(&camy_addr_ptr, cameraY->data, sizeof(DWORD));
-
-	if (camx_addr_ptr != 0 && camy_addr_ptr != 0)
-	{
-		this->camx_addr = camx_addr_ptr - this->mp->base_addr;
-		this->camy_addr = camy_addr_ptr - this->mp->base_addr;
-	}
-	else
-		warning("Cannot find camera position");
-
 	bb_queue_free_all(res, buffer_free);
+
+	if (!camx_addr_ptr || !camy_addr_ptr)
+	{
+		warning("Cannot find camera position");
+		return FALSE;
+	}
+
+	this->camx_addr = camx_addr_ptr - this->mp->base_addr;
+	this->camy_addr = camy_addr_ptr - this->mp->base_addr;
+
+	return TRUE;
 }
 
-void camera_scan_entities_arr ()
+BOOL camera_scan_entities_arr ()
 {
 	Camera *this = camera_get_instance();
 
@@ -234,7 +238,7 @@ void camera_scan_entities_arr ()
 	if (!res)
 	{
 		warning("Cannot find entities array address\nUsing the .ini value : 0x%.8x", this->entities_addr);
-		return;
+		return FALSE;
 	}
 
 	Buffer *eArrEnd   = bb_queue_pick_first(res),
@@ -248,11 +252,13 @@ void camera_scan_entities_arr ()
 	if (!this->entities_addr)
 	{
 		warning("Cannot scan entities");
-		return;
+		return FALSE;
 	}
+
+	return TRUE;
 }
 
-void camera_scan_loading ()
+BOOL camera_scan_loading ()
 {
 	Camera *this = camera_get_instance();
 
@@ -300,7 +306,7 @@ void camera_scan_loading ()
 	if (!res)
 	{
 		warning("Cannot find loading state address\nUsing the .ini value : 0x%.8x", this->loading_state_addr);
-		return;
+		return FALSE;
 	}
 
 	Buffer *loading_state_addr = bb_queue_pick_first(res);
@@ -311,11 +317,13 @@ void camera_scan_loading ()
 	if (!this->loading_state_addr)
 	{
 		warning("Cannot scan loading state");
-		return;
+		return FALSE;
 	}
+
+	return TRUE;
 }
 
-void camera_scan_game_struct ()
+BOOL camera_scan_game_struct ()
 {
 	Camera *this = camera_get_instance();
 
@@ -350,7 +358,7 @@ void camera_scan_game_struct ()
 	if (!res)
 	{
 		warning("Cannot find game struct address\nUsing the .ini value : 0x%.8x", this->game_struct_addr);
-		return;
+		return FALSE;
 	}
 
 	Buffer *game_struct_addr = bb_queue_pick_first(res);
@@ -361,13 +369,30 @@ void camera_scan_game_struct ()
 	if (!this->game_struct_addr)
 	{
 		warning("Cannot scan game struct");
-		return;
+		return FALSE;
 	}
+
+	// 00A38400    ║·  D99E F0010000                fstp [dword ds:esi+1F0]
+	this->champx_addr = this->game_struct_addr + 0x1F0 - this->mp->base_addr;
+	// 00A38412    ║·  D99E F8010000                fstp [dword ds:esi+1F8]
+	this->champy_addr = this->game_struct_addr + 0x1F8 - this->mp->base_addr;
+
+	// 00A383D5    ║·  F30F1186 FC010000            movss [dword ds:esi+1FC], xmm0
+	this->mousex_addr = this->game_struct_addr + 0x1FC - this->mp->base_addr;
+	// 00A383F5    ║·  F30F1186 04020000            movss [dword ds:esi+204], xmm0
+	this->mousey_addr = this->game_struct_addr + 0x204 - this->mp->base_addr;
+
+	// 00A3B34C    ║·  F30F1183 D0020000            movss [dword ds:ebx+2D0], xmm0
+	this->destx_addr  = this->game_struct_addr + 0x2D0 - this->mp->base_addr;
+	// 00A3B36C    ║·  F30F1183 D8020000            movss [dword ds:ebx+2D8], xmm0
+	this->desty_addr  = this->game_struct_addr + 0x2D8 - this->mp->base_addr;
+
+	return TRUE;
 }
 
-void camera_scan_variables ()
+BOOL camera_scan_variables ()
 {
-	Camera *this = camera_get_instance();
+	BOOL res = TRUE;
 
 	info("------------------------------------------------------------------");
 	info("Searching for variables address ...");
@@ -387,38 +412,32 @@ void camera_scan_variables ()
 		loading_state_addr = 0x01B0A04C  	OK	camera_scan_loading
 	*/
 
-	camera_scan_campos();
-	camera_scan_entities_arr();
-	camera_scan_loading();
-	camera_scan_mouse_screen();
-	camera_scan_game_struct();
+	BOOL (*scan_funcs[])(void) = {
+		camera_scan_campos,
+		camera_scan_entities_arr,
+		camera_scan_loading,
+		camera_scan_mouse_screen,
+		camera_scan_game_struct
+	};
 
-	if (this->game_struct_addr != 0)
+	for (int i = 0; i < (sizeof(scan_funcs) / sizeof(BOOL (*)())); i++)
 	{
-		// 00A38400    ║·  D99E F0010000                fstp [dword ds:esi+1F0]
-		this->champx_addr = this->game_struct_addr + 0x1F0 - this->mp->base_addr;
-		// 00A38412    ║·  D99E F8010000                fstp [dword ds:esi+1F8]
-		this->champy_addr = this->game_struct_addr + 0x1F8 - this->mp->base_addr;
-
-		// 00A383D5    ║·  F30F1186 FC010000            movss [dword ds:esi+1FC], xmm0
-		this->mousex_addr = this->game_struct_addr + 0x1FC - this->mp->base_addr;
-		// 00A383F5    ║·  F30F1186 04020000            movss [dword ds:esi+204], xmm0
-		this->mousey_addr = this->game_struct_addr + 0x204 - this->mp->base_addr;
-
-		// 00A3B34C    ║·  F30F1183 D0020000            movss [dword ds:ebx+2D0], xmm0
-		this->destx_addr  = this->game_struct_addr + 0x2D0 - this->mp->base_addr;
-		// 00A3B36C    ║·  F30F1183 D8020000            movss [dword ds:ebx+2D8], xmm0
-		this->desty_addr  = this->game_struct_addr + 0x2D8 - this->mp->base_addr;
+		if (!scan_funcs[i]())
+			res = FALSE;
 	}
 
-
 	info("------------------------------------------------------------------");
-}
 
+	return res;
+}
 
 BOOL camera_scan_champions ()
 {
 	Camera *this = camera_get_instance();
+
+	// Scanning for static variable addresses
+	this->entity_ptr     = read_memory_as_int(this->mp->proc, this->entities_addr);
+	this->entity_ptr_end = read_memory_as_int(this->mp->proc, this->entities_addr_end);
 
 	if (!this->entity_ptr || !this->entity_ptr_end)
 	{
@@ -435,15 +454,10 @@ BOOL camera_scan_champions ()
 		else
 			entity_init(e, this->mp, this->entity_ptr);
 
-		if (e == NULL && i != 0) // 0 = self
+		if (e == NULL) // 0 = self
 			info("  --> Ally %d not found", i);
 		else
-		{
-			if (i < 5)
-				info("  --> Ally %d found (pos: x=%.0f y=%.0f hp=%.0f hpmax=%.0f - 0x%.8x)", i, e->p.v.x, e->p.v.y, e->hp, e->hp_max, this->entity_ptr);
-			else
-				info("  --> Ennemy %d found (pos: x=%.0f y=%.0f hp=%.0f hpmax=%.0f - 0x%.8x)", i, e->p.v.x, e->p.v.y, e->hp, e->hp_max, this->entity_ptr);
-		}
+			info("  --> Entity %d found (pos: x=%.0f y=%.0f hp=%.0f hpmax=%.0f - 0x%.8x)", i, e->p.v.x, e->p.v.y, e->hp, e->hp_max, this->entity_ptr);
 	}
 
 	info("------------------------------------------------------------------");
