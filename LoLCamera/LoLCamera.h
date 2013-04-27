@@ -108,8 +108,9 @@ BOOL camera_scan_variables ();
 BOOL camera_scan_loading ();
 BOOL camera_scan_game_struct ();
 
+BOOL camera_refresh_champions ();
 BOOL camera_refresh_shop_is_opened ();
-void camera_wait_for_ingame ();
+BOOL camera_wait_for_ingame ();
 
 // --------- Destructors ----------
 void camera_unload ();

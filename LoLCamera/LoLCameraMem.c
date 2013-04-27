@@ -208,56 +208,6 @@ BOOL camera_scan_campos ()
 	return TRUE;
 }
 
-BOOL camera_scan_entities_arr ()
-{
-	Camera *this = camera_get_instance();
-
-	BbQueue *res = memscan_search (this->mp, "eArrEnd/eArrStart",
-	/*
-		00A36FD1    57              		push edi
-		00A36FD2  ▼ 0F84 FA000000   		je League_Of_Legends.00A370D2
-		00A36FD8    8B0D <<<C0F3D802>>>   	mov ecx, [dword ds:League_Of_Legends.2D8F3C0]  <-- eArrEnd
-		00A36FDE    8B2D <<<BCF3D802>>>   	mov ebp, [dword ds:League_Of_Legends.2D8F3BC]  <-- eArrStart
-		00A36FE4    3BE9            		cmp ebp, ecx
-	*/
-			"\x57"
-			"\x0F\x84\xFA\x00\x00\x00"
-			"\x8B\x0D\xC0\xF3\xD8\x02"
-			"\x8B\x2D\xBC\xF3\xD8\x02"
-			"\x3B\xE9",
-
-			"x"
-			"xxxxxx"
-			"xx????"
-			"xx????"
-			"xx",
-
-			NULL // <-- request the same mask than search_mask
-	);
-
-	if (!res)
-	{
-		warning("Cannot find entities array address\nUsing the .ini value : 0x%.8x", this->entities_addr);
-		return FALSE;
-	}
-
-	Buffer *eArrEnd   = bb_queue_pick_first(res),
-		   *eArrStart = bb_queue_pick_last(res);
-
-	memcpy(&this->entities_addr, eArrStart->data, eArrStart->size);
-	memcpy(&this->entities_addr_end, eArrEnd->data, eArrEnd->size);
-
-	bb_queue_free_all(res, buffer_free);
-
-	if (!this->entities_addr)
-	{
-		warning("Cannot scan entities");
-		return FALSE;
-	}
-
-	return TRUE;
-}
-
 BOOL camera_scan_loading ()
 {
 	Camera *this = camera_get_instance();
@@ -395,7 +345,7 @@ BOOL camera_scan_variables ()
 	BOOL res = TRUE;
 
 	info("------------------------------------------------------------------");
-	info("Searching for variables address ...");
+	info("Searching for static variables address ...");
 
 	/*
 		entities_addr = 0x2d8f3bc			OK	camera_scan_entities_arr
@@ -409,15 +359,14 @@ BOOL camera_scan_variables ()
 		dest_posx_addr = 0x039f73F8			OK	camera_scan_game_struct
 		dest_posy_addr = 0x039f7400			OK	camera_scan_game_struct
 		mouse_screen_ptr = 0x039f39a4		OK	camera_scan_mouse_screen
-		loading_state_addr = 0x01B0A04C  	OK	camera_scan_loading
 	*/
 
 	BOOL (*scan_funcs[])(void) = {
 		camera_scan_campos,
-		camera_scan_entities_arr,
 		camera_scan_loading,
 		camera_scan_mouse_screen,
-		camera_scan_game_struct
+		camera_scan_game_struct,
+		camera_scan_shop_is_opened
 	};
 
 	for (int i = 0; i < (sizeof(scan_funcs) / sizeof(BOOL (*)())); i++)
@@ -425,6 +374,11 @@ BOOL camera_scan_variables ()
 		if (!scan_funcs[i]())
 			res = FALSE;
 	}
+
+
+	info("------------------------------------------------------------------");
+	info("Reading the content of pointers...");
+	camera_scan_champions();
 
 	info("------------------------------------------------------------------");
 
@@ -435,7 +389,49 @@ BOOL camera_scan_champions ()
 {
 	Camera *this = camera_get_instance();
 
-	// Scanning for static variable addresses
+	BbQueue *res = memscan_search (this->mp, "eArrEnd/eArrStart",
+	/*
+		00A36FD1    57              		push edi
+		00A36FD2  ▼ 0F84 FA000000   		je League_Of_Legends.00A370D2
+		00A36FD8    8B0D <<<C0F3D802>>>   	mov ecx, [dword ds:League_Of_Legends.2D8F3C0]  <-- eArrEnd
+		00A36FDE    8B2D <<<BCF3D802>>>   	mov ebp, [dword ds:League_Of_Legends.2D8F3BC]  <-- eArrStart
+		00A36FE4    3BE9            		cmp ebp, ecx
+	*/
+			"\x57"
+			"\x0F\x84\xFA\x00\x00\x00"
+			"\x8B\x0D\xC0\xF3\xD8\x02"
+			"\x8B\x2D\xBC\xF3\xD8\x02"
+			"\x3B\xE9",
+
+			"x"
+			"xxxxxx"
+			"xx????"
+			"xx????"
+			"xx",
+
+			NULL // <-- request the same mask than search_mask
+	);
+
+	if (!res)
+	{
+		warning("Cannot find entities array address\nUsing the .ini value : 0x%.8x", this->entities_addr);
+		return FALSE;
+	}
+
+	Buffer *eArrEnd   = bb_queue_pick_first(res),
+		   *eArrStart = bb_queue_pick_last(res);
+
+	memcpy(&this->entities_addr, eArrStart->data, eArrStart->size);
+	memcpy(&this->entities_addr_end, eArrEnd->data, eArrEnd->size);
+
+	bb_queue_free_all(res, buffer_free);
+
+	if (!this->entities_addr)
+	{
+		warning("Cannot scan entities");
+		return FALSE;
+	}
+
 	this->entity_ptr     = read_memory_as_int(this->mp->proc, this->entities_addr);
 	this->entity_ptr_end = read_memory_as_int(this->mp->proc, this->entities_addr_end);
 
@@ -464,6 +460,31 @@ BOOL camera_scan_champions ()
 
 	return TRUE;
 }
+
+BOOL camera_refresh_champions ()
+{
+	Camera *this = camera_get_instance();
+
+	DWORD entity_ptr     = read_memory_as_int(this->mp->proc, this->entities_addr);
+	DWORD entity_ptr_end = read_memory_as_int(this->mp->proc, this->entities_addr_end);
+
+	this->team_size = (entity_ptr_end - entity_ptr) / 4;
+
+	for (int i = 0; entity_ptr != entity_ptr_end && i < 10; entity_ptr+=4, i++)
+	{
+		if (!entity_refresh(this->champions[i]))
+		{
+			if (this->champions[i])
+			{
+				warning("Entity 0x%.8x cannot be refreshed", this->champions[i]->entity_data);
+				return FALSE;
+			}
+		}
+	}
+
+	return TRUE;
+}
+
 
 BOOL camera_scan_mouse_screen ()
 {

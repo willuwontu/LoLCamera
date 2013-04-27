@@ -135,21 +135,19 @@ void camera_init (MemProc *mp)
 	camera_scan_loading();
 
 	// Wait for client ingame
-	camera_wait_for_ingame();
+	if (camera_wait_for_ingame())
+	{
+		// Dumping the process again (loading screen detected)
+		memproc_free(this->mp);
+		info("Dumping process again after loading screen...");
+		memproc_dump(this->mp, text_section, text_section + text_size);
+	}
 
-	// Dumping process
-	info("Dumping process...");
-	memproc_dump(this->mp, text_section, text_section + text_size);
-
-	// Scanning for variables (**static** address)
+	// Scanning for variables
 	camera_scan_variables();
 
 	// Signature scanning for patches
 	camera_scan_patch();
-
-	// Scanning for variables (pointers)
-	camera_scan_champions();
-	camera_scan_shop_is_opened();
 
 	// Init data from the client
 	this->cam   	   = mempos_new (this->mp, this->camx_addr,     this->camy_addr);
@@ -172,35 +170,18 @@ void camera_init (MemProc *mp)
 	this->active = TRUE;
 }
 
-void camera_wait_for_ingame ()
+BOOL camera_wait_for_ingame ()
 {
+	BOOL waited = FALSE;
+
 	while (!read_memory_as_int(this->mp->proc, this->loading_state_addr))
 	{
+		waited = TRUE;
 		warning("Loading screen detected. Sleep during 3s.");
 		Sleep(3000);
 	}
-}
 
-BOOL camera_refresh_champions ()
-{
-	DWORD entity_ptr     = read_memory_as_int(this->mp->proc, this->entities_addr);
-	DWORD entity_ptr_end = read_memory_as_int(this->mp->proc, this->entities_addr_end);
-
-	this->team_size = (entity_ptr_end - entity_ptr) / 4;
-
-	for (int i = 0; entity_ptr != entity_ptr_end && i < 10; entity_ptr+=4, i++)
-	{
-		if (!entity_refresh(this->champions[i]))
-		{
-			if (this->champions[i])
-			{
-				warning("Entity 0x%.8x cannot be refreshed", this->champions[i]->entity_data);
-				return FALSE;
-			}
-		}
-	}
-
-	return TRUE;
+	return waited;
 }
 
 inline void camera_set_active (BOOL active)
@@ -267,17 +248,36 @@ BOOL camera_update ()
 	return TRUE;
 }
 
+void camera_set_tracking_mode (CameraTrackingMode *out_mode)
+{
+	CameraTrackingMode mode;
+	static CameraTrackingMode last_mode = Normal;
+
+	mode = camera_is_enabled();
+
+	if (mode == FollowAlly && last_mode == ShareAlly)
+	{
+		// We don't want to focus on an entity when it goes too far, we want to focus on our champion (Normal mode)
+		mode = Normal;
+		this->focused_ally = NULL;
+	}
+
+	last_mode = mode;
+	*out_mode = mode;
+}
+
 void camera_main ()
 {
 	Vector2D target;
 	float lerp_rate;
+	CameraTrackingMode camera_mode;
 
 	while (this->active)
 	{
 		Sleep(this->sleep_time);
 
-		// Check if enabled
-		CameraTrackingMode camera_mode = camera_is_enabled();
+		// Check if enabled.
+		camera_set_tracking_mode(&camera_mode);
 
 		if (camera_mode == NoUpdate || !camera_update())
 			continue;
@@ -351,7 +351,7 @@ BOOL camera_entity_is_near (Entity *e)
 
 	float distance_ally_champ = vector2D_distance(&e->p.v, &this->champ->v);
 
-	return (distance_ally_champ < 3000.0);
+	return (distance_ally_champ < 2000.0);
 
 }
 
@@ -458,10 +458,9 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 		break;
 
 		default:
-			warning("Unknown camera behavior");
+			warning("Unknown camera behavior (%d)", camera_mode);
 		break;
 	}
-
 }
 
 void camera_load_ini ()
