@@ -18,6 +18,7 @@ typedef enum {
 } CameraTrackingMode;
 
 static void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode);
+static void camera_compute_lerp_rate (float *lerp_rate, CameraTrackingMode camera_mode);
 
 void camera_focus_ally (int entity_index)
 {
@@ -259,6 +260,7 @@ BOOL camera_update ()
 void camera_main ()
 {
 	Vector2D target;
+	float lerp_rate;
 
 	while (this->active)
 	{
@@ -273,22 +275,15 @@ void camera_main ()
 		// Compute target
 		camera_compute_target(&target, camera_mode);
 
-        // adjust camera smoothing rate when center camera
-        float local_lerp_rate = this->lerp_rate;
-        if (camera_mode == CenterCam)
-        {
-            local_lerp_rate = local_lerp_rate * 5;
-        }
-        // clamp the lerp rate
-        if (local_lerp_rate > 0.9)
-            local_lerp_rate = 0.9;
+		// Compute lerp rate
+		camera_compute_lerp_rate(&lerp_rate, camera_mode);
 
         // Smoothing
 		if (abs(target.x - this->cam->v.x) > this->threshold)
-			this->cam->v.x += (target.x - this->cam->v.x) * local_lerp_rate;
+			this->cam->v.x += (target.x - this->cam->v.x) * lerp_rate;
 
 		if (abs(target.y - this->cam->v.y) > this->threshold)
-			this->cam->v.y += (target.y - this->cam->v.y) * local_lerp_rate;
+			this->cam->v.y += (target.y - this->cam->v.y) * lerp_rate;
 
 		// Keep this just before mempos_set(this->cam, x, y)
         if (camera_mode == NoMove)
@@ -297,6 +292,42 @@ void camera_main ()
         // update the ingame gamera position
 		mempos_set(this->cam, this->cam->v.x, this->cam->v.y);
 	}
+}
+
+static void camera_compute_lerp_rate (float *lerp_rate, CameraTrackingMode camera_mode)
+{
+	float local_lerp_rate = this->lerp_rate;
+
+	switch (camera_mode)
+	{
+		case CenterCam:
+			// adjust camera smoothing rate when center camera
+				local_lerp_rate = local_lerp_rate * 5;
+
+			// clamp the lerp rate
+			if (local_lerp_rate > 0.9)
+				local_lerp_rate = 0.9;
+		break;
+
+		case Free:
+			local_lerp_rate = local_lerp_rate * 2;
+		break;
+
+		case FollowAlly:
+		break;
+
+		case Normal:
+		break;
+
+		case NoMove:
+		case NoUpdate:
+		break;
+
+		default:
+		break;
+	}
+
+	*lerp_rate = local_lerp_rate;
 }
 
 void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
