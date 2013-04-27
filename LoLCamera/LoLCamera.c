@@ -7,14 +7,22 @@
 static Camera *this = NULL;
 
 typedef enum {
+
     Normal,
     CenterCam,
     NoMove,
-    NoUpdate
+    NoUpdate,
+    FollowAlly,
+    Free
+
 } CameraTrackingMode;
 
 static void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode);
 
+void camera_focus_ally (int entity_index)
+{
+	this->focused_ally = this->champions[entity_index];
+}
 
 static CameraTrackingMode camera_is_enabled ()
 {
@@ -35,7 +43,7 @@ static CameraTrackingMode camera_is_enabled ()
 		patch_set_active(this->locked_camera, this->enabled);
 	}
 
-	// Disable when space is pressed
+	// Disable when space / F1 is pressed
 	if (GetKeyState(VK_SPACE) < 0 || (GetKeyState(VK_F1) < 0))
     {
     	// Polling data is requested because we want to center the camera exactly where the champion is
@@ -54,10 +62,13 @@ static CameraTrackingMode camera_is_enabled ()
         return NoMove;
 
 	// Focusing ally champion
-	if (GetKeyState(VK_F2) < 0 && this->team_size > 1) this->focused_ally = this->champions[1];
-	if (GetKeyState(VK_F3) < 0 && this->team_size > 2) this->focused_ally = this->champions[2];
-	if (GetKeyState(VK_F4) < 0 && this->team_size > 3) this->focused_ally = this->champions[3];
-	if (GetKeyState(VK_F5) < 0 && this->team_size > 4) this->focused_ally = this->champions[4];
+	if (GetKeyState(VK_F2) < 0 && this->team_size > 1) camera_focus_ally(1);
+	if (GetKeyState(VK_F3) < 0 && this->team_size > 2) camera_focus_ally(2);
+	if (GetKeyState(VK_F4) < 0 && this->team_size > 3) camera_focus_ally(3);
+	if (GetKeyState(VK_F5) < 0 && this->team_size > 4) camera_focus_ally(4);
+
+	if (this->focused_ally != NULL)
+		return FollowAlly;
 
 	// Disable camera when shop opened
 	if (this->shop_opened)
@@ -66,6 +77,9 @@ static CameraTrackingMode camera_is_enabled ()
 	// skip the next loop if not enabled
 	if (!this->enabled)
         return NoUpdate;
+
+	if (entity_is_dead(this->champions[0]))
+		return Free;
 
     return Normal;
 }
@@ -283,25 +297,50 @@ void camera_main ()
 
 void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 {
+	float ally_weight = 0.0;
+	float ally_x = 0.0, ally_y = 0.0;
+
 	switch (camera_mode)
 	{
+		case Free:
+			vector2D_set_pos(target,
+                (
+                    (this->mouse->v.x) +
+                    (this->cam->v.x)
+                 ) / 2.0,
+                (
+                    (this->mouse->v.y) +
+                    (this->cam->v.y)
+                ) / 2.0
+            );
+		break;
+
+		case FollowAlly:
+		{
+			Entity *ally = this->focused_ally;
+			float distance_ally_champ = vector2D_distance(&ally->p.v, &this->champ->v);
+
+			if (distance_ally_champ > 3000.0) // is "far" (offscreen)
+			{
+				vector2D_set_pos(target, ally->p.v.x, ally->p.v.y);
+				break;
+			}
+
+			// else : continue in normal case but don't ignore ally
+			ally_weight = 1.0;
+			ally_x = this->focused_ally->p.v.x * ally_weight;
+			ally_y = this->focused_ally->p.v.y * ally_weight;
+		}
+
 		case Normal:
 		{
 			float distance_mouse_champ = vector2D_distance(&this->mouse->v, &this->champ->v);
-			float distance_dest_champ = vector2D_distance(&this->dest->v, &this->champ->v);
-			float distance_mouse_dest = vector2D_distance(&this->dest->v, &this->mouse->v);
+			float distance_dest_champ  = vector2D_distance(&this->dest->v, &this->champ->v);
+			float distance_mouse_dest  = vector2D_distance(&this->dest->v, &this->mouse->v);
 
 			float champ_weight = 1.0;
 			float mouse_weight = 1.0;
 			float dest_weight = 1.0;
-			float ally_weight = (this->focused_ally) ? 1.0 : 0.0;
-			float ally_x = 0.0, ally_y = 0.0;
-
-			if (this->focused_ally)
-			{
-				ally_x = this->focused_ally->p.v.x * ally_weight;
-				ally_y = this->focused_ally->p.v.y * ally_weight;
-			}
 
 			float weight_sum;
 			{
