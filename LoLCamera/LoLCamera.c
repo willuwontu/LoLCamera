@@ -124,7 +124,7 @@ static CameraTrackingMode camera_is_enabled ()
 
 	// If our champion is dead, set free mode
 	if (champ_is_dead)
-		return Free;
+		return Normal;
 
     return Normal;
 }
@@ -379,7 +379,6 @@ BOOL camera_entity_is_near (Entity *e)
 	float distance_ally_champ = vector2D_distance(&e->p.v, &this->champ->v);
 
 	return (distance_ally_champ < 2000.0);
-
 }
 
 void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
@@ -390,7 +389,6 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 
 	switch (camera_mode)
 	{
-
 		case Free:
 			vector2D_set_pos(target,
                 (

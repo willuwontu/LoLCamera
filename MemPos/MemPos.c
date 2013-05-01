@@ -62,13 +62,16 @@ mempos_refresh (MemPos *p)
 int
 mempos_int_refresh (MemPos *p)
 {
+	p->v.x = -1;
+	p->v.y = -1;
+
 	vector2D_set_pos (
 		&p->v,
 		read_memory_as_int(p->ctxt->proc, p->addrX),
 		read_memory_as_int(p->ctxt->proc, p->addrY)
 	);
 
-	return (!(p->v.x == 0 && p->v.y == 0));
+	return (!(p->v.x == -1 && p->v.y == -1));
 }
 
 void

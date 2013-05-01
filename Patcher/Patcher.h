@@ -48,7 +48,7 @@ struct _Patch
 // --------- Constructors ---------
 
 Patch *
-patch_new (char *description, MemProc *mp, DWORD addr, unsigned char *signature, unsigned char *patch, char *mask);
+patch_new (char *description, MemProc *mp, DWORD addr, unsigned char *code, unsigned char *signature, unsigned char *patch, char *mask);
 
 BbQueue *
 patch_list_get ();

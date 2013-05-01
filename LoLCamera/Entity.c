@@ -1,9 +1,9 @@
 #include "Entity.h"
 
-#define EOFF_POSX	0x6C
-#define EOFF_POSY	0x74
-#define EOFF_HP 	0x124
-#define EOFF_HPM 	0x134
+#define EOFF_POSX	0x68
+#define EOFF_POSY	(0x68+0x88)
+#define EOFF_HP 	0x120
+#define EOFF_HPM 	0x130
 
 Entity *
 entity_new (MemProc *mp, DWORD addr)
@@ -57,7 +57,7 @@ entity_refresh (Entity *e)
 inline BOOL
 entity_is_dead (Entity *e)
 {
-	return e->hp == 0 && e->hp_max != 0;
+	return !entity_is_alive(e);
 }
 
 inline BOOL

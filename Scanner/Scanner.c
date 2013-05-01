@@ -35,7 +35,7 @@ BbQueue *memscan_search (MemProc *mp, char *desc, unsigned char *pattern, unsign
 
 	BbQueue *res = scan_search(str, res_mask);
 
-	info("\"%s\" scanning : found at 0x%.8x :", desc, ptr);
+	info("\"%s\" : found at 0x%.8x :", desc, ptr);
 	str = desc;
 
 	foreach_bbqueue_item (res, Buffer *b)

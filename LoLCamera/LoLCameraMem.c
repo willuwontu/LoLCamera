@@ -1,7 +1,7 @@
 #include "LoLCamera.h"
 
 static BbQueue * camera_search_signatures (unsigned char *pattern, char *mask, char *name, DWORD **addr, int size);
-static void      camera_search_signature  (unsigned char *pattern, DWORD *addr, char *mask, char *name);
+static BOOL      camera_search_signature  (unsigned char *pattern, DWORD *addr, char **code_ptr, char *mask, char *name);
 static Patch *   camera_get_patch         (MemProc *mp, char *description, DWORD *addr, unsigned char *sig, char *sig_mask, unsigned char *patch, char *patch_mask);
 static void      camera_get_patches       (Patch **patches, int size, MemProc *mp, char *description, DWORD **addrs, unsigned char *sig, char *sig_mask, unsigned char *patch, char *patch_mask);
 
@@ -79,7 +79,6 @@ BOOL camera_scan_patch ()
 
 		this->mp, "Center the camera on the champion when you are in locked camera mode",
 	   &this->locked_camera_addr,
-
 		/*	00A37AAC  ║·▼ 74 39                jz short League_of_Legends.00A37AE7
 			00A37AAE  ║·  F30F1040 6C          movss xmm0, [dword ds:eax+6C]                                 ; float 0.0
 			00A37AB3  ║·  F30F1105 3C71DF03    movss [dword ds:League_of_Legends.CameraX], xmm0              ; float 0.0, 0.0, 0.0, 0.0
@@ -90,18 +89,18 @@ BOOL camera_scan_patch ()
 		*/
 		(unsigned char []) {
 			0x74,0x39,									// xx
-			0xF3,0x0F,0x10,0x40,0x6C,					// xxxxx
+			0xF3,0x0F,0x10,0x40,0x6C,					// xxxx?
 			0xF3,0x0F,0x11,0x05,0x3C,0x71,0xDF,0x03,	// xxxx????
-			0xF3,0x0F,0x10,0x40,0x70,					// xxxxx
+			0xF3,0x0F,0x10,0x40,0x70,					// xxxx?
 			0xF3,0x0F,0x11,0x05,0x40,0x71,0xDF,0x03,	// xxxx????
-			0xF3,0x0F,0x10,0x40,0x74,					// xxxxx
+			0xF3,0x0F,0x10,0x40,0x74,					// xxxx?
 			0xF3,0x0F,0x11,0x05,0x44,0x71,0xDF,0x03		// xxxx????
 		},	"xx"
-			"xxxxx"
+			"xxxx?"
 			"xxxx????"
-			"xxxxx"
+			"xxxx?"
 			"xxxx????"
-			"xxxxx"
+			"xxxx?"
 			"xxxx????",
 
 		(unsigned char []) {
@@ -127,22 +126,21 @@ BOOL camera_scan_patch ()
 			&this->allies_cam_addr[0],
 			&this->allies_cam_addr[1]
 		},
-
-		/*	00A370A7  ║·  80BB 2D030000 00    cmp [byte ds:ebx+32D], 0                 ; Case 2 of cascaded IF League_of_Legends.0A3705D
-			00A370AE  ║·▼ 74 22               je short League_of_Legends.00A370D2
-			00A370B0  ║·  D946 6C             fld [dword ds:esi+6C]                    ; pushf *(esi+6C) (esi=381988C0)		<--- start NOPing here
-			00A370B3  ║·  D95B 14             fstp [dword ds:ebx+14]                   ; (cameraX = *(ebx+14)) = popf()
-			00A370B6  ║·  D946 74             fld [dword ds:esi+74]
-			00A370B9  ║·  D95B 1C             fstp [dword ds:ebx+1C]
+		/*
+			00A47860  ║·  D946 68               fld [dword ds:esi+68]
+			00A47863  ║·  D95B 14               fstp [dword ds:ebx+14]
+			00A47866  ║·  D946 70               fld [dword ds:esi+70]
+			00A47869  ║·  D95B 1C               fstp [dword ds:ebx+1C]
 		*/
+
 		(unsigned char []) {
 			0xD9, 0x46, 0x6C, // xxx
 			0xD9, 0x5B, 0x14, // xxx
 			0xD9, 0x46, 0x74, // xxx
 			0xD9, 0x5B, 0x1C, // xxx
-		},	"xxx"
+		},	"xx?"
 			"xxx"
-			"xxx"
+			"xx?"
 			"xxx",
 
 		(unsigned char []) {
@@ -166,20 +164,34 @@ BOOL camera_scan_campos ()
 
 	BbQueue *res = memscan_search(this->mp, description,
 		(unsigned char []) {
-		 /* 00A37E2A  ║·  F30F1115 <<3C71DF03>>	movss [dword ds:League_of_Legends.CameraX], xmm2	; float 450.0000  <-- CameraX
-			00A37E32  ║·  F30F110D 4071DF03		movss [dword ds:League_of_Legends.3DF7140], xmm1	; float 0.0
-			00A37E3A  ║·  F30F1105 <<4471DF03>>	movss [dword ds:League_of_Legends.CameraY], xmm0	; float 3897.000  <-- CameraY
+		/*
+			00A485D1   ·  F30F1115 8C4BBA01     movss [dword ds:League_of_Legends.1BA4B8C], xmm2            ; float 1258.562
+			00A485D9      F30F110D 904BBA01     movss [dword ds:League_of_Legends.1BA4B90], xmm1            ; float 0.0
+			00A485E1      F30F1105 944BBA01     movss [dword ds:League_of_Legends.1BA4B94], xmm0            ; float 957.6526
+			00A485E9   ·▼ 74 05                 je short League_of_Legends.00A485F0
+			00A485EB   ·  83F8 04               cmp eax, 4
+			00A485EE   ·▼ 75 18                 jne short League_of_Legends.00A48608
 		*/
-			0xF3,0x0F,0x11,0x15,0x3C,0x71,0xDF,0x03,
-			0xF3,0x0F,0x11,0x0D,0x40,0x71,0xDF,0x03,
-			0xF3,0x0F,0x11,0x05,0x44,0x71,0xDF,0x03
-		},	"xxxx????"
-			"xxxx????"
-			"xxxx????",
+			0xF3,0x0F,0x11,0x15,0x8C,0x4B,0xBA,0x01,
+			0xF3,0x0F,0x11,0x0D,0x90,0x4B,0xBA,0x01,
+			0xF3,0x0F,0x11,0x05,0x94,0x4B,0xBA,0x01,
+			0x74,0x05,
+			0x83,0xF8,0x04,
+			0x75,0x18
 
-			"xxxx????"
+		},	"xxx?????"
+			"xxx?????"
+			"xxx?????"
+			"xx"
+			"xxx"
+			"xx",
+
+			"xxxx????" // <camX
 			"xxxxxxxx"
-			"xxxx????"
+			"xxxx????" // <camY
+			"xx"
+			"xxx"
+			"xx"
 	);
 
 	if (!res)
@@ -207,6 +219,7 @@ BOOL camera_scan_campos ()
 
 	return TRUE;
 }
+
 
 BOOL camera_scan_loading ()
 {
@@ -273,36 +286,43 @@ BOOL camera_scan_loading ()
 	return TRUE;
 }
 
+
 BOOL camera_scan_game_struct ()
 {
 	Camera *this = camera_get_instance();
 
 	BbQueue *res = memscan_search (this->mp, "gameStruct",
 	/*
-		00A0B08F    ║·  A1 2871DF03                  mov eax, [dword ds:League_of_Legends.GameStruct]                  ; GameStruct
-		00A0B094    ║·  83F8 01                      cmp eax, 1                                                        ; Cascaded IF (cases 1..3, 4 exits)
-		00A0B097    ║·  53                           push ebx
-		00A0B098    ║·  B3 01                        mov bl, 1
-		00A0B09A    ║·  885C24 0F                    mov [byte ss:arg.3+3], bl
-		00A0B09E    ║·▼ 75 2E                        jne short League_of_Legends.00A0B0CE
+		00984587  ║·  8915 584BBA01         mov [dword ds:League_of_Legends.1BA4B58], edx
+		0098458D  ║·  F30F1105 5C4BBA01     movss [dword ds:League_of_Legends.1BA4B5C], xmm0            ; float 0.0
+		00984595  ║·  F30F1105 604BBA01     movss [dword ds:League_of_Legends.1BA4B60], xmm0            ; float 0.0
+		0098459D  ║·  F30F110D 644BBA01     movss [dword ds:League_of_Legends.1BA4B64], xmm1            ; float 0.2500000 (const 1/4.)
+		009845A5  ║·  F30F1105 <<684BBA01>> movss [dword ds:League_of_Legends.GameStruct], xmm0         ; float 0.0
+		009845AD  ║·  8915 6C4BBA01         mov [dword ds:League_of_Legends.1BA4B6C], edx
 	*/
+
 		(unsigned char[]) {
-			0xA1,0x28,0x71,0xDF,0x03,
-			0x83,0xF8,0x01,
-			0x53,
-			0xB3,0x01,
-			0x88,0x5C,0x24,0x0F,
-			0x75,0x2E
+			0x89,0x15,0x58,0x4B,0xBA,0x01,
+			0xF3,0x0F,0x11,0x05,0x5C,0x4B,0xBA,0x01,
+			0xF3,0x0F,0x11,0x05,0x60,0x4B,0xBA,0x01,
+			0xF3,0x0F,0x11,0x0D,0x64,0x4B,0xBA,0x01,
+			0xF3,0x0F,0x11,0x05,0x68,0x4B,0xBA,0x01,
+			0x89,0x15,0x6C,0x4B,0xBA,0x01
 		},
 
-		"x????"
-		"xxx"
-		"x"
-		"xx"
-		"xxxx"
-		"xx",
+		"xx????"
+		"xxxx????"
+		"xxxx????"
+		"xxxx????"
+		"xxxx????"
+		"xx????",
 
-		NULL // same
+		"xxxxxx"
+		"xxxxxxxx"
+		"xxxxxxxx"
+		"xxxxxxxx"
+		"xxxx????"
+		"xxxxxx"
 	);
 
 	if (!res)
@@ -339,6 +359,7 @@ BOOL camera_scan_game_struct ()
 
 	return TRUE;
 }
+
 
 BOOL camera_scan_variables ()
 {
@@ -380,10 +401,9 @@ BOOL camera_scan_variables ()
 	info("Reading the content of pointers...");
 	camera_scan_champions();
 
-	info("------------------------------------------------------------------");
-
 	return res;
 }
+
 
 BOOL camera_scan_champions ()
 {
@@ -456,10 +476,9 @@ BOOL camera_scan_champions ()
 			info("  --> Entity %d found (pos: x=%.0f y=%.0f hp=%.0f hpmax=%.0f - 0x%.8x)", i, e->p.v.x, e->p.v.y, e->hp, e->hp_max, this->entity_ptr);
 	}
 
-	info("------------------------------------------------------------------");
-
 	return TRUE;
 }
+
 
 BOOL camera_refresh_champions ()
 {
@@ -618,23 +637,29 @@ BOOL camera_refresh_shop_is_opened ()
 
 static Patch *camera_get_patch (MemProc *mp, char *description, DWORD *addr, unsigned char *sig, char *sig_mask, unsigned char *patch, char *patch_mask)
 {
+	char *code;
 	// Get the address of the signature
-	camera_search_signature (sig, addr, sig_mask, description);
+
+	if (!camera_search_signature (sig, addr, &code, sig_mask, description))
+		return NULL;
 
 	// Create a new patch
-	return patch_new (description, mp, *addr, sig, patch, patch_mask);
+	return patch_new (description, mp, *addr, code, sig, patch, patch_mask);
 }
 
 static void camera_get_patches (Patch **patches, int size, MemProc *mp, char *description, DWORD **addrs, unsigned char *sig, char *sig_mask, unsigned char *patch, char *patch_mask)
 {
-	// Get the address of the signature
+	// TODO : code
 	BbQueue *occs = camera_search_signatures (sig, sig_mask, description, addrs, size);
 	int loop = 0;
 
-	foreach_bbqueue_item_raw (occs, DWORD addr)
+	foreach_bbqueue_item (occs, MemBuffer *mb)
 	{
+		DWORD addr = mb->addr;
+		unsigned char *code = mb->buffer->data;
+
 		char *newdesc = str_dup_printf("%s (%d)", description, loop);
-		patches[loop++] = patch_new (newdesc, mp, addr, sig, patch, patch_mask);
+		patches[loop++] = patch_new (newdesc, mp, addr, sig, code, patch, patch_mask);
 		free(newdesc);
 
 		if (loop > size)
@@ -642,7 +667,7 @@ static void camera_get_patches (Patch **patches, int size, MemProc *mp, char *de
 	}
 }
 
-static void camera_search_signature (unsigned char *pattern, DWORD *addr, char *mask, char *name)
+static BOOL camera_search_signature (unsigned char *pattern, DWORD *addr, char **code_ptr, char *mask, char *name)
 {
 	Camera *this = camera_get_instance();
 	infob("Looking for \"%s\" ...", name);
@@ -655,7 +680,7 @@ static void camera_search_signature (unsigned char *pattern, DWORD *addr, char *
 	{
 		printf("\n");
 		warning("\"%s\" not found (already patched ?)\nUsing the current .ini value : 0x%.8x", name, *addr);
-		return;
+		return FALSE;
 	}
 
 	if (bb_queue_get_length(results) > 1)
@@ -670,9 +695,14 @@ static void camera_search_signature (unsigned char *pattern, DWORD *addr, char *
 
 	memblock = bb_queue_pick_first(results);
 	*addr = memblock->addr;
+	*code_ptr = malloc(memblock->size);
+	memcpy(*code_ptr, memblock->data, memblock->size);
+
 	printf(" -> 0x%.8x\n", (int) memblock->addr);
 
 	bb_queue_free_all(results, memblock_free);
+
+	return TRUE;
 }
 
 static BbQueue *camera_search_signatures (unsigned char *pattern, char *mask, char *name, DWORD **addr, int size)
@@ -691,7 +721,8 @@ static BbQueue *camera_search_signatures (unsigned char *pattern, char *mask, ch
 		warning("\"%s\" not found (already patched ?)\nUsing the current .ini value :", name);
 		for (int i = 0; i < size; i++)
 		{
-			bb_queue_add_raw(addresses, *(addr[i]));
+			MemBuffer *mb = membuffer_new(*(addr[i]), pattern, size);
+			bb_queue_add(addresses, mb);
 			printf("  --> [%d] - 0x%.8x\n", i, (int) *(addr[i]));
 		}
 
@@ -707,7 +738,9 @@ static BbQueue *camera_search_signatures (unsigned char *pattern, char *mask, ch
 		{
 			for (int i = bb_queue_get_length(results); i < size; i++)
 			{
-				bb_queue_add_raw(addresses, *(addr[i]));
+				MemBuffer *mb = membuffer_new(*(addr[i]), pattern, size);
+				bb_queue_add(addresses, mb);
+				printf("  --> [%d] - 0x%.8x\n", i, (int) *(addr[i]));
 			}
 		}
 	}
@@ -717,9 +750,13 @@ static BbQueue *camera_search_signatures (unsigned char *pattern, char *mask, ch
 	printf(" ->");
 
 	foreach_bbqueue_item (results, memblock) {
-		bb_queue_add_raw(addresses, memblock->addr);
+		MemBuffer *mb = membuffer_new(memblock->addr, memblock->data, memblock->size);
+		bb_queue_add(addresses, mb);
 		*(addr[loop++]) = memblock->addr;
-		printf(" 0x%.8x -", (int) memblock->addr);
+		printf(" 0x%.8x ", (int) memblock->addr);
+
+		if (!is_last_bbqueue_item(results))
+			printf("-");
 	}
 
 	printf("\n");

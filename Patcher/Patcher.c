@@ -10,7 +10,7 @@ static void 		patch_item_debug (PatchItem *pi);
 BbQueue *patch_list = NULL;
 
 Patch *
-patch_new (char *description, MemProc *mp, DWORD addr, unsigned char *signature, unsigned char *patch, char *mask)
+patch_new (char *description, MemProc *mp, DWORD addr, unsigned char *code, unsigned char *signature, unsigned char *patch, char *mask)
 {
 	Patch *p;
 
@@ -32,7 +32,11 @@ patch_new (char *description, MemProc *mp, DWORD addr, unsigned char *signature,
 	p->ctxt = mp;
 	p->description = strdup(description);
 	p->signature = malloc(p->size);
-	memcpy(p->signature, signature, p->size);
+
+	if (code == NULL)
+		memcpy(p->signature, signature, p->size);
+	else
+		memcpy(p->signature, code, p->size);
 
 	p->patch_items = patch_item_list_new(p);
 

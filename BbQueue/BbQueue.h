@@ -133,6 +133,9 @@ do {										\
 			__bb_loop = (BbChild*) 1							\
 		)													   \
 
+#define is_last_bbqueue_item(queue)		\
+	((__child_foreach == (queue)->last))
+
 #define foreach_bbqueue_item_raw(queue, item)				   \
 	for (													   \
 		BbChild *__child_foreach = (queue)->first,			  \

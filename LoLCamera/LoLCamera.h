@@ -14,6 +14,7 @@
 #include "../MemPos/MemPos.h"
 #include "../Patcher/Patcher.h"
 #include "../Scanner/Scanner.h"
+#include "../MemBuffer/MemBuffer.h"
 #include "./Entity.h"
 
 // ---------- Defines -------------
