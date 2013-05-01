@@ -55,6 +55,10 @@
 		<Unit filename="LoLCamera\LoLCameraMem.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="MemBuffer\MemBuffer.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="MemBuffer\MemBuffer.h" />
 		<Unit filename="MemPos\MemPos.c">
 			<Option compilerVar="CC" />
 		</Unit>
