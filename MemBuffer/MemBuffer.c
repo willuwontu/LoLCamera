@@ -40,6 +40,7 @@ membuffer_free (MemBuffer *membuffer)
 {
 	if (membuffer != NULL)
 	{
+		buffer_free(membuffer->buffer);
 		free (membuffer);
 	}
 }

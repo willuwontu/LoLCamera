@@ -353,9 +353,9 @@ BOOL camera_scan_game_struct ()
 	this->mousey_addr = this->game_struct_addr + 0x204 - this->mp->base_addr;
 
 	// 00A3B34C    ║·  F30F1183 D0020000            movss [dword ds:ebx+2D0], xmm0
-	this->destx_addr  = this->game_struct_addr + 0x2D0 - this->mp->base_addr;
+	this->destx_addr  = this->game_struct_addr + 0x2F8 - this->mp->base_addr;
 	// 00A3B36C    ║·  F30F1183 D8020000            movss [dword ds:ebx+2D8], xmm0
-	this->desty_addr  = this->game_struct_addr + 0x2D8 - this->mp->base_addr;
+	this->desty_addr  = this->game_struct_addr + 0x300 - this->mp->base_addr;
 
 	return TRUE;
 }
@@ -638,8 +638,8 @@ BOOL camera_refresh_shop_is_opened ()
 static Patch *camera_get_patch (MemProc *mp, char *description, DWORD *addr, unsigned char *sig, char *sig_mask, unsigned char *patch, char *patch_mask)
 {
 	char *code;
-	// Get the address of the signature
 
+	// Get the address of the signature
 	if (!camera_search_signature (sig, addr, &code, sig_mask, description))
 		return NULL;
 
@@ -649,7 +649,6 @@ static Patch *camera_get_patch (MemProc *mp, char *description, DWORD *addr, uns
 
 static void camera_get_patches (Patch **patches, int size, MemProc *mp, char *description, DWORD **addrs, unsigned char *sig, char *sig_mask, unsigned char *patch, char *patch_mask)
 {
-	// TODO : code
 	BbQueue *occs = camera_search_signatures (sig, sig_mask, description, addrs, size);
 	int loop = 0;
 
@@ -661,6 +660,8 @@ static void camera_get_patches (Patch **patches, int size, MemProc *mp, char *de
 		char *newdesc = str_dup_printf("%s (%d)", description, loop);
 		patches[loop++] = patch_new (newdesc, mp, addr, sig, code, patch, patch_mask);
 		free(newdesc);
+
+		membuffer_free(mb);
 
 		if (loop > size)
 			break;
