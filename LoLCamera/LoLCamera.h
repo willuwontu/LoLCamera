@@ -40,6 +40,8 @@ struct _Camera
 	DWORD shop_is_opened_ptr;		// Address of the data : address of the pointer to the variable containing "isShopOpen" (different of 0 if its the case)
 	DWORD entities_addr;			// Address of the data : entities array start
 	DWORD entities_addr_end;		// Address of the data : entities array end
+	DWORD players_addr;			// Address of the data : entities array start
+	DWORD players_addr_end;		// Address of the data : entities array end
 	DWORD camx_addr, camy_addr; 	// Address of the data : cameraX, cameray
 	DWORD champx_addr, champy_addr;	// Address of the data : championX / championY
 	DWORD mousex_addr, mousey_addr; // Address of the data : mouseX / mouseY
@@ -52,14 +54,16 @@ struct _Camera
 	DWORD game_struct_addr;			// Adress of the data : loading state
 
 	// Static addresses
-	DWORD entity_ptr,entity_ptr_end;//
+	DWORD entity_ptr,entity_ptr_end;
+	DWORD players_ptr,players_ptr_end;
+	DWORD entity_hovered;
 
 	float lerp_rate;				// This controls smoothing, smaller values mean slower camera movement
 	float threshold;				// Minimum threshold before calculations halted because camera is "close enough"
 	int sleep_time;					// Sleep time at each start of main loop
 	int poll_data;					// Number of loops required for polling data
 	Vector2D drag_pos;				// Position IG where the drag started
-
+	MemPos cam_saved;
 									// Controls the range at which these factors start falling off :
 	float mouse_range_max,			// mouse-champ range
 		  dest_range_max,			// dest-champ range
@@ -71,6 +75,7 @@ struct _Camera
 	Patch *border_screen;			// Disables the behavior "Move the camera when the mouse is near the screen border"
 	Patch *respawn_reset;			// Disables the behavior "Center the camera on the champion when you respawn"
 	Patch *locked_camera;			// Disables the behavior "Center the camera on the champion when locked camera mode is active"
+	Patch *minimap[2];					// Disables the behavior "Center the camera on the champion when locked camera mode is active"
 
 	// Entities
 	Entity *champions[10];			// Current played champion + 4 allies + 5 ennemies - NULL if doesn't exist

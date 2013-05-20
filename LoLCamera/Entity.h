@@ -21,9 +21,13 @@ struct _Entity
 {
 	MemPos p;
 	float hp, hp_max;
+	DWORD addr;
 
 	MemProc *ctxt;
 	DWORD entity_data; // <-- ptr to the structure
+
+	char player_name[17]; // max name length = 16
+	char champ_name[17];
 
 }	Entity;
 
@@ -39,10 +43,10 @@ entity_init (Entity *e, MemProc *mp, DWORD addr);
 
 // ----------- Methods ------------
 
-inline BOOL
+BOOL
 entity_is_dead (Entity *e);
 
-inline BOOL
+BOOL
 entity_is_alive (Entity *e);
 
 int

@@ -24,7 +24,7 @@ patch_new (char *description, MemProc *mp, DWORD addr, unsigned char *code, unsi
 	bb_queue_add(patch_list, p);
 
 	// Init
-	p->active = FALSE;
+	p->activated = FALSE;
 	p->addr = addr;
 	p->patch = patch;
 	p->mask = mask;
@@ -44,7 +44,7 @@ patch_new (char *description, MemProc *mp, DWORD addr, unsigned char *code, unsi
 }
 
 void
-patch_set_active (Patch *p, BOOL active)
+patch_set_activated (Patch *p, BOOL activated)
 {
 	if (!p)
 	{
@@ -54,12 +54,15 @@ patch_set_active (Patch *p, BOOL active)
 
 	if (!p->addr)
 	{
-		warning("%sPatch \"%s\" is not possible", (active) ? "" : "Un", p->description);
+		warning("%sPatch \"%s\" is not possible", (activated) ? "" : "Un", p->description);
 		return;
 	}
 
-	if (active)
+	if (activated)
 	{
+		if (p->activated)
+			warning("Patch \"%s\" is already activated", p->description);
+
 		PatchItem *pi;
 
 		foreach_bbqueue_item (p->patch_items, pi)
@@ -82,12 +85,17 @@ patch_set_active (Patch *p, BOOL active)
 
 	else
 	{
+		if (!p->activated)
+			warning("Patch \"%s\" is already unactivated", p->description);
+
 		// Restore the initial bytes
 		if (write_to_memory(p->ctxt->proc, p->signature, p->addr, p->size))
 			info("UnPatch \"%s\" : success (0x%.8x)", p->description, p->addr);
 		else
 			warning("UnPatch \"%s\" : failure (0x%.8x)", p->description, p->addr);
 	}
+
+	p->activated = activated;
 }
 
 BbQueue *

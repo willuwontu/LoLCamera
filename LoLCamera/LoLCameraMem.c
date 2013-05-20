@@ -107,6 +107,119 @@ BOOL camera_scan_patch ()
 			"????????"
 	);
 
+
+	this->minimap[0] = camera_get_patch (
+
+		 this->mp, "Move the camera when you click on the minimap (0)",
+		&this->border_screen_addr,
+		 /*
+			00B92B3E  ║► └F30F105C24 10        movss xmm3, [dword ss:arg4]
+			00B92B44  ║·  F30F106424 14        movss xmm4, [dword ss:arg5]
+			00B92B4A  ║·  F30F106C24 18        movss xmm5, [dword ss:arg6]
+			00B92B50  ║·  F30F104424 1C        movss xmm0, [dword ss:arg7]
+			00B92B56  ║·  F30F104C24 20        movss xmm1, [dword ss:arg8]
+			00B92B5C  ║·  F30F105424 24        movss xmm2, [dword ss:arg.9]
+			00B92B62  ║·  F30F111D 8C4BBA01    movss [dword ds:League_of_Legends.CameraX], xmm3                        ; float 633.5077
+			00B92B6A  ║·  F30F1125 904BBA01    movss [dword ds:League_of_Legends.1BA4B90], xmm4                        ; float 0.0
+			00B92B72  ║·  F30F112D 944BBA01    movss [dword ds:League_of_Legends.CameraY], xmm5                        ; float 543.3905
+		*/
+		(unsigned char []) {
+			0xF3,0x0F,0x10,0x5C,0x24,0x10,
+			0xF3,0x0F,0x10,0x64,0x24,0x14,
+			0xF3,0x0F,0x10,0x6C,0x24,0x18,
+			0xF3,0x0F,0x10,0x44,0x24,0x1C,
+			0xF3,0x0F,0x10,0x4C,0x24,0x20,
+			0xF3,0x0F,0x10,0x54,0x24,0x24,
+			0xF3,0x0F,0x11,0x1D,0x8C,0x4B,0xBA,0x01,
+			0xF3,0x0F,0x11,0x25,0x90,0x4B,0xBA,0x01,
+			0xF3,0x0F,0x11,0x2D,0x94,0x4B,0xBA,0x01
+		},
+			"xxx???"
+			"xxx???"
+			"xxx???"
+			"xxx???"
+			"xxx???"
+			"xxx???"
+			"xxx?????"
+			"xxx?????"
+			"xxx?????",
+
+		(unsigned char []) {
+			0x90,0x90,0x90,0x90,0x90,0x90,
+			0x90,0x90,0x90,0x90,0x90,0x90,
+			0x90,0x90,0x90,0x90,0x90,0x90,
+			0x90,0x90,0x90,0x90,0x90,0x90,
+			0x90,0x90,0x90,0x90,0x90,0x90,
+			0x90,0x90,0x90,0x90,0x90,0x90,
+			0x90,0x90,0x90,0x90,0x90,0x90,0x90,0x90,
+			0x90,0x90,0x90,0x90,0x90,0x90,0x90,0x90,
+			0x90,0x90,0x90,0x90,0x90,0x90,0x90,0x90
+		},
+			"??????"
+			"??????"
+			"??????"
+			"??????"
+			"??????"
+			"??????"
+			"xxxxxxxx"
+			"xxxxxxxx"
+			"xxxxxxxx"
+	);
+
+	this->minimap[1] = camera_get_patch (
+
+		 this->mp, "Move the camera when you click on the minimap (1)",
+		&this->border_screen_addr,
+		 /*
+			00B929DC  ║·▼┌72 6A                      jb short League_of_Legends.00B92A48
+			00B929DE  ║· │F30F1046 0D                movss xmm0, [dword ds:esi+0D]                         ; float 0.0, 0.0, 0.0, 0.0
+			00B929E3  ║· │F30F1105 8C4BBA01          movss [dword ds:League_of_Legends.CameraX], xmm0      ; float 0.0, 0.0, 0.0, 0.0
+			00B929EB  ║· │F30F1046 11                movss xmm0, [dword ds:esi+11]                         ; float 0.0, 0.0, 0.0, 0.0
+			00B929F0  ║· │F30F1105 904BBA01          movss [dword ds:League_of_Legends.1BA4B90], xmm0      ; float 0.0, 0.0, 0.0, 0.0
+			00B929F8  ║· │F30F1046 15                movss xmm0, [dword ds:esi+15]                         ; float 0.0, 0.0, 0.0, 0.0
+			00B929FD  ║· │F30F1105 944BBA01          movss [dword ds:League_of_Legends.CameraY], xmm0      ; float 0.0, 0.0, 0.0, 0.0
+			00B92A05  ║· │0F57C0                     xorps xmm0, xmm0                                      ; float 0.0, 0.0, 0.0, 0.0
+		*/
+		(unsigned char []) {
+			0x72,0x6A,
+			0xF3,0x0F,0x10,0x46,0x0D,
+			0xF3,0x0F,0x11,0x05,0x8C,0x4B,0xBA,0x01,
+			0xF3,0x0F,0x10,0x46,0x11,
+			0xF3,0x0F,0x11,0x05,0x90,0x4B,0xBA,0x01,
+			0xF3,0x0F,0x10,0x46,0x15,
+			0xF3,0x0F,0x11,0x05,0x94,0x4B,0xBA,0x01,
+			0x0F,0x57,0xC0
+		},
+			"xx"
+			"xxx??"
+			"xxx?????"
+			"xxx??"
+			"xxx?????"
+			"xxx??"
+			"xxx?????"
+			"xx?"
+			,
+
+		(unsigned char []) {
+			0x90,0x90,
+			0x90,0x90,0x90,0x90,0x90,
+			0x90,0x90,0x90,0x90,0x90,0x90,0x90,0x90,
+			0x90,0x90,0x90,0x90,0x90,
+			0x90,0x90,0x90,0x90,0x90,0x90,0x90,0x90,
+			0x90,0x90,0x90,0x90,0x90,
+			0x90,0x90,0x90,0x90,0x90,0x90,0x90,0x90,
+			0x90,0x90,0x90
+		},
+			"??"
+			"?????"
+			"xxxxxxxx"
+			"xxxxx"
+			"xxxxxxxx"
+			"xxxxx"
+			"xxxxxxxx"
+			"???"
+	);
+
 	this->respawn_reset = camera_get_patch (
 
 		this->mp, "Center the camera on the champion when you respawn",
@@ -495,12 +608,11 @@ BOOL camera_scan_variables ()
 	return res;
 }
 
-
 BOOL camera_scan_champions ()
 {
 	Camera *this = camera_get_instance();
 
-	BbQueue *res = memscan_search (this->mp, "eArrEnd/eArrStart",
+	BbQueue *res = memscan_search (this->mp, "eArrChampsEnd/eArrChampsStart",
 	/*
 		00A36FD1    57              		push edi
 		00A36FD2  ▼ 0F84 FA000000   		je League_Of_Legends.00A370D2
@@ -564,7 +676,7 @@ BOOL camera_scan_champions ()
 		if (e == NULL) // 0 = self
 			info("  --> Ally %d not found", i);
 		else
-			info("  --> Entity %d found (pos: x=%.0f y=%.0f hp=%.0f hpmax=%.0f - 0x%.8x)", i, e->p.v.x, e->p.v.y, e->hp, e->hp_max, this->entity_ptr);
+			info("  --> Entity %d found (pos: x=%.0f y=%.0f hp=%.0f hpmax=%.0f pname=%s cname=%s - 0x%.8x)", i, e->p.v.x, e->p.v.y, e->hp, e->hp_max, e->player_name, e->champ_name, this->entity_ptr);
 	}
 
 	return TRUE;
@@ -857,4 +969,445 @@ static BbQueue *camera_search_signatures (unsigned char *pattern, char *mask, ch
 	bb_queue_free_all(results, memblock_free);
 
 	return addresses;
+}
+
+void camera_export_to_cheatengine ()
+{
+	Camera *this = camera_get_instance();
+
+	char *out = str_dup_printf (
+		"<?xml version=\"1.0\"?>"
+		"<CheatTable CheatEngineTableVersion=\"12\">"
+		"  <CheatEntries>"
+		"    <CheatEntry>"
+		"      <ID>0</ID>"
+		"      <Description>\"CameraX\"</Description>"
+		"      <Color>80000008</Color>"
+		"      <VariableType>Float</VariableType>"
+		"      <Address>%.8x</Address>"
+		"    </CheatEntry>"
+		"    <CheatEntry>"
+		"      <ID>60</ID>"
+		"      <Description>\"CameraY\"</Description>"
+		"      <Color>80000008</Color>"
+		"      <VariableType>Float</VariableType>"
+		"      <Address>%.8x</Address>"
+		"    </CheatEntry>"
+		"    <CheatEntry>"
+		"      <ID>3</ID>"
+		"      <Description>\"ChampX\"</Description>"
+		"      <Color>80000008</Color>"
+		"      <VariableType>Float</VariableType>"
+		"      <Address>%.8x</Address>"
+		"    </CheatEntry>"
+		"    <CheatEntry>"
+		"      <ID>9</ID>"
+		"      <Description>\"ChampY\"</Description>"
+		"      <Color>80000008</Color>"
+		"      <VariableType>Float</VariableType>"
+		"      <Address>%.8x</Address>"
+		"    </CheatEntry>"
+		"    <CheatEntry>"
+		"      <ID>5</ID>"
+		"      <Description>\"MouseX\"</Description>"
+		"      <Color>80000008</Color>"
+		"      <VariableType>Float</VariableType>"
+		"      <Address>%.8x</Address>"
+		"    </CheatEntry>"
+		"    <CheatEntry>"
+		"      <ID>6</ID>"
+		"      <Description>\"MouseY\"</Description>"
+		"      <Color>80000008</Color>"
+		"      <VariableType>Float</VariableType>"
+		"      <Address>%.8x</Address>"
+		"    </CheatEntry>"
+		"    <CheatEntry>"
+		"      <ID>7</ID>"
+		"      <Description>\"DestX\"</Description>"
+		"      <Color>80000008</Color>"
+		"      <VariableType>Float</VariableType>"
+		"      <Address>%.8x</Address>"
+		"    </CheatEntry>"
+		"    <CheatEntry>"
+		"      <ID>10</ID>"
+		"      <Description>\"DestY\"</Description>"
+		"      <Color>80000008</Color>"
+		"      <VariableType>Float</VariableType>"
+		"      <Address>%.8x</Address>"
+		"    </CheatEntry>"
+		"    <CheatEntry>"
+		"      <ID>19</ID>"
+		"      <Description>\"EntityPointed\"</Description>"
+		"      <ShowAsHex>1</ShowAsHex>"
+		"      <Color>80000008</Color>"
+		"      <VariableType>Array of byte</VariableType>"
+		"      <ByteLength>10</ByteLength>"
+		"      <Address>%.8x</Address>"
+		"      <Offsets>"
+		"        <Offset>0</Offset>"
+		"      </Offsets>"
+		"    </CheatEntry>"
+		"    <CheatEntry>"
+		"      <ID>21</ID>"
+		"      <Description>\"IsShopOpenedPtr\"</Description>"
+		"      <Color>80000008</Color>"
+		"      <VariableType>Byte</VariableType>"
+		"      <Address>%.8x</Address>"
+		"      <Offsets>"
+		"        <Offset>7C</Offset>"
+		"      </Offsets>"
+		"    </CheatEntry>"
+		"    <CheatEntry>"
+		"      <ID>57</ID>"
+		"      <Description>\"MouseScreen\"</Description>"
+		"      <Color>80000008</Color>"
+		"      <VariableType>4 Bytes</VariableType>"
+		"      <Address>%.8x</Address>"
+		"      <Offsets>"
+		"        <Offset>0</Offset>"
+		"      </Offsets>"
+		"      <CheatEntries>"
+		"        <CheatEntry>"
+		"          <ID>55</ID>"
+		"          <Description>\"MouseScreenX\"</Description>"
+		"          <Color>80000008</Color>"
+		"          <VariableType>4 Bytes</VariableType>"
+		"          <Address>%.8x</Address>"
+		"          <Offsets>"
+		"            <Offset>4C</Offset>"
+		"          </Offsets>"
+		"        </CheatEntry>"
+		"        <CheatEntry>"
+		"          <ID>56</ID>"
+		"          <Description>\"MouseScreenY\"</Description>"
+		"          <Color>80000008</Color>"
+		"          <VariableType>4 Bytes</VariableType>"
+		"          <Address>%.8x</Address>"
+		"          <Offsets>"
+		"            <Offset>50</Offset>"
+		"          </Offsets>"
+		"        </CheatEntry>"
+		"      </CheatEntries>"
+		"    </CheatEntry>"
+		"    <CheatEntry>"
+		"      <ID>34</ID>"
+		"      <Description>\"GameEntitiesArray\"</Description>"
+		"      <ShowAsHex>1</ShowAsHex>"
+		"      <Color>80000008</Color>"
+		"      <VariableType>Array of byte</VariableType>"
+		"      <ByteLength>24</ByteLength>"
+		"      <Address>%.8x</Address>"
+		"      <CheatEntries>"
+		"        <CheatEntry>"
+		"          <ID>35</ID>"
+		"          <Description>\"EntityChampF1\"</Description>"
+		"          <ShowAsHex>1</ShowAsHex>"
+		"          <Color>80000008</Color>"
+		"          <VariableType>4 Bytes</VariableType>"
+		"          <Address>%.8x</Address>"
+		"          <Offsets>"
+		"            <Offset>0</Offset>"
+		"          </Offsets>"
+		"          <CheatEntries>"
+		"            <CheatEntry>"
+		"              <ID>29</ID>"
+		"              <Description>\"ChampF1_HP\"</Description>"
+		"              <Color>80000008</Color>"
+		"              <VariableType>Float</VariableType>"
+		"              <Address>%.8x</Address>"
+		"              <Offsets>"
+		"                <Offset>120</Offset>"
+		"                <Offset>0</Offset>"
+		"              </Offsets>"
+		"            </CheatEntry>"
+		"            <CheatEntry>"
+		"              <ID>46</ID>"
+		"              <Description>\"ChampF1_HPmax\"</Description>"
+		"              <Color>80000008</Color>"
+		"              <VariableType>Float</VariableType>"
+		"              <Address>%.8x</Address>"
+		"              <Offsets>"
+		"                <Offset>130</Offset>"
+		"                <Offset>0</Offset>"
+		"              </Offsets>"
+		"            </CheatEntry>"
+		"            <CheatEntry>"
+		"              <ID>45</ID>"
+		"              <Description>\"ChampF1_posX\"</Description>"
+		"              <Color>80000008</Color>"
+		"              <VariableType>Float</VariableType>"
+		"              <Address>%.8x</Address>"
+		"              <Offsets>"
+		"                <Offset>68</Offset>"
+		"                <Offset>0</Offset>"
+		"              </Offsets>"
+		"            </CheatEntry>"
+		"            <CheatEntry>"
+		"              <ID>54</ID>"
+		"              <Description>\"ChampF1_posY\"</Description>"
+		"              <Color>80000008</Color>"
+		"              <VariableType>Float</VariableType>"
+		"              <Address>%.8x</Address>"
+		"              <Offsets>"
+		"                <Offset>F0</Offset>"
+		"                <Offset>0</Offset>"
+		"              </Offsets>"
+		"            </CheatEntry>"
+		"          </CheatEntries>"
+		"        </CheatEntry>"
+		"        <CheatEntry>"
+		"          <ID>36</ID>"
+		"          <Description>\"EntityAllyF2\"</Description>"
+		"          <ShowAsHex>1</ShowAsHex>"
+		"          <Color>80000008</Color>"
+		"          <VariableType>4 Bytes</VariableType>"
+		"          <Address>%.8x</Address>"
+		"          <Offsets>"
+		"            <Offset>4</Offset>"
+		"          </Offsets>"
+		"          <CheatEntries>"
+		"            <CheatEntry>"
+		"              <ID>30</ID>"
+		"              <Description>\"AllyF2_HP\"</Description>"
+		"              <Color>80000008</Color>"
+		"              <VariableType>Float</VariableType>"
+		"              <Address>%.8x</Address>"
+		"              <Offsets>"
+		"                <Offset>120</Offset>"
+		"                <Offset>4</Offset>"
+		"              </Offsets>"
+		"            </CheatEntry>"
+		"            <CheatEntry>"
+		"              <ID>40</ID>"
+		"              <Description>\"AllyF2_HPmax\"</Description>"
+		"              <Color>80000008</Color>"
+		"              <VariableType>Float</VariableType>"
+		"              <Address>%.8x</Address>"
+		"              <Offsets>"
+		"                <Offset>130</Offset>"
+		"                <Offset>4</Offset>"
+		"              </Offsets>"
+		"            </CheatEntry>"
+		"            <CheatEntry>"
+		"              <ID>48</ID>"
+		"              <Description>\"AllyF2_posY\"</Description>"
+		"              <Color>80000008</Color>"
+		"              <VariableType>Float</VariableType>"
+		"              <Address>%.8x</Address>"
+		"              <Offsets>"
+		"                <Offset>F0</Offset>"
+		"                <Offset>4</Offset>"
+		"              </Offsets>"
+		"            </CheatEntry>"
+		"            <CheatEntry>"
+		"              <ID>47</ID>"
+		"              <Description>\"AllyF2_posX\"</Description>"
+		"              <Color>80000008</Color>"
+		"              <VariableType>Float</VariableType>"
+		"              <Address>%.8x</Address>"
+		"              <Offsets>"
+		"                <Offset>68</Offset>"
+		"                <Offset>4</Offset>"
+		"              </Offsets>"
+		"            </CheatEntry>"
+		"          </CheatEntries>"
+		"        </CheatEntry>"
+		"        <CheatEntry>"
+		"          <ID>37</ID>"
+		"          <Description>\"EntityAllyF3\"</Description>"
+		"          <ShowAsHex>1</ShowAsHex>"
+		"          <Color>80000008</Color>"
+		"          <VariableType>4 Bytes</VariableType>"
+		"          <Address>%.8x</Address>"
+		"          <Offsets>"
+		"            <Offset>8</Offset>"
+		"          </Offsets>"
+		"          <CheatEntries>"
+		"            <CheatEntry>"
+		"              <ID>49</ID>"
+		"              <Description>\"AllyF3_HP\"</Description>"
+		"              <Color>80000008</Color>"
+		"              <VariableType>Float</VariableType>"
+		"              <Address>%.8x</Address>"
+		"              <Offsets>"
+		"                <Offset>120</Offset>"
+		"                <Offset>8</Offset>"
+		"              </Offsets>"
+		"            </CheatEntry>"
+		"            <CheatEntry>"
+		"              <ID>50</ID>"
+		"              <Description>\"AllyF3_HPmax\"</Description>"
+		"              <Color>80000008</Color>"
+		"              <VariableType>Float</VariableType>"
+		"              <Address>%.8x</Address>"
+		"              <Offsets>"
+		"                <Offset>130</Offset>"
+		"                <Offset>8</Offset>"
+		"              </Offsets>"
+		"            </CheatEntry>"
+		"            <CheatEntry>"
+		"              <ID>31</ID>"
+		"              <Description>\"AllyF3_posX\"</Description>"
+		"              <Color>80000008</Color>"
+		"              <VariableType>Float</VariableType>"
+		"              <Address>%.8x</Address>"
+		"              <Offsets>"
+		"                <Offset>68</Offset>"
+		"                <Offset>8</Offset>"
+		"              </Offsets>"
+		"            </CheatEntry>"
+		"            <CheatEntry>"
+		"              <ID>41</ID>"
+		"              <Description>\"AllyF3_posY\"</Description>"
+		"              <Color>80000008</Color>"
+		"              <VariableType>Float</VariableType>"
+		"              <Address>%.8x</Address>"
+		"              <Offsets>"
+		"                <Offset>F0</Offset>"
+		"                <Offset>8</Offset>"
+		"              </Offsets>"
+		"            </CheatEntry>"
+		"          </CheatEntries>"
+		"        </CheatEntry>"
+		"        <CheatEntry>"
+		"          <ID>38</ID>"
+		"          <Description>\"EntityAllyF4\"</Description>"
+		"          <ShowAsHex>1</ShowAsHex>"
+		"          <Color>80000008</Color>"
+		"          <VariableType>4 Bytes</VariableType>"
+		"          <Address>%.8x</Address>"
+		"          <Offsets>"
+		"            <Offset>C</Offset>"
+		"          </Offsets>"
+		"          <CheatEntries>"
+		"            <CheatEntry>"
+		"              <ID>51</ID>"
+		"              <Description>\"AllyF4_HP\"</Description>"
+		"              <Color>80000008</Color>"
+		"              <VariableType>Float</VariableType>"
+		"              <Address>%.8x</Address>"
+		"              <Offsets>"
+		"                <Offset>120</Offset>"
+		"                <Offset>C</Offset>"
+		"              </Offsets>"
+		"            </CheatEntry>"
+		"            <CheatEntry>"
+		"              <ID>52</ID>"
+		"              <Description>\"AllyF4_HPmax\"</Description>"
+		"              <Color>80000008</Color>"
+		"              <VariableType>Float</VariableType>"
+		"              <Address>%.8x</Address>"
+		"              <Offsets>"
+		"                <Offset>130</Offset>"
+		"                <Offset>C</Offset>"
+		"              </Offsets>"
+		"            </CheatEntry>"
+		"            <CheatEntry>"
+		"              <ID>32</ID>"
+		"              <Description>\"AllyF4_posX\"</Description>"
+		"              <Color>80000008</Color>"
+		"              <VariableType>Float</VariableType>"
+		"              <Address>%.8x</Address>"
+		"              <Offsets>"
+		"                <Offset>68</Offset>"
+		"                <Offset>C</Offset>"
+		"              </Offsets>"
+		"            </CheatEntry>"
+		"            <CheatEntry>"
+		"              <ID>42</ID>"
+		"              <Description>\"AllyF4_posY\"</Description>"
+		"              <Color>80000008</Color>"
+		"              <VariableType>Float</VariableType>"
+		"              <Address>%.8x</Address>"
+		"              <Offsets>"
+		"                <Offset>F0</Offset>"
+		"                <Offset>C</Offset>"
+		"              </Offsets>"
+		"            </CheatEntry>"
+		"          </CheatEntries>"
+		"        </CheatEntry>"
+		"        <CheatEntry>"
+		"          <ID>39</ID>"
+		"          <Description>\"EntityAllyF5\"</Description>"
+		"          <ShowAsHex>1</ShowAsHex>"
+		"          <Color>80000008</Color>"
+		"          <VariableType>4 Bytes</VariableType>"
+		"          <Address>%.8x</Address>"
+		"          <Offsets>"
+		"            <Offset>10</Offset>"
+		"          </Offsets>"
+		"          <CheatEntries>"
+		"            <CheatEntry>"
+		"              <ID>53</ID>"
+		"              <Description>\"AllyF4_HP\"</Description>"
+		"              <Color>80000008</Color>"
+		"              <VariableType>Float</VariableType>"
+		"              <Address>%.8x</Address>"
+		"              <Offsets>"
+		"                <Offset>120</Offset>"
+		"                <Offset>10</Offset>"
+		"              </Offsets>"
+		"            </CheatEntry>"
+		"            <CheatEntry>"
+		"              <ID>54</ID>"
+		"              <Description>\"AllyF4_HPmax\"</Description>"
+		"              <Color>80000008</Color>"
+		"              <VariableType>Float</VariableType>"
+		"              <Address>%.8x</Address>"
+		"              <Offsets>"
+		"                <Offset>130</Offset>"
+		"                <Offset>10</Offset>"
+		"              </Offsets>"
+		"            </CheatEntry>"
+		"            <CheatEntry>"
+		"              <ID>33</ID>"
+		"              <Description>\"AllyF5_posX\"</Description>"
+		"              <Color>80000008</Color>"
+		"              <VariableType>Float</VariableType>"
+		"              <Address>%.8x</Address>"
+		"              <Offsets>"
+		"                <Offset>68</Offset>"
+		"                <Offset>10</Offset>"
+		"              </Offsets>"
+		"            </CheatEntry>"
+		"            <CheatEntry>"
+		"              <ID>43</ID>"
+		"              <Description>\"AllyF5_posX\"</Description>"
+		"              <Color>80000008</Color>"
+		"              <VariableType>Float</VariableType>"
+		"              <Address>%.8x</Address>"
+		"              <Offsets>"
+		"                <Offset>F0</Offset>"
+		"                <Offset>10</Offset>"
+		"              </Offsets>"
+		"            </CheatEntry>"
+		"          </CheatEntries>"
+		"        </CheatEntry>"
+		"      </CheatEntries>"
+		"    </CheatEntry>"
+		"  </CheatEntries>"
+		"  <UserdefinedSymbols/>"
+		"</CheatTable>",
+
+		this->cam->addrX,
+		this->cam->addrY,
+		this->champ->addrX,
+		this->champ->addrY,
+		this->mouse->addrX,
+		this->mouse->addrY,
+		this->dest->addrX,
+		this->dest->addrY,
+		this->cam->addrX + 0x1E8,
+		this->shop_is_opened_ptr,
+		this->mouse_screen_ptr,
+		this->mouse_screen_ptr,
+		this->mouse_screen_ptr,
+		this->entities_addr, this->entities_addr, this->entities_addr, this->entities_addr,	this->entities_addr, this->entities_addr,
+		this->entities_addr, this->entities_addr, this->entities_addr, this->entities_addr,	this->entities_addr, this->entities_addr,
+		this->entities_addr, this->entities_addr, this->entities_addr, this->entities_addr,	this->entities_addr, this->entities_addr,
+		this->entities_addr, this->entities_addr, this->entities_addr, this->entities_addr,	this->entities_addr, this->entities_addr,
+		this->entities_addr, this->entities_addr, this->entities_addr, this->entities_addr,	this->entities_addr, this->entities_addr
+	);
+
+	file_put_contents("out.ct", out, NULL);
 }

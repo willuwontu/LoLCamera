@@ -19,6 +19,7 @@ typedef enum {
 
 } CameraTrackingMode;
 
+// Static functions declaration
 static void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode);
 static void camera_compute_lerp_rate (float *lerp_rate, CameraTrackingMode camera_mode);
 BOOL camera_entity_is_near (Entity *e);
@@ -33,6 +34,7 @@ static CameraTrackingMode camera_is_enabled ()
 {
 	static short last_toggle_state = 0;
 	static int mbutton_pressed = 0;
+	static int lbutton_pressed = 0;
 	BOOL champ_is_dead = entity_is_dead(this->champions[0]);
 
 	// listen for toggle key
@@ -43,11 +45,13 @@ static CameraTrackingMode camera_is_enabled ()
 		last_toggle_state = new_toggle_state;
 
 		// Enable / Disable patches
-		patch_set_active(this->border_screen, this->enabled);
-		patch_set_active(this->F2345_pressed[0], this->enabled);
-		patch_set_active(this->F2345_pressed[1], this->enabled);
-		patch_set_active(this->respawn_reset, this->enabled);
-		patch_set_active(this->locked_camera, this->enabled);
+		patch_set_activated(this->border_screen, this->enabled);
+		patch_set_activated(this->F2345_pressed[0], this->enabled);
+		patch_set_activated(this->F2345_pressed[1], this->enabled);
+		patch_set_activated(this->respawn_reset, this->enabled);
+		//patch_set_activated(this->minimap[0], this->enabled);
+		//patch_set_activated(this->minimap[1], this->enabled);
+		patch_set_activated(this->locked_camera, this->enabled);
 	}
 
 	// skip the next loop if not enabled
@@ -66,7 +70,47 @@ static CameraTrackingMode camera_is_enabled ()
 
 	// to allow minimap navigation, also disabled if LMB is down
 	if (GetKeyState(VK_LBUTTON) < 0)
-		return NoMove;
+	{
+		// Attempt to fix issue #8 (Minimap click-hold, then return problem)
+		float distance_mouse_champ = vector2D_distance(&this->mouse->v, &this->champ->v);
+
+		if (distance_mouse_champ > 3000.0)
+		{
+			switch (lbutton_pressed)
+			{
+				case 0:
+					// Force polling
+					this->drag_pos = this->mouse->v;
+					this->request_polling = TRUE;
+					lbutton_pressed = 1;
+				break;
+
+				case 1:
+					memcpy(&this->cam_saved, this->cam, sizeof(MemPos));
+					lbutton_pressed = 2;
+				break;
+
+				case 2:
+				break;
+			}
+
+			return NoMove;
+		}
+
+		else
+			lbutton_pressed = 0;
+
+	}
+	else
+	{
+		if (lbutton_pressed == 2)
+		{
+			// On release
+			memcpy(this->cam, &this->cam_saved, sizeof(MemPos));
+		}
+
+		lbutton_pressed = 0;
+	}
 
 	// Disable camera when shop opened
 	if (this->shop_opened)
@@ -124,7 +168,7 @@ static CameraTrackingMode camera_is_enabled ()
 
 	// If our champion is dead, set free mode
 	if (champ_is_dead)
-		return Normal;
+		return Free;
 
     return Normal;
 }
@@ -185,11 +229,13 @@ void camera_init (MemProc *mp)
 		this->mouse_screen_addr + 0x50 - mp->base_addr
 	);
 
-	patch_set_active(this->border_screen, TRUE);
-	patch_set_active(this->F2345_pressed[0], TRUE);
-	patch_set_active(this->F2345_pressed[1], TRUE);
-	patch_set_active(this->respawn_reset, TRUE);
-	patch_set_active(this->locked_camera, TRUE);
+	patch_set_activated(this->border_screen, TRUE);
+	patch_set_activated(this->F2345_pressed[0], TRUE);
+	patch_set_activated(this->F2345_pressed[1], TRUE);
+	patch_set_activated(this->respawn_reset, TRUE);
+	//patch_set_activated(this->minimap[0], TRUE);
+	//patch_set_activated(this->minimap[1], TRUE);
+	patch_set_activated(this->locked_camera, TRUE);
 
 	this->active = TRUE;
 }
@@ -542,7 +588,7 @@ void camera_load_ini ()
 
 	// Addresses - Input checking
 	struct AddrStr { DWORD addr; char *str; } tabAddr [] = {
-        { .addr = this->shop_is_opened_ptr,.str = "shop_is_opened_ptr" },  //
+        { .addr = this->shop_is_opened_ptr, .str = "shop_is_opened_ptr" }, //
         { .addr = this->respawn_reset_addr, .str = "respawn_reset_addr" }, //
         { .addr = this->border_screen_addr, .str = "border_screen_addr" }, //                  ██████████
         { .addr = this->champx_addr,        .str = "champion_posx_addr" }, //              ████░░      ░░████
@@ -599,10 +645,12 @@ void camera_unload ()
 	// Process still active, unpatch
 	if (memproc_refresh_handle(this->mp))
 	{
-		patch_set_active(this->border_screen, FALSE);
-		patch_set_active(this->F2345_pressed[0], FALSE);
-		patch_set_active(this->F2345_pressed[1], FALSE);
-		patch_set_active(this->respawn_reset, FALSE);
-		patch_set_active(this->locked_camera, FALSE);
+		patch_set_activated(this->border_screen, FALSE);
+		patch_set_activated(this->F2345_pressed[0], FALSE);
+		patch_set_activated(this->F2345_pressed[1], FALSE);
+		patch_set_activated(this->respawn_reset, FALSE);
+		//patch_set_activated(this->minimap[0], FALSE);
+		//patch_set_activated(this->minimap[1], FALSE);
+		patch_set_activated(this->locked_camera, FALSE);
 	}
 }
