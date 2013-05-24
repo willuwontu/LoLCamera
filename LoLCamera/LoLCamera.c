@@ -49,9 +49,9 @@ static CameraTrackingMode camera_is_enabled ()
 		patch_set_activated(this->F2345_pressed[0], this->enabled);
 		patch_set_activated(this->F2345_pressed[1], this->enabled);
 		patch_set_activated(this->respawn_reset, this->enabled);
-		//patch_set_activated(this->minimap[0], this->enabled);
-		//patch_set_activated(this->minimap[1], this->enabled);
 		patch_set_activated(this->locked_camera, this->enabled);
+		patch_set_activated(this->minimap[0], this->enabled);
+		patch_set_activated(this->minimap[1], this->enabled);
 	}
 
 	// skip the next loop if not enabled
@@ -74,13 +74,13 @@ static CameraTrackingMode camera_is_enabled ()
 		// Attempt to fix issue #8 (Minimap click-hold, then return problem)
 		float distance_mouse_champ = vector2D_distance(&this->mouse->v, &this->champ->v);
 
-		if (distance_mouse_champ > 3000.0)
+		if (distance_mouse_champ > 1000.0)
+		// we don't want to stop the camera when we click around the champion
 		{
 			switch (lbutton_pressed)
 			{
 				case 0:
 					// Force polling
-					this->drag_pos = this->mouse->v;
 					this->request_polling = TRUE;
 					lbutton_pressed = 1;
 				break;
@@ -96,17 +96,15 @@ static CameraTrackingMode camera_is_enabled ()
 
 			return NoMove;
 		}
-
-		else
-			lbutton_pressed = 0;
-
 	}
+
 	else
 	{
 		if (lbutton_pressed == 2)
 		{
 			// On release
-			memcpy(this->cam, &this->cam_saved, sizeof(MemPos));
+			Sleep(1);
+			mempos_set(this->cam, this->cam_saved.v.x, this->cam_saved.v.y);
 		}
 
 		lbutton_pressed = 0;
@@ -233,9 +231,9 @@ void camera_init (MemProc *mp)
 	patch_set_activated(this->F2345_pressed[0], TRUE);
 	patch_set_activated(this->F2345_pressed[1], TRUE);
 	patch_set_activated(this->respawn_reset, TRUE);
-	//patch_set_activated(this->minimap[0], TRUE);
-	//patch_set_activated(this->minimap[1], TRUE);
 	patch_set_activated(this->locked_camera, TRUE);
+	patch_set_activated(this->minimap[0], TRUE);
+	patch_set_activated(this->minimap[1], TRUE);
 
 	this->active = TRUE;
 }
@@ -648,9 +646,9 @@ void camera_unload ()
 		patch_set_activated(this->border_screen, FALSE);
 		patch_set_activated(this->F2345_pressed[0], FALSE);
 		patch_set_activated(this->F2345_pressed[1], FALSE);
+		patch_set_activated(this->minimap[0], FALSE);
+		patch_set_activated(this->minimap[1], FALSE);
 		patch_set_activated(this->respawn_reset, FALSE);
-		//patch_set_activated(this->minimap[0], FALSE);
-		//patch_set_activated(this->minimap[1], FALSE);
 		patch_set_activated(this->locked_camera, FALSE);
 	}
 }
