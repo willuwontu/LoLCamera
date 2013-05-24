@@ -15,7 +15,8 @@ typedef enum {
     FollowEntity,
     ShareEntity,
     Free,
-    Drag
+    Drag,
+    FocusSelf
 
 } CameraTrackingMode;
 
@@ -166,6 +167,12 @@ static CameraTrackingMode camera_is_enabled ()
 			else
 				return FollowEntity;
 		}
+	}
+
+	if (!camera_is_near(this->champions[0]))
+	{
+		// The champion has been teleported far
+		return FocusSelf;
 	}
 
 	// If our champion is dead, set free mode
@@ -417,6 +424,9 @@ static void camera_compute_lerp_rate (float *lerp_rate, CameraTrackingMode camer
 		case Normal:
 		break;
 
+		case FocusSelf:
+		break;
+
 		case NoMove:
 		case NoUpdate:
 		break;
@@ -429,6 +439,16 @@ static void camera_compute_lerp_rate (float *lerp_rate, CameraTrackingMode camer
 	}
 
 	*lerp_rate = local_lerp_rate;
+}
+
+BOOL camera_is_near (Entity *e)
+{
+	if (e == NULL)
+		return FALSE;
+
+	float distance_cam_champ = vector2D_distance(&e->p.v, &this->cam->v);
+
+	return (distance_cam_champ < 2000.0);
 }
 
 BOOL camera_entity_is_near (Entity *e)
@@ -460,6 +480,11 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
                     (this->cam->v.y)
                 ) / 2.0
             );
+		break;
+
+		case FocusSelf:
+			vector2D_set_pos(target, this->champ->v.x, this->champ->v.y);
+			mempos_set(this->cam, this->champ->v.x, this->champ->v.y);
 		break;
 
 		case FollowEntity:
