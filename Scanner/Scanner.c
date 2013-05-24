@@ -18,7 +18,7 @@ BbQueue *memscan_search (MemProc *mp, char *desc, unsigned char *pattern, unsign
 
 	if (bb_queue_get_length(results) == 0)
 	{
-		error("\%s\" : Nothing found", desc);
+		error("\"%s\" : Nothing found", desc);
 		str_debug_len(pattern, strlen(search_mask));
 		printf("search_mask = %s\n", search_mask);
 		return NULL;

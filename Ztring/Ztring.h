@@ -92,6 +92,9 @@ Buffer *
 buffer_new (int size);
 
 Buffer *
+buffer_dup (Buffer *buf);
+
+Buffer *
 buffer_new_ptr (unsigned char *ptr, int size);
 
 Buffer *

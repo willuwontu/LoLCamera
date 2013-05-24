@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <windows.h>
 #include <winuser.h>
+#include <conio.h>
 
 #include "../Win32Tools/Win32Tools.h"
 #include "../IniParser/IniParser.h"
@@ -36,6 +37,7 @@ struct _Camera
 	DWORD locked_camera_addr;		// Address of the instructions moving the camera when camera mode is active
 	DWORD allies_cam_addr[2];		// Address of the instructions moving the camera when you press F2-3-4-5
 	DWORD self_cam_addr;			// Address of the instructions moving the camera when you press F1
+	DWORD minimap_addr[2];			// Address of the instructions moving the camera when you click on the minimap
 
 	DWORD shop_is_opened_ptr;		// Address of the data : address of the pointer to the variable containing "isShopOpen" (different of 0 if its the case)
 	DWORD entities_addr;			// Address of the data : entities array start
@@ -56,7 +58,8 @@ struct _Camera
 	// Static addresses
 	DWORD entity_ptr,entity_ptr_end;
 	DWORD players_ptr,players_ptr_end;
-	DWORD entity_hovered;
+	Entity *entity_hovered;
+	DWORD entity_hovered_addr;
 
 	float lerp_rate;				// This controls smoothing, smaller values mean slower camera movement
 	float threshold;				// Minimum threshold before calculations halted because camera is "close enough"
@@ -79,7 +82,7 @@ struct _Camera
 
 	// Entities
 	Entity *champions[10];			// Current played champion + 4 allies + 5 ennemies - NULL if doesn't exist
-	Entity *focused_ally;			// The focused ally champion (NULL if none or self)
+	Entity *focused_entity;			// The focused entity champion (NULL if none or self)
 	int team_size;					// Size of the -team- of the array actually, FIXME
 
 	// Memory positions
@@ -100,7 +103,7 @@ void camera_init (MemProc *mp);
 
 
 // ----------- Methods ------------
-void camera_main (void);
+BOOL camera_main ();
 BOOL camera_update ();
 void camera_load_ini ();
 inline void camera_set_active (BOOL active);
@@ -114,8 +117,10 @@ BOOL camera_scan_shop_is_opened ();
 BOOL camera_scan_variables ();
 BOOL camera_scan_loading ();
 BOOL camera_scan_game_struct ();
+BOOL camera_scan_hovered_champ ();
 
 BOOL camera_refresh_champions ();
+BOOL camera_refresh_entity_hovered ();
 BOOL camera_refresh_shop_is_opened ();
 BOOL camera_wait_for_ingame ();
 

@@ -12,8 +12,8 @@ typedef enum {
     CenterCam,
     NoMove,
     NoUpdate,
-    FollowAlly,
-    ShareAlly,
+    FollowEntity,
+    ShareEntity,
     Free,
     Drag
 
@@ -27,7 +27,7 @@ BOOL camera_entity_is_near (Entity *e);
 
 void camera_focus_entity (Entity *e)
 {
-	this->focused_ally = e;
+	this->focused_entity = e;
 }
 
 static CameraTrackingMode camera_is_enabled ()
@@ -64,9 +64,13 @@ static CameraTrackingMode camera_is_enabled ()
     	// Polling data is requested because we want to center the camera exactly where the champion is
     	// Also disable the focusing champ feature if enabled
         this->request_polling = TRUE;
-        this->focused_ally = NULL;
+        this->focused_entity = NULL;
         return CenterCam;
     }
+
+	// An entity has been hovered - share the view
+	if (this->entity_hovered != NULL)
+		this->focused_entity = this->entity_hovered;
 
 	// to allow minimap navigation, also disabled if LMB is down
 	if (GetKeyState(VK_LBUTTON) < 0)
@@ -150,17 +154,17 @@ static CameraTrackingMode camera_is_enabled ()
 	if (GetKeyState(VK_F9)  < 0 && this->team_size > 8) camera_focus_entity(this->champions[8]);
 	if (GetKeyState(VK_F10) < 0 && this->team_size > 9) camera_focus_entity(this->champions[9]);
 
-	if (this->focused_ally != NULL)
+	if (this->focused_entity != NULL)
 	{
 		// When we are in "dead" spectator mode, it's not important to change camera mode.
-		if (entity_is_dead(this->focused_ally) && !champ_is_dead)
-			this->focused_ally = NULL;
+		if (entity_is_dead(this->focused_entity) && !champ_is_dead)
+			this->focused_entity = NULL;
 		else
 		{
-			if (camera_entity_is_near(this->focused_ally))
-				return ShareAlly;
+			if (camera_entity_is_near(this->focused_entity))
+				return ShareEntity;
 			else
-				return FollowAlly;
+				return FollowEntity;
 		}
 	}
 
@@ -181,7 +185,7 @@ void camera_init (MemProc *mp)
 	this->active = FALSE;
 	this->F2345_pressed[0] = NULL;
 	this->F2345_pressed[1] = NULL;
-	this->focused_ally = NULL;
+	this->focused_entity = NULL;
 	this->shop_opened = FALSE;
 	this->drag_pos = vector2D_new();
 
@@ -245,7 +249,7 @@ BOOL camera_wait_for_ingame ()
 	while (!read_memory_as_int(this->mp->proc, this->loading_state_addr))
 	{
 		waited = TRUE;
-		warning("Loading screen detected. Sleep during 3s.");
+		warning("Loading screen detected. (0x%.8x) Sleep during 3s.", this->loading_state_addr);
 		Sleep(3000);
 	}
 
@@ -270,6 +274,7 @@ BOOL camera_update ()
 		{.func = mempos_int_refresh,			.arg = this->mouse_screen,	.desc = "this->mouse_screen MemPos"},
 		{.func = camera_refresh_champions,		.arg = NULL,				.desc = "Entities array"},
 		{.func = camera_refresh_shop_is_opened,	.arg = NULL,				.desc = "Shop opened"},
+		{.func = camera_refresh_entity_hovered,	.arg = NULL,				.desc = "Entity hovered"},
 	};
 
 	if (frame_count++ % this->poll_data == 0 || this->request_polling)
@@ -323,18 +328,18 @@ void camera_set_tracking_mode (CameraTrackingMode *out_mode)
 
 	mode = camera_is_enabled();
 
-	if (mode == FollowAlly && last_mode == ShareAlly)
+	if (mode == FollowEntity && last_mode == ShareEntity)
 	{
 		// We don't want to focus on an entity when it goes too far, we want to focus on our champion (Normal mode)
 		mode = Normal;
-		this->focused_ally = NULL;
+		this->focused_entity = NULL;
 	}
 
 	last_mode = mode;
 	*out_mode = mode;
 }
 
-void camera_main ()
+BOOL camera_main ()
 {
 	Vector2D target;
 	float lerp_rate;
@@ -342,6 +347,15 @@ void camera_main ()
 
 	while (this->active)
 	{
+		if (kbhit())
+		{
+			char c = getch();
+			// Interrupt request
+
+			if (c == 'X' || c == 'x')
+				return TRUE;
+		}
+
 		Sleep(this->sleep_time);
 
 		// Check if enabled.
@@ -370,6 +384,8 @@ void camera_main ()
         // update the ingame gamera position
 		mempos_set(this->cam, this->cam->v.x, this->cam->v.y);
 	}
+
+	return FALSE;
 }
 
 static void camera_compute_lerp_rate (float *lerp_rate, CameraTrackingMode camera_mode)
@@ -391,11 +407,11 @@ static void camera_compute_lerp_rate (float *lerp_rate, CameraTrackingMode camer
 			local_lerp_rate = local_lerp_rate * 2;
 		break;
 
-		case FollowAlly:
+		case FollowEntity:
 			local_lerp_rate = local_lerp_rate * 5;
 		break;
 
-		case ShareAlly:
+		case ShareEntity:
 		break;
 
 		case Normal:
@@ -446,10 +462,9 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
             );
 		break;
 
-
-		case FollowAlly:
+		case FollowEntity:
 		{
-			Entity *ally = this->focused_ally;
+			Entity *ally = this->focused_entity;
 
 			if (!camera_entity_is_near(ally))
 			{
@@ -462,16 +477,16 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 		case Drag:
 			drag_x = (this->drag_pos.x - this->mouse->v.x) * 10;
 			drag_y = (this->drag_pos.y - this->mouse->v.y) * 10;
-			goto ShareAllyMode; // Drag *must* follow with case ShareAlly then NormalMode
+			goto ShareEntityMode; // Drag *must* follow with case ShareEntity then NormalMode
 
-		ShareAllyMode:
-		case ShareAlly:
-			if (this->focused_ally != NULL)
+		ShareEntityMode:
+		case ShareEntity:
+			if (this->focused_entity != NULL)
 			{
-				// ShareAlly is a Normal camera behavior + ally weight
+				// ShareEntity is a Normal camera behavior + ally weight
 				ally_weight = 1.0;
-				ally_x = this->focused_ally->p.v.x * ally_weight;
-				ally_y = this->focused_ally->p.v.y * ally_weight;
+				ally_x = this->focused_entity->p.v.x * ally_weight;
+				ally_y = this->focused_entity->p.v.y * ally_weight;
 			}
 			goto NormalMode; // We must go to case Normal
 

@@ -111,7 +111,7 @@ BOOL camera_scan_patch ()
 	this->minimap[0] = camera_get_patch (
 
 		 this->mp, "Move the camera when you click on the minimap (0)",
-		&this->border_screen_addr,
+		&this->minimap_addr[0],
 		 /*
 			00B92B3E  ║► └F30F105C24 10        movss xmm3, [dword ss:arg4]
 			00B92B44  ║·  F30F106424 14        movss xmm4, [dword ss:arg5]
@@ -119,7 +119,7 @@ BOOL camera_scan_patch ()
 			00B92B50  ║·  F30F104424 1C        movss xmm0, [dword ss:arg7]
 			00B92B56  ║·  F30F104C24 20        movss xmm1, [dword ss:arg8]
 			00B92B5C  ║·  F30F105424 24        movss xmm2, [dword ss:arg.9]
-			00B92B62  ║·  F30F111D 8C4BBA01    movss [dword ds:League_of_Legends.CameraX], xmm3                        ; float 633.5077
+			00B92B62  ║·  F30F111D 8C4BBA01    movss [dword ds:League_of_Legends.01cad584], xmm3                        ; float 633.5077
 			00B92B6A  ║·  F30F1125 904BBA01    movss [dword ds:League_of_Legends.1BA4B90], xmm4                        ; float 0.0
 			00B92B72  ║·  F30F112D 944BBA01    movss [dword ds:League_of_Legends.CameraY], xmm5                        ; float 543.3905
 		*/
@@ -169,7 +169,7 @@ BOOL camera_scan_patch ()
 	this->minimap[1] = camera_get_patch (
 
 		 this->mp, "Move the camera when you click on the minimap (1)",
-		&this->border_screen_addr,
+		&this->minimap_addr[1],
 		 /*
 			00B929DC  ║·▼┌72 6A                      jb short League_of_Legends.00B92A48
 			00B929DE  ║· │F30F1046 0D                movss xmm0, [dword ds:esi+0D]                         ; float 0.0, 0.0, 0.0, 0.0
@@ -338,20 +338,20 @@ BOOL camera_scan_patch ()
 		*/
 
 		(unsigned char []) {
-			0xD9, 0x46,	0x6C, // xx?
-			0xD9, 0x5B, 0x14, // xxx
-			0xD9, 0x46, 0x74, // xx?
-			0xD9, 0x5B, 0x1C, // xxx
+			"\xD9\x46\x6C" // xx?
+			"\xD9\x5B\x14" // xxx
+			"\xD9\x46\x74" // xx?
+			"\xD9\x5B\x1C" // xxx
 		},	"xx?"
 			"xxx"
 			"xx?"
 			"xxx",
 
 		(unsigned char []) {
-			0x90,0x90,0x90, 	// xxx
-			0x90,0x90,0x90, 	// xxx
-			0x90,0x90,0x90, 	// xxx
-			0x90,0x90,0x90, 	// xxx
+			"\x90\x90\x90" 	// xxx
+			"\x90\x90\x90" 	// xxx
+			"\x90\x90\x90" 	// xxx
+			"\x90\x90\x90" 	// xxx
 		},	"xxx"
 			"xxx"
 			"xxx"
@@ -564,7 +564,6 @@ BOOL camera_scan_game_struct ()
 	return TRUE;
 }
 
-
 BOOL camera_scan_variables ()
 {
 	BOOL res = TRUE;
@@ -591,7 +590,8 @@ BOOL camera_scan_variables ()
 		camera_scan_loading,
 		camera_scan_mouse_screen,
 		camera_scan_game_struct,
-		camera_scan_shop_is_opened
+		camera_scan_shop_is_opened,
+		camera_scan_hovered_champ,
 	};
 
 	for (int i = 0; i < (sizeof(scan_funcs) / sizeof(BOOL (*)())); i++)
@@ -606,6 +606,69 @@ BOOL camera_scan_variables ()
 	camera_scan_champions();
 
 	return res;
+}
+
+BOOL camera_scan_hovered_champ ()
+{
+	Camera *this = camera_get_instance();
+
+	BbQueue *res = memscan_search (this->mp, "entityHovered",
+	/*
+		004D24C0  ║·▼┌74 0C                    je short League_of_Legends.004D24CE
+		004D24C2  ║· │A2 181CCC01              mov [byte ds:League_of_Legends.1CC1C18], al
+		004D24C7  ║· │C605 50B4CB01 01         mov [byte ds:League_of_Legends.1CBB450], 1
+		004D24CE  ║► └3805 50B4CB01            cmp [byte ds:League_of_Legends.1CBB450], al
+		004D24D4  ║·  A3 10B4CB01              mov [dword ds:League_of_Legends.<<1CBB410>>], eax  <--- hovered champ
+		004D24D9  ║·  A3 14B4CB01              mov [dword ds:League_of_Legends.1CBB414], eax
+		004D24DE  ║·  A3 18B4CB01              mov [dword ds:League_of_Legends.1CBB418], eax
+		004D24E3  ║·  C705 141CCC01 10B4CB01   mov [dword ds:League_of_Legends.1CC1C14], offset League_of_Legends.01CBB410
+	*/
+
+		"\x74\x0C"
+		"\xA2\x18\x1C\xCC\x01"
+		"\xC6\x05\x50\xB4\xCB\x01\x01"
+		"\x38\x05\x50\xB4\xCB\x01"
+		"\xA3\x10\xB4\xCB\x01"
+		"\xA3\x14\xB4\xCB\x01"
+		"\xA3\x18\xB4\xCB\x01"
+		"\xC7\x05\x14\x1C\xCC\x01\x10\xB4\xCB\x01",
+
+		"xx"
+		"x????"
+		"xx????x"
+		"xx????"
+		"x????"
+		"x????"
+		"x????"
+		"xx????????",
+
+		"xx"
+		"xxxxx"
+		"xxxxxxx"
+		"xxxxxx"
+		"x????"
+		"xxxxx"
+		"xxxxx"
+		"xxxxxxxxxx"
+	);
+
+	if (!res)
+	{
+		warning("Cannot find entity hovered address\nUsing the .ini value : 0x%.8x", this->entity_hovered_addr);
+		return FALSE;
+	}
+
+	Buffer *entityHovered = bb_queue_pick_first(res);
+
+	memcpy(&this->entity_hovered_addr, entityHovered->data, entityHovered->size);
+
+	if (!this->entity_hovered_addr)
+	{
+		warning("Cannot scan entity hovered");
+		return FALSE;
+	}
+
+	return TRUE;
 }
 
 BOOL camera_scan_champions ()
@@ -649,7 +712,7 @@ BOOL camera_scan_champions ()
 
 	bb_queue_free_all(res, buffer_free);
 
-	if (!this->entities_addr)
+	if (!this->entities_addr || !this->entities_addr_end)
 	{
 		warning("Cannot scan entities");
 		return FALSE;
@@ -664,19 +727,22 @@ BOOL camera_scan_champions ()
 		return FALSE;
 	}
 
-	for (int i = 0; this->entity_ptr != this->entity_ptr_end && i < 10; this->entity_ptr += 4, i++)
+	DWORD cur = this->entity_ptr;
+	DWORD end = this->entity_ptr_end;
+
+	for (int i = 0; cur != end && i < 10; cur += 4, i++)
 	{
 		Entity *e = this->champions[i];
 
 		if (e == NULL)
-			this->champions[i] = e = entity_new(this->mp, this->entity_ptr);
+			this->champions[i] = e = entity_new(this->mp, cur);
 		else
-			entity_init(e, this->mp, this->entity_ptr);
+			entity_init(e, this->mp, cur);
 
 		if (e == NULL) // 0 = self
 			info("  --> Ally %d not found", i);
 		else
-			info("  --> Entity %d found (pos: x=%.0f y=%.0f hp=%.0f hpmax=%.0f pname=%s cname=%s - 0x%.8x)", i, e->p.v.x, e->p.v.y, e->hp, e->hp_max, e->player_name, e->champ_name, this->entity_ptr);
+			info("  --> Entity %d found (pos: x=%.0f y=%.0f hp=%.0f hpmax=%.0f pname=\"%s\" cname=\"%s\" - 0x%.8x)", i, e->p.v.x, e->p.v.y, e->hp, e->hp_max, e->player_name, e->champ_name, cur);
 	}
 
 	return TRUE;
@@ -826,6 +892,47 @@ BOOL camera_scan_shop_is_opened ()
 	return TRUE;
 }
 
+BOOL camera_refresh_entity_hovered ()
+{
+	Camera *this = camera_get_instance();
+
+	DWORD entity_hovered = read_memory_as_int(this->mp->proc, this->entity_hovered_addr);
+
+	if (entity_hovered != 0)
+	{
+		char name[16] = {[0 ... 15] = '\0'};
+		entity_hovered = read_memory_as_int(this->mp->proc, entity_hovered);
+
+		read_from_memory(this->mp->proc, name, entity_hovered + 0x2C, sizeof(name));
+
+
+		DWORD cur = this->entity_ptr;
+		DWORD end = this->entity_ptr_end;
+
+		for (int i = 0; cur != end && i < 10; cur += 4, i++)
+		{
+			Entity *e = this->champions[i];
+
+			if (strcmp(e->player_name, name) == 0)
+			{
+				if (i == 0)
+				{
+					// We don't want to share the view with ourself
+					break;
+				}
+
+				// Entity hovered
+				this->entity_hovered = e;
+				break;
+			}
+		}
+	}
+	else
+		this->entity_hovered = NULL;
+
+	return TRUE;
+}
+
 BOOL camera_refresh_shop_is_opened ()
 {
 	Camera *this = camera_get_instance();
@@ -865,11 +972,11 @@ static void camera_get_patches (Patch **patches, int size, MemProc *mp, char *de
 		patches[loop++] = patch_new (newdesc, mp, addr, sig, code, patch, patch_mask);
 		free(newdesc);
 
-		membuffer_free(mb);
-
 		if (loop > size)
 			break;
 	}
+
+	bb_queue_free_all(occs, membuffer_free);
 }
 
 static BOOL camera_search_signature (unsigned char *pattern, DWORD *addr, char **code_ptr, char *mask, char *name)

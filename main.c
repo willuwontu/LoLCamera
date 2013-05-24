@@ -7,6 +7,7 @@
 
 int main()
 {
+	BOOL exit_request = FALSE;
 	info("Sources : https://github.com/Spl3en/LoLCamera");
 
 	enable_debug_privileges();
@@ -14,7 +15,7 @@ int main()
 	// Force unpatch at exit
 	atexit(camera_unload);
 
-	while (1)
+	while (!exit_request)
 	{
 		MemProc *mp = memproc_new("League of Legends.exe", "League of Legends (TM) Client");
 		memproc_set_default_baseaddr(mp, 0x00400000);
@@ -27,10 +28,11 @@ int main()
 				Sleep(1000);
 		}
 
-		info("Game detected, main loop started");
+		info("Game detected, main loop started (press 'x' to quit)");
 
 		camera_init(mp);
-		camera_main();
+
+		exit_request = camera_main();
 		camera_unload();
 
 		memproc_free(mp);

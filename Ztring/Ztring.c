@@ -95,6 +95,12 @@ buffer_new (int size)
 }
 
 Buffer *
+buffer_dup (Buffer *buf)
+{
+	return buffer_new_ptr(buf->data, buf->size);
+}
+
+Buffer *
 buffer_new_ptr (unsigned char *ptr, int size)
 {
 	Buffer *b = buffer_new(size);
