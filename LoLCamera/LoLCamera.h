@@ -83,6 +83,7 @@ struct _Camera
 	// Entities
 	Entity *champions[10];			// Current played champion + 4 allies + 5 ennemies - NULL if doesn't exist
 	Entity *focused_entity;			// The focused entity champion (NULL if none or self)
+	Entity *followed_entity;		// The followed entity champion (NULL if none or self)
 	int team_size;					// Size of the -team- of the array actually, FIXME
 
 	// Memory positions
@@ -108,6 +109,7 @@ BOOL camera_update ();
 void camera_load_ini ();
 inline void camera_set_active (BOOL active);
 Camera *camera_get_instance ();
+BOOL camera_is_near (MemPos *pos);
 
 // from LoLCameraMem.c
 BOOL camera_scan_champions ();

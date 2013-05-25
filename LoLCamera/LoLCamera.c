@@ -12,11 +12,11 @@ typedef enum {
     CenterCam,
     NoMove,
     NoUpdate,
-    FollowEntity,
     ShareEntity,
     Free,
     Drag,
-    FocusSelf
+    FocusSelf,
+    FollowEntity
 
 } CameraTrackingMode;
 
@@ -26,9 +26,9 @@ static void camera_compute_lerp_rate (float *lerp_rate, CameraTrackingMode camer
 BOOL camera_entity_is_near (Entity *e);
 
 
-void camera_focus_entity (Entity *e)
+void camera_follow_entity (Entity *e)
 {
-	this->focused_entity = e;
+	this->followed_entity = e;
 }
 
 static CameraTrackingMode camera_is_enabled ()
@@ -37,6 +37,7 @@ static CameraTrackingMode camera_is_enabled ()
 	static int mbutton_pressed = 0;
 	static int lbutton_pressed = 0;
 	BOOL champ_is_dead = entity_is_dead(this->champions[0]);
+	BOOL fx_is_pressed = FALSE;
 
 	// listen for toggle key
 	short new_toggle_state = GetKeyState(TOGGLE_KEY);
@@ -145,15 +146,15 @@ static CameraTrackingMode camera_is_enabled ()
 		mbutton_pressed = 0;
 
 	// Following ally & ennemies champions
-	if (GetKeyState(VK_F2)  < 0 && this->team_size > 1) camera_focus_entity(this->champions[1]);
-	if (GetKeyState(VK_F3)  < 0 && this->team_size > 2) camera_focus_entity(this->champions[2]);
-	if (GetKeyState(VK_F4)  < 0 && this->team_size > 3) camera_focus_entity(this->champions[3]);
-	if (GetKeyState(VK_F5)  < 0 && this->team_size > 4) camera_focus_entity(this->champions[4]);
-	if (GetKeyState(VK_F6)  < 0 && this->team_size > 5) camera_focus_entity(this->champions[5]);
-	if (GetKeyState(VK_F7)  < 0 && this->team_size > 6) camera_focus_entity(this->champions[6]);
-	if (GetKeyState(VK_F8)  < 0 && this->team_size > 7) camera_focus_entity(this->champions[7]);
-	if (GetKeyState(VK_F9)  < 0 && this->team_size > 8) camera_focus_entity(this->champions[8]);
-	if (GetKeyState(VK_F10) < 0 && this->team_size > 9) camera_focus_entity(this->champions[9]);
+	if (GetKeyState(VK_F2)  < 0 && this->team_size > 1) {camera_follow_entity(this->champions[1]); fx_is_pressed = TRUE;}
+	if (GetKeyState(VK_F3)  < 0 && this->team_size > 2) {camera_follow_entity(this->champions[2]); fx_is_pressed = TRUE;}
+	if (GetKeyState(VK_F4)  < 0 && this->team_size > 3) {camera_follow_entity(this->champions[3]); fx_is_pressed = TRUE;}
+	if (GetKeyState(VK_F5)  < 0 && this->team_size > 4) {camera_follow_entity(this->champions[4]); fx_is_pressed = TRUE;}
+	if (GetKeyState(VK_F6)  < 0 && this->team_size > 5) {camera_follow_entity(this->champions[5]); fx_is_pressed = TRUE;}
+	if (GetKeyState(VK_F7)  < 0 && this->team_size > 6) {camera_follow_entity(this->champions[6]); fx_is_pressed = TRUE;}
+	if (GetKeyState(VK_F8)  < 0 && this->team_size > 7) {camera_follow_entity(this->champions[7]); fx_is_pressed = TRUE;}
+	if (GetKeyState(VK_F9)  < 0 && this->team_size > 8) {camera_follow_entity(this->champions[8]); fx_is_pressed = TRUE;}
+	if (GetKeyState(VK_F10) < 0 && this->team_size > 9) {camera_follow_entity(this->champions[9]); fx_is_pressed = TRUE;}
 
 	if (this->focused_entity != NULL)
 	{
@@ -164,20 +165,27 @@ static CameraTrackingMode camera_is_enabled ()
 		{
 			if (camera_entity_is_near(this->focused_entity))
 				return ShareEntity;
-			else
-				return FollowEntity;
 		}
 	}
 
-	if (!camera_is_near(this->champions[0]))
-	{
-		// The champion has been teleported far
-		return FocusSelf;
-	}
-
 	// If our champion is dead, set free mode
-	if (champ_is_dead)
+	if (champ_is_dead) {
 		return Free;
+	}
+	else
+	{
+		if (this->followed_entity != NULL && fx_is_pressed)
+		{
+			// Fx is pressed, follow the entity
+			return FollowEntity;
+		}
+
+		if (!camera_is_near(this->champ))
+		{
+			// The champion has been teleported far, focus on the champion
+			return FocusSelf;
+		}
+	}
 
     return Normal;
 }
@@ -335,13 +343,6 @@ void camera_set_tracking_mode (CameraTrackingMode *out_mode)
 
 	mode = camera_is_enabled();
 
-	if (mode == FollowEntity && last_mode == ShareEntity)
-	{
-		// We don't want to focus on an entity when it goes too far, we want to focus on our champion (Normal mode)
-		mode = Normal;
-		this->focused_entity = NULL;
-	}
-
 	last_mode = mode;
 	*out_mode = mode;
 }
@@ -410,12 +411,11 @@ static void camera_compute_lerp_rate (float *lerp_rate, CameraTrackingMode camer
 				local_lerp_rate = 0.9;
 		break;
 
-		case Free:
-			local_lerp_rate = local_lerp_rate * 2;
+		case FollowEntity:
 		break;
 
-		case FollowEntity:
-			local_lerp_rate = local_lerp_rate * 5;
+		case Free:
+			local_lerp_rate = local_lerp_rate * 2;
 		break;
 
 		case ShareEntity:
@@ -441,14 +441,14 @@ static void camera_compute_lerp_rate (float *lerp_rate, CameraTrackingMode camer
 	*lerp_rate = local_lerp_rate;
 }
 
-BOOL camera_is_near (Entity *e)
+BOOL camera_is_near (MemPos *pos)
 {
-	if (e == NULL)
+	if (pos == NULL)
 		return FALSE;
 
-	float distance_cam_champ = vector2D_distance(&e->p.v, &this->cam->v);
+	float distance_cam_champ = vector2D_distance(&pos->v, &this->cam->v);
 
-	return (distance_cam_champ < 2000.0);
+	return (distance_cam_champ < 3000.0);
 }
 
 BOOL camera_entity_is_near (Entity *e)
@@ -482,21 +482,14 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
             );
 		break;
 
+		case FollowEntity:
+			vector2D_set_pos(target, this->followed_entity->p.v.x, this->followed_entity->p.v.y);
+			mempos_set(this->cam, this->followed_entity->p.v.x, this->followed_entity->p.v.y);
+		break;
+
 		case FocusSelf:
 			vector2D_set_pos(target, this->champ->v.x, this->champ->v.y);
 			mempos_set(this->cam, this->champ->v.x, this->champ->v.y);
-		break;
-
-		case FollowEntity:
-		{
-			Entity *ally = this->focused_entity;
-
-			if (!camera_entity_is_near(ally))
-			{
-				vector2D_set_pos(target, ally->p.v.x, ally->p.v.y);
-				break;
-			}
-		}
 		break;
 
 		case Drag:
@@ -509,7 +502,7 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 			if (this->focused_entity != NULL)
 			{
 				// ShareEntity is a Normal camera behavior + ally weight
-				ally_weight = 1.0;
+				ally_weight = 0.5;
 				ally_x = this->focused_entity->p.v.x * ally_weight;
 				ally_y = this->focused_entity->p.v.y * ally_weight;
 			}
