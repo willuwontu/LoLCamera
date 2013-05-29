@@ -604,8 +604,35 @@ BOOL camera_scan_variables ()
 	info("------------------------------------------------------------------");
 	info("Reading the content of pointers...");
 	camera_scan_champions();
+	camera_refresh_self();
 
 	return res;
+}
+
+BOOL camera_refresh_self ()
+{
+	Camera *this = camera_get_instance();
+
+	DWORD cur = this->entity_ptr;
+	DWORD end = this->entity_ptr_end;
+
+	if (this->self_name == NULL)
+	{
+		this->self_name = this->champions[0]->player_name;
+		this->self = this->champions[0];
+		return TRUE;
+	}
+
+	for (int i = 0; cur != end && i < 10; cur += 4, i++)
+	{
+		if (strcmp(this->self_name, this->champions[i]->player_name) == 0)
+		{
+			this->self = this->champions[i];
+			return TRUE;
+		}
+	}
+
+	return FALSE;
 }
 
 BOOL camera_scan_hovered_champ ()

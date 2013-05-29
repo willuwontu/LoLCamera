@@ -12,7 +12,6 @@ typedef enum {
     CenterCam,
     NoMove,
     NoUpdate,
-    ShareEntity,
     Free,
     Drag,
     FocusSelf,
@@ -26,8 +25,7 @@ static void camera_compute_lerp_rate (float *lerp_rate, CameraTrackingMode camer
 BOOL camera_entity_is_near (Entity *e);
 
 
-void camera_follow_entity (Entity *e)
-{
+void camera_follow_entity (Entity *e) {
 	this->followed_entity = e;
 }
 
@@ -36,7 +34,7 @@ static CameraTrackingMode camera_is_enabled ()
 	static short last_toggle_state = 0;
 	static int mbutton_pressed = 0;
 	static int lbutton_pressed = 0;
-	BOOL champ_is_dead = entity_is_dead(this->champions[0]);
+	BOOL champ_is_dead = entity_is_dead(this->self);
 	BOOL fx_is_pressed = FALSE;
 
 	// listen for toggle key
@@ -67,12 +65,19 @@ static CameraTrackingMode camera_is_enabled ()
     	// Also disable the focusing champ feature if enabled
         this->request_polling = TRUE;
         this->focused_entity = NULL;
+        this->hint_entity = NULL;
         return CenterCam;
     }
 
-	// An entity has been hovered - share the view
+	// An entity has been hovered - share the view (hint)
 	if (this->entity_hovered != NULL)
-		this->focused_entity = this->entity_hovered;
+	{
+		this->hint_entity = this->entity_hovered;
+
+		// Left click on the entity : focus it
+		if (GetKeyState(VK_LBUTTON) < 0)
+			this->focused_entity = this->entity_hovered;
+	}
 
 	// to allow minimap navigation, also disabled if LMB is down
 	if (GetKeyState(VK_LBUTTON) < 0)
@@ -159,13 +164,22 @@ static CameraTrackingMode camera_is_enabled ()
 	if (this->focused_entity != NULL)
 	{
 		// When we are in "dead" spectator mode, it's not important to change camera mode.
-		if (entity_is_dead(this->focused_entity) && !champ_is_dead)
+		if (entity_is_dead(this->focused_entity)
+		|| !camera_entity_is_near(this->focused_entity))
 			this->focused_entity = NULL;
-		else
-		{
-			if (camera_entity_is_near(this->focused_entity))
-				return ShareEntity;
-		}
+	}
+
+	if (this->hint_entity != NULL)
+	{
+		if (entity_is_dead(this->hint_entity)
+		|| !camera_entity_is_near(this->hint_entity))
+			this->hint_entity = NULL;
+	}
+
+	if (this->followed_entity != NULL && fx_is_pressed)
+	{
+		// Fx is pressed, follow the entity
+		return FollowEntity;
 	}
 
 	// If our champion is dead, set free mode
@@ -174,12 +188,6 @@ static CameraTrackingMode camera_is_enabled ()
 	}
 	else
 	{
-		if (this->followed_entity != NULL && fx_is_pressed)
-		{
-			// Fx is pressed, follow the entity
-			return FollowEntity;
-		}
-
 		if (!camera_is_near(this->champ))
 		{
 			// The champion has been teleported far, focus on the champion
@@ -290,6 +298,7 @@ BOOL camera_update ()
 		{.func = camera_refresh_champions,		.arg = NULL,				.desc = "Entities array"},
 		{.func = camera_refresh_shop_is_opened,	.arg = NULL,				.desc = "Shop opened"},
 		{.func = camera_refresh_entity_hovered,	.arg = NULL,				.desc = "Entity hovered"},
+		{.func = camera_refresh_self,	        .arg = NULL,				.desc = "Self champion detection"},
 	};
 
 	if (frame_count++ % this->poll_data == 0 || this->request_polling)
@@ -418,9 +427,6 @@ static void camera_compute_lerp_rate (float *lerp_rate, CameraTrackingMode camer
 			local_lerp_rate = local_lerp_rate * 2;
 		break;
 
-		case ShareEntity:
-		break;
-
 		case Normal:
 		break;
 
@@ -463,9 +469,9 @@ BOOL camera_entity_is_near (Entity *e)
 
 void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 {
-	float ally_weight = 0.0;
-	float ally_x = 0.0, ally_y = 0.0;
+	float focus_x = 0.0, focus_y = 0.0;
 	float drag_x = 0.0, drag_y = 0.0;
+	float hint_x = 0.0, hint_y = 0.0;
 
 	switch (camera_mode)
 	{
@@ -495,18 +501,7 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 		case Drag:
 			drag_x = (this->drag_pos.x - this->mouse->v.x) * 10;
 			drag_y = (this->drag_pos.y - this->mouse->v.y) * 10;
-			goto ShareEntityMode; // Drag *must* follow with case ShareEntity then NormalMode
-
-		ShareEntityMode:
-		case ShareEntity:
-			if (this->focused_entity != NULL)
-			{
-				// ShareEntity is a Normal camera behavior + ally weight
-				ally_weight = 0.5;
-				ally_x = this->focused_entity->p.v.x * ally_weight;
-				ally_y = this->focused_entity->p.v.y * ally_weight;
-			}
-			goto NormalMode; // We must go to case Normal
+			goto NormalMode; // Drag *must* follow with case NormalMode
 
 		NormalMode:
 		case Normal:
@@ -515,9 +510,29 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 			float distance_dest_champ  = vector2D_distance(&this->dest->v, &this->champ->v);
 			float distance_mouse_dest  = vector2D_distance(&this->dest->v, &this->mouse->v);
 
+			// Always activated
 			float champ_weight = 1.0;
 			float mouse_weight = 1.0;
 			float dest_weight  = 1.0;
+
+			// Optional weights
+			float hint_weight  = 0.0;
+			float focus_weight  = 0.0;
+
+			if (this->focused_entity != NULL)
+			{
+				// ShareEntity is a Normal camera behavior + ally weight
+				focus_weight = 1.0;
+				focus_x = this->focused_entity->p.v.x;
+				focus_y = this->focused_entity->p.v.y;
+			}
+
+			if (this->hint_entity != NULL)
+			{
+				hint_weight = 1.0;
+				hint_x = this->hint_entity->p.v.x;
+				hint_y = this->hint_entity->p.v.y;
+			}
 
 			float weight_sum;
 			{
@@ -538,7 +553,7 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 					// increase mouse weight if far from dest
 					mouse_weight += (distance_mouse_dest - this->mouse_dest_range_max) / 1000.0;
 
-				weight_sum = champ_weight + mouse_weight + dest_weight + ally_weight;
+				weight_sum = champ_weight + mouse_weight + dest_weight + focus_weight + hint_weight;
 			}
 
             // Compute the target (weighted averages)
@@ -547,14 +562,16 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
                     (this->champ->v.x * champ_weight) +
                     (this->mouse->v.x * mouse_weight) +
                     (this->dest->v.x * dest_weight) +
-                    (ally_x * ally_weight)
+                    (focus_x * focus_weight) +
+					(hint_x * hint_weight)
                  ) / weight_sum
 					+ drag_x,
                 (
                     (this->champ->v.y * champ_weight) +
                     (this->mouse->v.y * mouse_weight) +
                     (this->dest->v.y * dest_weight) +
-                    (ally_y * ally_weight)
+                    (focus_y * focus_weight) +
+					(hint_y * hint_weight)
                 ) / weight_sum
 					+ drag_y
             );

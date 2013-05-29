@@ -78,12 +78,16 @@ struct _Camera
 	Patch *border_screen;			// Disables the behavior "Move the camera when the mouse is near the screen border"
 	Patch *respawn_reset;			// Disables the behavior "Center the camera on the champion when you respawn"
 	Patch *locked_camera;			// Disables the behavior "Center the camera on the champion when locked camera mode is active"
-	Patch *minimap[2];					// Disables the behavior "Center the camera on the champion when locked camera mode is active"
+	Patch *minimap[2];				// Disables the behavior "Center the camera on the champion when locked camera mode is active"
 
 	// Entities
 	Entity *champions[10];			// Current played champion + 4 allies + 5 ennemies - NULL if doesn't exist
 	Entity *focused_entity;			// The focused entity champion (NULL if none or self)
-	Entity *followed_entity;		// The followed entity champion (NULL if none or self)
+	Entity *followed_entity;	    // The followed entity champion when you press Fx (NULL if none)
+	Entity *hint_entity;			// Keep this entity in sight *if possible* (NULL if none or self)
+	Entity *self;
+	char *self_name;
+
 	int team_size;					// Size of the -team- of the array actually, FIXME
 
 	// Memory positions
@@ -124,6 +128,7 @@ BOOL camera_scan_hovered_champ ();
 BOOL camera_refresh_champions ();
 BOOL camera_refresh_entity_hovered ();
 BOOL camera_refresh_shop_is_opened ();
+BOOL camera_refresh_self ();
 BOOL camera_wait_for_ingame ();
 
 // --------- Destructors ----------
