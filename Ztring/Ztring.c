@@ -1078,21 +1078,21 @@ str_debug_len (const unsigned char *str, int len)
 
 	for (int i = 0; i < len; i++)
 	{
-		printf("%4c ", str[i]);
+		printf("%3c ", str[i]);
 	}
 
 	printf("\n");
 
 	for (int i = 0; i < len; i++)
 	{
-		printf("%4.2x ", str[i]);
+		printf("  %.2x", str[i]);
 	}
 
 	printf("\n");
 
 	for (int i = 0; i < len; i++)
 	{
-		printf("%4d ", i);
+		printf("%3d ", i);
 	}
 
 	printf("\n");

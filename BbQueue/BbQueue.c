@@ -3,13 +3,19 @@
 EXPORT_FUNCTION BbQueue *
 bb_queue_new (void)
 {
-	BbQueue *p = malloc (sizeof(BbQueue));
+	BbQueue *q = malloc (sizeof(BbQueue));
 
-	p->len   = 0;
-	p->first = NULL;
-	p->last  = NULL;
+	bb_queue_init(q);
 
-	return p;
+	return q;
+}
+
+EXPORT_FUNCTION void
+bb_queue_init (BbQueue *q)
+{
+	q->len   = 0;
+	q->first = NULL;
+	q->last  = NULL;
 }
 
 EXPORT_FUNCTION BbQueue *

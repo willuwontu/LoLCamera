@@ -106,6 +106,15 @@ patch_list_get ()
 	return res;
 }
 
+void
+patch_list_set (BbQueue *patchlist, BOOL enabled)
+{
+	foreach_bbqueue_item (patchlist, Patch *p)
+	{
+		patch_set_activated(p, enabled);
+	}
+}
+
 inline void
 patch_list_free (BbQueue *pl)
 {

@@ -89,6 +89,9 @@ memproc_set_default_baseaddr (MemProc *mp, int default_baseaddr)
 int
 memproc_refresh_handle (MemProc *mp)
 {
+	if (mp == NULL)
+		return 0;
+
 	if (mp->process_name != NULL)
 	{
 		if ((mp->base_addr = get_baseaddr(mp->process_name)) == 0

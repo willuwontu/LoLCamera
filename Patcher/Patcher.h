@@ -68,6 +68,9 @@ patch_debug (Patch *p);
 // --------- Destructors ----------
 
 void
+patch_list_set (BbQueue *patchlist, BOOL enabled);
+
+void
 patch_free (Patch *patch);
 
 inline void

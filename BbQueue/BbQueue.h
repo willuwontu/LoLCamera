@@ -240,6 +240,9 @@ bb_queue_new					(void);
 BbQueue *
 bb_queue_copy				   (BbQueue *queue);
 
+void
+bb_queue_init 					(BbQueue *q);
+
 	/**=================
 		  @Methods
 	===================*/

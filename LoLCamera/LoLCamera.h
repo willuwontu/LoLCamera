@@ -19,6 +19,8 @@
 #include "./Entity.h"
 
 // ---------- Defines -------------
+#define LOLCAMERA_SHOP_OPENED_VALUE 6
+#define LOLCAMERA_CHAT_OPENED_VALUE 5
 
 // ------ Class declaration -------
 typedef struct _Camera Camera;
@@ -39,18 +41,18 @@ struct _Camera
 	DWORD self_cam_addr;			// Address of the instructions moving the camera when you press F1
 	DWORD minimap_addr[2];			// Address of the instructions moving the camera when you click on the minimap
 
-	DWORD shop_is_opened_ptr;		// Address of the data : address of the pointer to the variable containing "isShopOpen" (different of 0 if its the case)
+	DWORD win_is_opened_ptr;		// Address of the data : address of the pointer to the variable containing "isShopOpen" (different of 0 if its the case)
 	DWORD entities_addr;			// Address of the data : entities array start
 	DWORD entities_addr_end;		// Address of the data : entities array end
-	DWORD players_addr;			// Address of the data : entities array start
-	DWORD players_addr_end;		// Address of the data : entities array end
+	DWORD players_addr;				// Address of the data : entities array start
+	DWORD players_addr_end;			// Address of the data : entities array end
 	DWORD camx_addr, camy_addr; 	// Address of the data : cameraX, cameray
 	DWORD champx_addr, champy_addr;	// Address of the data : championX / championY
 	DWORD mousex_addr, mousey_addr; // Address of the data : mouseX / mouseY
 	DWORD destx_addr, desty_addr;   // Address of the data : destX / destY (right click)
 	DWORD mouse_screen_ptr;			// Address of the pointer to the pointer to the structure containing mouseScreenX/Y
 	DWORD mouse_screen_addr;		// Address of the pointer to the structure containing mouseScreenX/Y
-	DWORD shop_is_opened_addr;		// Address of the data : address of the variable containing "isShopOpen" (different of 0 if its the case)
+	DWORD win_is_opened_addr;		// Address of the data : address of the variable containing "isShopOpen" (different of 0 if its the case)
 
 	DWORD loading_state_addr;		// Adress of the data : loading state
 	DWORD game_struct_addr;			// Adress of the data : loading state
@@ -79,6 +81,7 @@ struct _Camera
 	Patch *respawn_reset;			// Disables the behavior "Center the camera on the champion when you respawn"
 	Patch *locked_camera;			// Disables the behavior "Center the camera on the champion when locked camera mode is active"
 	Patch *minimap[2];				// Disables the behavior "Center the camera on the champion when locked camera mode is active"
+	BbQueue *patchlist;				// List of all patches
 
 	// Entities
 	Entity *champions[10];			// Current played champion + 4 allies + 5 ennemies - NULL if doesn't exist
@@ -97,7 +100,18 @@ struct _Camera
 	MemPos *dest;					// Right click position
 	MemPos *mouse_screen;			// Mouse screen position
 
-	BOOL shop_opened;
+	MemPos tmpcam;					// Temporary Camera state
+	BOOL restore_tmpcam;			// Request to restore the temporary camera
+
+	BOOL drag_request;				// User requested a drag
+
+	// Key states
+	short int last_toggle_state;
+	int mbutton_state;
+	int lbutton_state;
+	int fxstate;					// Fx is pressed ?
+
+	BOOL interface_opened;
 
 	BOOL enabled;
 };
@@ -119,7 +133,7 @@ BOOL camera_is_near (MemPos *pos);
 BOOL camera_scan_champions ();
 BOOL camera_scan_patch ();
 BOOL camera_scan_mouse_screen ();
-BOOL camera_scan_shop_is_opened ();
+BOOL camera_scan_win_is_opened ();
 BOOL camera_scan_variables ();
 BOOL camera_scan_loading ();
 BOOL camera_scan_game_struct ();
@@ -127,7 +141,7 @@ BOOL camera_scan_hovered_champ ();
 
 BOOL camera_refresh_champions ();
 BOOL camera_refresh_entity_hovered ();
-BOOL camera_refresh_shop_is_opened ();
+BOOL camera_refresh_win_is_opened ();
 BOOL camera_refresh_self ();
 BOOL camera_wait_for_ingame ();
 

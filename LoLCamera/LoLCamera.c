@@ -10,12 +10,12 @@ typedef enum {
 
     Normal,
     CenterCam,
+    RestoreCam,
     NoMove,
     NoUpdate,
     Free,
-    Drag,
     FocusSelf,
-    FollowEntity
+    FollowEntity,
 
 } CameraTrackingMode;
 
@@ -23,179 +23,159 @@ typedef enum {
 static void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode);
 static void camera_compute_lerp_rate (float *lerp_rate, CameraTrackingMode camera_mode);
 BOOL camera_entity_is_near (Entity *e);
+static BOOL camera_follow_champion_requested ();
+static BOOL camera_restore_requested ();
 
-
-void camera_follow_entity (Entity *e) {
-	this->followed_entity = e;
-}
-
-static CameraTrackingMode camera_is_enabled ()
+static BOOL camera_is_enabled ()
 {
-	static short last_toggle_state = 0;
-	static int mbutton_pressed = 0;
-	static int lbutton_pressed = 0;
-	BOOL champ_is_dead = entity_is_dead(this->self);
-	BOOL fx_is_pressed = FALSE;
+	short toggle_state = GetKeyState(TOGGLE_KEY);
 
 	// listen for toggle key
-	short new_toggle_state = GetKeyState(TOGGLE_KEY);
-	if (new_toggle_state != last_toggle_state && new_toggle_state >= 0)
+	if (toggle_state != this->last_toggle_state && toggle_state < 0)
 	{
 		this->enabled = !this->enabled;
-		last_toggle_state = new_toggle_state;
+		this->last_toggle_state = toggle_state;
 
 		// Enable / Disable patches
-		patch_set_activated(this->border_screen, this->enabled);
-		patch_set_activated(this->F2345_pressed[0], this->enabled);
-		patch_set_activated(this->F2345_pressed[1], this->enabled);
-		patch_set_activated(this->respawn_reset, this->enabled);
-		patch_set_activated(this->locked_camera, this->enabled);
-		patch_set_activated(this->minimap[0], this->enabled);
-		patch_set_activated(this->minimap[1], this->enabled);
+		patch_list_set(this->patchlist, this->enabled);
 	}
 
 	// skip the next loop if not enabled
-	if (!this->enabled)
-        return NoUpdate;
+	return this->enabled;
+}
 
+static BOOL camera_center_requested ()
+{
 	// Disable when space / F1 is pressed
-	if (GetKeyState(VK_SPACE) < 0 || (GetKeyState(VK_F1) < 0))
+	if ((GetKeyState(VK_SPACE) < 0 || (GetKeyState(VK_F1) < 0)) && (this->interface_opened != LOLCAMERA_CHAT_OPENED_VALUE))
     {
     	// Polling data is requested because we want to center the camera exactly where the champion is
     	// Also disable the focusing champ feature if enabled
         this->request_polling = TRUE;
         this->focused_entity = NULL;
         this->hint_entity = NULL;
-        return CenterCam;
+        return TRUE;
     }
 
-	// An entity has been hovered - share the view (hint)
-	if (this->entity_hovered != NULL)
-	{
-		this->hint_entity = this->entity_hovered;
+    return FALSE;
+}
 
-		// Left click on the entity : focus it
-		if (GetKeyState(VK_LBUTTON) < 0)
-			this->focused_entity = this->entity_hovered;
-	}
+static BOOL camera_restore_requested ()
+{
+	return this->restore_tmpcam;
+}
 
-	// to allow minimap navigation, also disabled if LMB is down
+static BOOL camera_left_click ()
+{
 	if (GetKeyState(VK_LBUTTON) < 0)
 	{
 		// Attempt to fix issue #8 (Minimap click-hold, then return problem)
 		float distance_mouse_champ = vector2D_distance(&this->mouse->v, &this->champ->v);
 
-		if (distance_mouse_champ > 1000.0)
 		// we don't want to stop the camera when we click around the champion
+		if (distance_mouse_champ > 2500.0)
 		{
-			switch (lbutton_pressed)
+			switch (this->lbutton_state)
 			{
 				case 0:
-					// Force polling
+					// Force polling before saving the camera
 					this->request_polling = TRUE;
-					lbutton_pressed = 1;
+					this->lbutton_state = 1;
 				break;
 
 				case 1:
 					memcpy(&this->cam_saved, this->cam, sizeof(MemPos));
-					lbutton_pressed = 2;
+					this->lbutton_state = 2;
 				break;
 
 				case 2:
 				break;
 			}
 
-			return NoMove;
+			return TRUE;
 		}
 	}
 
 	else
 	{
-		if (lbutton_pressed == 2)
+		if (this->lbutton_state == 2)
 		{
 			// On release
 			Sleep(1);
 			mempos_set(this->cam, this->cam_saved.v.x, this->cam_saved.v.y);
 		}
 
-		lbutton_pressed = 0;
+		this->lbutton_state = 0;
 	}
 
-	// Disable camera when shop opened
-	if (this->shop_opened)
-        return NoMove;
 
-	// Drag : TODO
-	if (GetKeyState(VK_MBUTTON) < 0)
-	{
-		switch (mbutton_pressed)
-		{
-			case 0:
-				this->drag_pos = this->mouse->v;
-				this->request_polling = TRUE;
-				mbutton_pressed = 1;
-			break;
+	return FALSE;
+}
 
-			case 1:
-				this->drag_pos = this->mouse->v;
-				mbutton_pressed = 2;
-			break;
+static CameraTrackingMode camera_get_mode ()
+{
+	if (!camera_is_enabled())
+        return NoUpdate;
 
-			case 2:
-			break;
-		}
+	// user pressed space or F1 or anything requesting to center the camera on the champion
+	if (camera_center_requested())
+		return CenterCam;
 
-		return Drag;
-	}
-	else
-		mbutton_pressed = 0;
+	// A temporary camera has been saved, now is coming the time to restore it
+	if (camera_restore_requested())
+		return RestoreCam;
+
+	// to allow minimap navigation, also disabled if LMB is down
+	if (camera_left_click()
+	|| this->interface_opened == LOLCAMERA_SHOP_OPENED_VALUE)
+		return NoMove;
 
 	// Following ally & ennemies champions
-	if (GetKeyState(VK_F2)  < 0 && this->team_size > 1) {camera_follow_entity(this->champions[1]); fx_is_pressed = TRUE;}
-	if (GetKeyState(VK_F3)  < 0 && this->team_size > 2) {camera_follow_entity(this->champions[2]); fx_is_pressed = TRUE;}
-	if (GetKeyState(VK_F4)  < 0 && this->team_size > 3) {camera_follow_entity(this->champions[3]); fx_is_pressed = TRUE;}
-	if (GetKeyState(VK_F5)  < 0 && this->team_size > 4) {camera_follow_entity(this->champions[4]); fx_is_pressed = TRUE;}
-	if (GetKeyState(VK_F6)  < 0 && this->team_size > 5) {camera_follow_entity(this->champions[5]); fx_is_pressed = TRUE;}
-	if (GetKeyState(VK_F7)  < 0 && this->team_size > 6) {camera_follow_entity(this->champions[6]); fx_is_pressed = TRUE;}
-	if (GetKeyState(VK_F8)  < 0 && this->team_size > 7) {camera_follow_entity(this->champions[7]); fx_is_pressed = TRUE;}
-	if (GetKeyState(VK_F9)  < 0 && this->team_size > 8) {camera_follow_entity(this->champions[8]); fx_is_pressed = TRUE;}
-	if (GetKeyState(VK_F10) < 0 && this->team_size > 9) {camera_follow_entity(this->champions[9]); fx_is_pressed = TRUE;}
-
-	if (this->focused_entity != NULL)
-	{
-		// When we are in "dead" spectator mode, it's not important to change camera mode.
-		if (entity_is_dead(this->focused_entity)
-		|| !camera_entity_is_near(this->focused_entity))
-			this->focused_entity = NULL;
-	}
-
-	if (this->hint_entity != NULL)
-	{
-		if (entity_is_dead(this->hint_entity)
-		|| !camera_entity_is_near(this->hint_entity))
-			this->hint_entity = NULL;
-	}
-
-	if (this->followed_entity != NULL && fx_is_pressed)
-	{
-		// Fx is pressed, follow the entity
+	if (camera_follow_champion_requested ())
 		return FollowEntity;
-	}
 
 	// If our champion is dead, set free mode
-	if (champ_is_dead) {
+	if (entity_is_dead(this->self))
 		return Free;
-	}
-	else
+
+	// The champion has been teleported far, focus on the champion
+	if (!camera_is_near(this->champ) && !entity_is_dead(this->self))
+		return FocusSelf;
+
+    return Normal;
+}
+
+static BOOL camera_follow_champion_requested ()
+{
+	BOOL fx_pressed = FALSE;
+	int keys[] = {VK_F1, VK_F2, VK_F3, VK_F4, VK_F5, VK_F6, VK_F7, VK_F8, VK_F9, VK_F10};
+
+	for (int i = 1; i < 10; i++)
 	{
-		if (!camera_is_near(this->champ))
+		if (GetKeyState(keys[i]) < 0 && this->team_size > i)
 		{
-			// The champion has been teleported far, focus on the champion
-			return FocusSelf;
+			this->followed_entity = this->champions[i];
+			this->fxstate = (this->fxstate) ? this->fxstate : 1;
+			fx_pressed = TRUE;
 		}
 	}
 
-    return Normal;
+	if (!fx_pressed)
+	{
+		if (this->fxstate == 2)
+			this->restore_tmpcam = TRUE;
+
+		this->fxstate = 0;
+	}
+
+	if (this->fxstate == 1)
+	{
+		memcpy(&this->tmpcam, this->cam, sizeof(this->cam));
+		memcpy(&this->tmpcam.v, &this->cam->v, sizeof(this->cam->v));
+		this->fxstate = 2;
+	}
+
+	return fx_pressed;
 }
 
 void camera_init (MemProc *mp)
@@ -206,10 +186,6 @@ void camera_init (MemProc *mp)
 	this->enabled = TRUE;
 	this->mp = mp;
 	this->active = FALSE;
-	this->F2345_pressed[0] = NULL;
-	this->F2345_pressed[1] = NULL;
-	this->focused_entity = NULL;
-	this->shop_opened = FALSE;
 	this->drag_pos = vector2D_new();
 
 	// TODO : get .text section offset + size properly (shouldn't be really necessarly though)
@@ -254,13 +230,7 @@ void camera_init (MemProc *mp)
 		this->mouse_screen_addr + 0x50 - mp->base_addr
 	);
 
-	patch_set_activated(this->border_screen, TRUE);
-	patch_set_activated(this->F2345_pressed[0], TRUE);
-	patch_set_activated(this->F2345_pressed[1], TRUE);
-	patch_set_activated(this->respawn_reset, TRUE);
-	patch_set_activated(this->locked_camera, TRUE);
-	patch_set_activated(this->minimap[0], TRUE);
-	patch_set_activated(this->minimap[1], TRUE);
+	patch_list_set(this->patchlist, TRUE);
 
 	this->active = TRUE;
 }
@@ -284,9 +254,71 @@ inline void camera_set_active (BOOL active)
 	this->active = active;
 }
 
+static void camera_entity_manager ()
+{
+	// An entity has been hovered - share the view (hint)
+	if (this->entity_hovered != NULL)
+	{
+		this->hint_entity = this->entity_hovered;
+
+		// Left click on the entity : focus it
+		if (GetKeyState(VK_LBUTTON) < 0)
+			this->focused_entity = this->entity_hovered;
+	}
+
+	if (this->focused_entity != NULL)
+	{
+		// When we are in "dead" spectator mode, it's not important to change camera mode.
+		if (entity_is_dead(this->focused_entity)
+		|| !camera_entity_is_near(this->focused_entity))
+			this->focused_entity = NULL;
+	}
+
+	if (this->hint_entity != NULL)
+	{
+		if (entity_is_dead(this->hint_entity)
+		|| !camera_entity_is_near(this->hint_entity))
+			this->hint_entity = NULL;
+	}
+}
+
+static void camera_middle_click ()
+{
+	// Drag
+	if (GetKeyState(VK_MBUTTON) < 0)
+	{
+		switch (this->mbutton_state)
+		{
+			case 0:
+				this->drag_pos = this->mouse->v;
+				this->request_polling = TRUE;
+				this->mbutton_state = 1;
+			break;
+
+			case 1:
+				this->drag_pos = this->mouse->v;
+				this->mbutton_state = 2;
+			break;
+
+			case 2:
+			break;
+		}
+
+		this->drag_request = TRUE;
+	}
+	else
+	{
+		this->mbutton_state = 0;
+		this->drag_request = FALSE;
+	}
+}
+
 BOOL camera_update ()
 {
 	static unsigned int frame_count = 0;
+
+	camera_entity_manager();
+	camera_middle_click();
 
 	struct refreshFunctions { BOOL (*func)(); void *arg; char *desc; } refresh_funcs [] =
 	{
@@ -296,7 +328,7 @@ BOOL camera_update ()
 		{.func = mempos_refresh,				.arg = this->mouse, 		.desc = "this->mouse MemPos"},
 		{.func = mempos_int_refresh,			.arg = this->mouse_screen,	.desc = "this->mouse_screen MemPos"},
 		{.func = camera_refresh_champions,		.arg = NULL,				.desc = "Entities array"},
-		{.func = camera_refresh_shop_is_opened,	.arg = NULL,				.desc = "Shop opened"},
+		{.func = camera_refresh_win_is_opened,	.arg = NULL,				.desc = "Shop opened"},
 		{.func = camera_refresh_entity_hovered,	.arg = NULL,				.desc = "Entity hovered"},
 		{.func = camera_refresh_self,	        .arg = NULL,				.desc = "Self champion detection"},
 	};
@@ -350,7 +382,7 @@ void camera_set_tracking_mode (CameraTrackingMode *out_mode)
 	CameraTrackingMode mode;
 	static CameraTrackingMode last_mode = Normal;
 
-	mode = camera_is_enabled();
+	mode = camera_get_mode();
 
 	last_mode = mode;
 	*out_mode = mode;
@@ -411,13 +443,12 @@ static void camera_compute_lerp_rate (float *lerp_rate, CameraTrackingMode camer
 
 	switch (camera_mode)
 	{
+		case RestoreCam:
+		break;
+
 		case CenterCam:
 			// adjust camera smoothing rate when center camera
 				local_lerp_rate = local_lerp_rate * 5;
-
-			// clamp the lerp rate
-			if (local_lerp_rate > 0.9)
-				local_lerp_rate = 0.9;
 		break;
 
 		case FollowEntity:
@@ -435,9 +466,6 @@ static void camera_compute_lerp_rate (float *lerp_rate, CameraTrackingMode camer
 
 		case NoMove:
 		case NoUpdate:
-		break;
-
-		case Drag:
 		break;
 
 		default:
@@ -488,22 +516,22 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
             );
 		break;
 
-		case FollowEntity:
+		case RestoreCam :
+			vector2D_set_pos(target, this->tmpcam.v.x, this->tmpcam.v.y);
+			mempos_set(this->cam,    this->tmpcam.v.x, this->tmpcam.v.y);
+			this->restore_tmpcam = FALSE;
+		break;
+
+		case FollowEntity :
 			vector2D_set_pos(target, this->followed_entity->p.v.x, this->followed_entity->p.v.y);
 			mempos_set(this->cam, this->followed_entity->p.v.x, this->followed_entity->p.v.y);
 		break;
 
-		case FocusSelf:
+		case FocusSelf :
 			vector2D_set_pos(target, this->champ->v.x, this->champ->v.y);
 			mempos_set(this->cam, this->champ->v.x, this->champ->v.y);
 		break;
 
-		case Drag:
-			drag_x = (this->drag_pos.x - this->mouse->v.x) * 10;
-			drag_y = (this->drag_pos.y - this->mouse->v.y) * 10;
-			goto NormalMode; // Drag *must* follow with case NormalMode
-
-		NormalMode:
 		case Normal:
 		{
 			float distance_mouse_champ = vector2D_distance(&this->mouse->v, &this->champ->v);
@@ -518,6 +546,12 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 			// Optional weights
 			float hint_weight  = 0.0;
 			float focus_weight  = 0.0;
+
+			if (this->drag_request)
+			{
+				drag_x = (this->drag_pos.x - this->mouse->v.x) * 10;
+				drag_y = (this->drag_pos.y - this->mouse->v.y) * 10;
+			}
 
 			if (this->focused_entity != NULL)
 			{
@@ -614,7 +648,7 @@ void camera_load_ini ()
 	this->destx_addr  = strtol(ini_parser_get_value(parser, "dest_posx_addr"), NULL, 16);
 	this->desty_addr  = strtol(ini_parser_get_value(parser, "dest_posy_addr"), NULL, 16);
 	this->mouse_screen_ptr = strtol(ini_parser_get_value(parser, "mouse_screen_ptr"), NULL, 16);
-	this->shop_is_opened_ptr = strtol(ini_parser_get_value(parser, "shop_is_opened_ptr"), NULL, 16);
+	this->win_is_opened_ptr = strtol(ini_parser_get_value(parser, "win_is_opened_ptr"), NULL, 16);
 	this->respawn_reset_addr = strtol(ini_parser_get_value(parser, "respawn_reset_addr"), NULL, 16);
 	this->border_screen_addr = strtol(ini_parser_get_value(parser, "border_screen_addr"), NULL, 16);
 	this->allies_cam_addr[0] = strtol(ini_parser_get_value(parser, "allies_cam_addr0"), NULL, 16);
@@ -636,7 +670,7 @@ void camera_load_ini ()
 
 	// Addresses - Input checking
 	struct AddrStr { DWORD addr; char *str; } tabAddr [] = {
-        { .addr = this->shop_is_opened_ptr, .str = "shop_is_opened_ptr" }, //
+        { .addr = this->win_is_opened_ptr, .str = "win_is_opened_ptr" }, //
         { .addr = this->respawn_reset_addr, .str = "respawn_reset_addr" }, //
         { .addr = this->border_screen_addr, .str = "border_screen_addr" }, //                  ██████████
         { .addr = this->champx_addr,        .str = "champion_posx_addr" }, //              ████░░      ░░████
@@ -690,15 +724,18 @@ inline Camera *camera_get_instance ()
 
 void camera_unload ()
 {
+	if (this == NULL)
+		return;
+
+	if (this->mp == NULL)
+		return;
+
 	// Process still active, unpatch
 	if (memproc_refresh_handle(this->mp))
 	{
-		patch_set_activated(this->border_screen, FALSE);
-		patch_set_activated(this->F2345_pressed[0], FALSE);
-		patch_set_activated(this->F2345_pressed[1], FALSE);
-		patch_set_activated(this->minimap[0], FALSE);
-		patch_set_activated(this->minimap[1], FALSE);
-		patch_set_activated(this->respawn_reset, FALSE);
-		patch_set_activated(this->locked_camera, FALSE);
+		patch_list_set(this->patchlist, FALSE);
+
+		this->mp = NULL;
+		this = NULL;
 	}
 }

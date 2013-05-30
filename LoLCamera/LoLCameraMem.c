@@ -358,6 +358,8 @@ BOOL camera_scan_patch ()
 			"xxx"
 	);
 
+	this->patchlist = patch_list_get();
+
 	return TRUE;
 }
 
@@ -590,7 +592,7 @@ BOOL camera_scan_variables ()
 		camera_scan_loading,
 		camera_scan_mouse_screen,
 		camera_scan_game_struct,
-		camera_scan_shop_is_opened,
+		camera_scan_win_is_opened,
 		camera_scan_hovered_champ,
 	};
 
@@ -868,11 +870,11 @@ BOOL camera_scan_mouse_screen ()
 }
 
 
-BOOL camera_scan_shop_is_opened ()
+BOOL camera_scan_win_is_opened ()
 {
 	Camera *this = camera_get_instance();
 
-	BbQueue *res = memscan_search (this->mp, "shopIsOpened",
+	BbQueue *res = memscan_search (this->mp, "winIsOpened",
 	/*	00A382C6    ║► └8B0D <<90A0D301>>            mov ecx, [dword ds:League_of_Legends.1D3A090]
 		00A382CC    ║·  33C0                         xor eax, eax
 		00A382CE    ║·  3BC8                         cmp ecx, eax
@@ -892,29 +894,29 @@ BOOL camera_scan_shop_is_opened ()
 
 	if (!res)
 	{
-		warning("Cannot find shop_is_opened_ptr address\nUsing the .ini value : 0x%.8x", this->shop_is_opened_ptr);
+		warning("Cannot find win_is_opened_ptr address\nUsing the .ini value : 0x%.8x", this->win_is_opened_ptr);
 		return FALSE;
 	}
 
-	Buffer *shop_is_opened_ptr = bb_queue_pick_first(res);
-	memcpy(&this->shop_is_opened_ptr, shop_is_opened_ptr->data, shop_is_opened_ptr->size);
+	Buffer *win_is_opened_ptr = bb_queue_pick_first(res);
+	memcpy(&this->win_is_opened_ptr, win_is_opened_ptr->data, win_is_opened_ptr->size);
 
 	bb_queue_free_all(res, buffer_free);
 
-	if (!this->shop_is_opened_ptr)
+	if (!this->win_is_opened_ptr)
 	{
-		warning("Cannot scan shop_is_opened_ptr");
+		warning("Cannot scan win_is_opened_ptr");
 		return FALSE;
 	}
 
 	// Shop is open is the address of the pointer to the "isShopOpened"
-	DWORD shop_is_opened_addr = read_memory_as_int(this->mp->proc, this->shop_is_opened_ptr);
+	DWORD win_is_opened_addr = read_memory_as_int(this->mp->proc, this->win_is_opened_ptr);
 
-	if (!shop_is_opened_addr)
+	if (!win_is_opened_addr)
 		return FALSE;
 
 	// isShopOpen = edi+7c
-	this->shop_is_opened_addr = shop_is_opened_addr + 0x7c;
+	this->win_is_opened_addr = win_is_opened_addr + 0x7c;
 
 	return TRUE;
 }
@@ -960,13 +962,13 @@ BOOL camera_refresh_entity_hovered ()
 	return TRUE;
 }
 
-BOOL camera_refresh_shop_is_opened ()
+BOOL camera_refresh_win_is_opened ()
 {
 	Camera *this = camera_get_instance();
 
 	unsigned char buffer[1] = {0xFF};
-	read_from_memory(this->mp->proc, buffer, this->shop_is_opened_addr, 1);
-	this->shop_opened = (int) buffer[0];
+	read_from_memory(this->mp->proc, buffer, this->win_is_opened_addr, 1);
+	this->interface_opened = (int) buffer[0];
 
 	return (buffer[0] != 0xFF);
 }
@@ -1532,7 +1534,7 @@ void camera_export_to_cheatengine ()
 		this->dest->addrX,
 		this->dest->addrY,
 		this->cam->addrX + 0x1E8,
-		this->shop_is_opened_ptr,
+		this->win_is_opened_ptr,
 		this->mouse_screen_ptr,
 		this->mouse_screen_ptr,
 		this->mouse_screen_ptr,
