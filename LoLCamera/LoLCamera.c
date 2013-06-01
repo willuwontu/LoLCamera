@@ -16,6 +16,7 @@ typedef enum {
     Free,
     FocusSelf,
     FollowEntity,
+    Translate
 
 } CameraTrackingMode;
 
@@ -25,6 +26,16 @@ static void camera_compute_lerp_rate (float *lerp_rate, CameraTrackingMode camer
 BOOL camera_entity_is_near (Entity *e);
 static BOOL camera_follow_champion_requested ();
 static BOOL camera_restore_requested ();
+static void camera_toggle (BOOL enable);
+static BOOL camera_is_translated ();
+
+static void camera_toggle (BOOL enable)
+{
+	this->enabled = !enable;
+
+	// Enable / Disable patches
+	patch_list_set(this->patchlist, this->enabled);
+}
 
 static BOOL camera_is_enabled ()
 {
@@ -33,15 +44,18 @@ static BOOL camera_is_enabled ()
 	// listen for toggle key
 	if (toggle_state != this->last_toggle_state && toggle_state < 0)
 	{
-		this->enabled = !this->enabled;
 		this->last_toggle_state = toggle_state;
-
-		// Enable / Disable patches
-		patch_list_set(this->patchlist, this->enabled);
+		camera_toggle(this->enabled);
 	}
 
 	// skip the next loop if not enabled
 	return this->enabled;
+}
+
+static void camera_translation_reset ()
+{
+	vector2D_set_pos(&this->distance_translation, 0.0, 0.0);
+	this->translation_state = 0;
 }
 
 static BOOL camera_center_requested ()
@@ -51,9 +65,12 @@ static BOOL camera_center_requested ()
     {
     	// Polling data is requested because we want to center the camera exactly where the champion is
     	// Also disable the focusing champ feature if enabled
+    	// Disable translation
+    	// Disable hint entity
         this->request_polling = TRUE;
         this->focused_entity = NULL;
         this->hint_entity = NULL;
+        camera_translation_reset();
         return TRUE;
     }
 
@@ -63,6 +80,12 @@ static BOOL camera_center_requested ()
 static BOOL camera_restore_requested ()
 {
 	return this->restore_tmpcam;
+}
+
+static void camera_save_state ()
+{
+	memcpy(&this->tmpcam, this->cam, sizeof(this->cam));
+	memcpy(&this->tmpcam.v, &this->cam->v, sizeof(this->cam->v));
 }
 
 static BOOL camera_left_click ()
@@ -84,7 +107,7 @@ static BOOL camera_left_click ()
 				break;
 
 				case 1:
-					memcpy(&this->cam_saved, this->cam, sizeof(MemPos));
+					camera_save_state();
 					this->lbutton_state = 2;
 				break;
 
@@ -101,8 +124,7 @@ static BOOL camera_left_click ()
 		if (this->lbutton_state == 2)
 		{
 			// On release
-			Sleep(1);
-			mempos_set(this->cam, this->cam_saved.v.x, this->cam_saved.v.y);
+			this->restore_tmpcam = TRUE;
 		}
 
 		this->lbutton_state = 0;
@@ -112,10 +134,54 @@ static BOOL camera_left_click ()
 	return FALSE;
 }
 
+static void camera_translate ()
+{
+	if (GetKeyState(this->translate_key) < 0)
+	{
+		if (GetKeyState(VK_LBUTTON) < 0)
+		{
+			switch (this->translation_state)
+			{
+				case 0:
+					memcpy(&this->start_translation, &this->mouse->v, sizeof(Vector2D));
+					this->request_polling = TRUE;
+					this->translation_state = 1;
+				break;
+
+				case 1:
+					memcpy(&this->start_translation, &this->mouse->v, sizeof(Vector2D));
+					this->translation_state = 2;
+				break;
+
+				case 2:
+				break;
+			}
+
+			this->translate_request = TRUE;
+		}
+	}
+
+	else
+	{
+		if (this->translation_state == 2 || this->translation_state == 3)
+			this->translation_state = 3;
+		else
+			this->translation_state = 0;
+
+		this->translate_request = FALSE;
+	}
+}
+
+static BOOL camera_is_translated ()
+{
+	return (this->translation_state == 3);
+}
+
 static CameraTrackingMode camera_get_mode ()
 {
 	if (!camera_is_enabled())
         return NoUpdate;
+
 
 	// user pressed space or F1 or anything requesting to center the camera on the champion
 	if (camera_center_requested())
@@ -125,9 +191,11 @@ static CameraTrackingMode camera_get_mode ()
 	if (camera_restore_requested())
 		return RestoreCam;
 
+	if (camera_is_translated())
+		return Translate;
+
 	// to allow minimap navigation, also disabled if LMB is down
-	if (camera_left_click()
-	|| this->interface_opened == LOLCAMERA_SHOP_OPENED_VALUE)
+	if (camera_left_click() || this->interface_opened == LOLCAMERA_SHOP_OPENED_VALUE)
 		return NoMove;
 
 	// Following ally & ennemies champions
@@ -170,8 +238,7 @@ static BOOL camera_follow_champion_requested ()
 
 	if (this->fxstate == 1)
 	{
-		memcpy(&this->tmpcam, this->cam, sizeof(this->cam));
-		memcpy(&this->tmpcam.v, &this->cam->v, sizeof(this->cam->v));
+		camera_save_state();
 		this->fxstate = 2;
 	}
 
@@ -239,10 +306,11 @@ BOOL camera_wait_for_ingame ()
 {
 	BOOL waited = FALSE;
 
+	// Wait here
 	while (!read_memory_as_int(this->mp->proc, this->loading_state_addr))
 	{
 		waited = TRUE;
-		warning("Loading screen detected. (0x%.8x) Sleep during 3s.", this->loading_state_addr);
+		info("Loading screen detected - Retry in 3seconds.", this->loading_state_addr);
 		Sleep(3000);
 	}
 
@@ -284,9 +352,9 @@ static void camera_entity_manager ()
 
 static void camera_middle_click ()
 {
-	// Drag
 	if (GetKeyState(VK_MBUTTON) < 0)
 	{
+		// Drag
 		switch (this->mbutton_state)
 		{
 			case 0:
@@ -306,6 +374,7 @@ static void camera_middle_click ()
 
 		this->drag_request = TRUE;
 	}
+
 	else
 	{
 		this->mbutton_state = 0;
@@ -319,6 +388,7 @@ BOOL camera_update ()
 
 	camera_entity_manager();
 	camera_middle_click();
+	camera_translate();
 
 	struct refreshFunctions { BOOL (*func)(); void *arg; char *desc; } refresh_funcs [] =
 	{
@@ -420,10 +490,10 @@ BOOL camera_main ()
 		camera_compute_lerp_rate(&lerp_rate, camera_mode);
 
         // Smoothing
-		if (abs(target.x - this->cam->v.x) > this->threshold)
+		if (abs(target.x - this->cam->v.x) > this->champ_settings.threshold)
 			this->cam->v.x += (target.x - this->cam->v.x) * lerp_rate;
 
-		if (abs(target.y - this->cam->v.y) > this->threshold)
+		if (abs(target.y - this->cam->v.y) > this->champ_settings.threshold)
 			this->cam->v.y += (target.y - this->cam->v.y) * lerp_rate;
 
 		// Keep this just before mempos_set(this->cam, x, y)
@@ -439,10 +509,13 @@ BOOL camera_main ()
 
 static void camera_compute_lerp_rate (float *lerp_rate, CameraTrackingMode camera_mode)
 {
-	float local_lerp_rate = this->lerp_rate;
+	float local_lerp_rate = this->champ_settings.lerp_rate;
 
 	switch (camera_mode)
 	{
+		case Translate:
+		break;
+
 		case RestoreCam:
 		break;
 
@@ -553,6 +626,12 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 				drag_y = (this->drag_pos.y - this->mouse->v.y) * 10;
 			}
 
+			if (this->translate_request)
+			{
+				this->distance_translation.x = (this->start_translation.x - this->mouse->v.x);
+				this->distance_translation.y = (this->start_translation.y - this->mouse->v.y);
+			}
+
 			if (this->focused_entity != NULL)
 			{
 				// ShareEntity is a Normal camera behavior + ally weight
@@ -577,15 +656,15 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 				float mouse_falloff_rate = 0.002;
 
 				// adjust weights based on distance
-				if (distance_dest_champ > this->dest_range_max)
-					dest_weight = 1 / (((distance_dest_champ - this->dest_range_max) * dest_falloff_rate) + 1.0);
+				if (distance_dest_champ > this->champ_settings.dest_range_max)
+					dest_weight = 1 / (((distance_dest_champ - this->champ_settings.dest_range_max) * dest_falloff_rate) + 1.0);
 
-				if (distance_mouse_champ > this->mouse_range_max)
-					mouse_weight = 1 / (((distance_mouse_champ - this->mouse_range_max) * mouse_falloff_rate) + 1.0);
+				if (distance_mouse_champ > this->champ_settings.mouse_range_max)
+					mouse_weight = 1 / (((distance_mouse_champ - this->champ_settings.mouse_range_max) * mouse_falloff_rate) + 1.0);
 
-				else if (distance_mouse_dest > this->mouse_dest_range_max)
+				else if (distance_mouse_dest > this->champ_settings.mouse_dest_range_max)
 					// increase mouse weight if far from dest
-					mouse_weight += (distance_mouse_dest - this->mouse_dest_range_max) / 1000.0;
+					mouse_weight += (distance_mouse_dest - this->champ_settings.mouse_dest_range_max) / 1000.0;
 
 				weight_sum = champ_weight + mouse_weight + dest_weight + focus_weight + hint_weight;
 			}
@@ -599,7 +678,8 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
                     (focus_x * focus_weight) +
 					(hint_x * hint_weight)
                  ) / weight_sum
-					+ drag_x,
+					+ drag_x
+					+ this->distance_translation.x,
                 (
                     (this->champ->v.y * champ_weight) +
                     (this->mouse->v.y * mouse_weight) +
@@ -608,12 +688,17 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 					(hint_y * hint_weight)
                 ) / weight_sum
 					+ drag_y
+					+ this->distance_translation.y
             );
 
             // The camera goes farther when the camera is moving to the south
             if (this->mouse->v.y < this->champ->v.y)
                 target->y -= distance_mouse_champ / 8.0; // <-- arbitrary value
 		}
+		break;
+
+		case Translate:
+			vector2D_set_pos(target, this->champ->v.x + this->distance_translation.x, this->champ->v.y + this->distance_translation.y);
 		break;
 
 		case CenterCam:
@@ -634,11 +719,12 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 
 void camera_load_ini ()
 {
+	char *ini_file = ".//LoLCamera.ini";
 	// Loading parameters from .ini file :
-	IniParser *parser = ini_parser_new("LoLCamera.ini");
+	IniParser *parser = ini_parser_new(ini_file);
 	ini_parser_reg_and_read(parser);
 
-	// Addresses
+ 	// Addresses
 	this->camx_addr   = strtol(ini_parser_get_value(parser, "camera_posx_addr"), NULL, 16);
 	this->camy_addr   = strtol(ini_parser_get_value(parser, "camera_posy_addr"), NULL, 16);
 	this->champx_addr = strtol(ini_parser_get_value(parser, "champion_posx_addr"), NULL, 16);
@@ -659,14 +745,45 @@ void camera_load_ini ()
 	this->locked_camera_addr = strtol(ini_parser_get_value(parser, "locked_camera_addr"), NULL, 16);
 	this->loading_state_addr = strtol(ini_parser_get_value(parser, "loading_state_addr"), NULL, 16);
 
+	// Addresses
+	this->camx_addr   = str_hex(ini_parser_get_value(parser, "camera_posx_addr"));
+	this->camy_addr   = str_hex(ini_parser_get_value(parser, "camera_posy_addr"));
+	this->champx_addr = str_hex(ini_parser_get_value(parser, "champion_posx_addr"));
+	this->champy_addr = str_hex(ini_parser_get_value(parser, "champion_posy_addr"));
+	this->mousex_addr = str_hex(ini_parser_get_value(parser, "mouse_posx_addr"));
+	this->mousey_addr = str_hex(ini_parser_get_value(parser, "mouse_posy_addr"));
+	this->destx_addr  = str_hex(ini_parser_get_value(parser, "dest_posx_addr"));
+	this->desty_addr  = str_hex(ini_parser_get_value(parser, "dest_posy_addr"));
+	this->mouse_screen_ptr = str_hex(ini_parser_get_value(parser, "mouse_screen_ptr"));
+	this->win_is_opened_ptr = str_hex(ini_parser_get_value(parser, "win_is_opened_ptr"));
+	this->respawn_reset_addr = str_hex(ini_parser_get_value(parser, "respawn_reset_addr"));
+	this->border_screen_addr = str_hex(ini_parser_get_value(parser, "border_screen_addr"));
+	this->allies_cam_addr[0] = str_hex(ini_parser_get_value(parser, "allies_cam_addr0"));
+	this->allies_cam_addr[1] = str_hex(ini_parser_get_value(parser, "allies_cam_addr1"));
+	this->self_cam_addr = str_hex(ini_parser_get_value(parser, "self_cam_addr"));
+	this->entities_addr = str_hex(ini_parser_get_value(parser, "entities_addr"));
+	this->entities_addr_end = str_hex(ini_parser_get_value(parser, "entities_addr_end"));
+	this->locked_camera_addr = str_hex(ini_parser_get_value(parser, "locked_camera_addr"));
+	this->loading_state_addr = str_hex(ini_parser_get_value(parser, "loading_state_addr"));
+
+	// Hotkeys
+	this->translate_key = ini_parser_get_char(parser, "translate_key");
+
 	// Settings
 	this->lerp_rate	  = atof  (ini_parser_get_value(parser, "lerp_rate")); // this controls smoothing, smaller values mean slower camera movement
 	this->threshold	  = atof  (ini_parser_get_value(parser, "threshold")); // minimum threshold before calculations halted because camera is "close enough"
-	this->sleep_time  = strtol(ini_parser_get_value(parser, "sleep_time"), NULL, 10); // Time slept between two camera updates (in ms)
-	this->poll_data	  = strtol(ini_parser_get_value(parser, "poll_data"), NULL, 10); // Retrieve data from client every X loops
 	this->mouse_range_max = atof(ini_parser_get_value(parser, "mouse_range_max"));
 	this->dest_range_max  = atof(ini_parser_get_value(parser, "dest_range_max"));
 	this->mouse_dest_range_max  = atof(ini_parser_get_value(parser, "mouse_dest_range_max"));
+
+	this->champ_settings.lerp_rate	  = atof  (ini_parser_get_value(parser, "lerp_rate")); // this controls smoothing, smaller values mean slower camera movement
+	this->champ_settings.threshold	  = atof  (ini_parser_get_value(parser, "threshold")); // minimum threshold before calculations halted because camera is "close enough"
+	this->champ_settings.mouse_range_max = atof(ini_parser_get_value(parser, "mouse_range_max"));
+	this->champ_settings.dest_range_max  = atof(ini_parser_get_value(parser, "dest_range_max"));
+	this->champ_settings.mouse_dest_range_max  = atof(ini_parser_get_value(parser, "mouse_dest_range_max"));
+
+	this->sleep_time  = strtol(ini_parser_get_value(parser, "sleep_time"), NULL, 10); // Time slept between two camera updates (in ms)
+	this->poll_data	  = strtol(ini_parser_get_value(parser, "poll_data"), NULL, 10); // Retrieve data from client every X loops
 
 	// Addresses - Input checking
 	struct AddrStr { DWORD addr; char *str; } tabAddr [] = {
@@ -695,7 +812,7 @@ void camera_load_ini ()
 	// Todo : corresponding scanning function corresponding to each data to get directly in the client
 	for (int i = 0; i < sizeof(tabAddr) / sizeof(struct AddrStr); i++)
 		if (!tabAddr[i].addr)
-			warning("\"%s\" cannot be read in .ini file", tabAddr[i].str);
+			info("\"%s\" cannot be read in %s", tabAddr[i].str, ini_file);
 
 	// Settings - Input checking
 	struct SettingVal {

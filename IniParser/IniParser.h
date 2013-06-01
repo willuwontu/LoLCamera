@@ -90,6 +90,8 @@ int
 ini_parser_replace_field	(IniParser *ip, char *field, char *replace);
 void *
 ini_parser_get_value		(IniParser *ip, char *field);
+char
+ini_parser_get_char 	(IniParser *ip, char *field);
 void
 ini_parser_read			 (IniParser *ip);
 void

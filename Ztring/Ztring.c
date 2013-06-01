@@ -824,6 +824,15 @@ str_dup_to_lower(char *str)
 }
 
 int
+str_hex (char *str)
+{
+	if (str == NULL)
+		return 0;
+
+	return (strtol(str, NULL, 16));
+}
+
+int
 str_sort_by_alpha (char *str1, char *str2)
 {
 	return str_sort_by_alpha_ex(str1, str2, 0);

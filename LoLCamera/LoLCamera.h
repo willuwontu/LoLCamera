@@ -1,7 +1,5 @@
 // --- File		: LoLCamera.h
-
-#ifndef Camera_H_INCLUDED
-#define Camera_H_INCLUDED
+#pragma once
 
 // ---------- Includes ------------
 #include <stdlib.h>
@@ -17,6 +15,7 @@
 #include "../Scanner/Scanner.h"
 #include "../MemBuffer/MemBuffer.h"
 #include "./Entity.h"
+#include "./CameraSettings.h"
 
 // ---------- Defines -------------
 #define LOLCAMERA_SHOP_OPENED_VALUE 6
@@ -63,16 +62,28 @@ struct _Camera
 	Entity *entity_hovered;
 	DWORD entity_hovered_addr;
 
+	// Translation
+	Vector2D start_translation;
+	int translation_state;
+	Vector2D distance_translation;
+	BOOL translate_request;
+	char translate_key;
+
+	// Settings
+	CameraSettings all_settings[200]; // Champion specific settings
+	CameraSettings champ_settings;	  // Current champion settings
 	float lerp_rate;				// This controls smoothing, smaller values mean slower camera movement
 	float threshold;				// Minimum threshold before calculations halted because camera is "close enough"
-	int sleep_time;					// Sleep time at each start of main loop
-	int poll_data;					// Number of loops required for polling data
-	Vector2D drag_pos;				// Position IG where the drag started
-	MemPos cam_saved;
 									// Controls the range at which these factors start falling off :
 	float mouse_range_max,			// mouse-champ range
 		  dest_range_max,			// dest-champ range
 		  mouse_dest_range_max;		// mouse-dest range
+
+
+	// Camera system settings
+	int sleep_time;					// Sleep time at each start of main loop
+	int poll_data;					// Number of loops required for polling data
+	Vector2D drag_pos;				// Position IG where the drag started
 
 	// List of patchs
 	Patch *F1_pressed;				// Disables the behavior "Center the camera on the champion when F1 is pressed"
@@ -149,6 +160,3 @@ BOOL camera_wait_for_ingame ();
 void camera_unload ();
 
 
-
-
-#endif // Camera_INCLUDED

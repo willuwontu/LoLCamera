@@ -147,6 +147,9 @@ ztring_debug			(Ztring *z);
 char *
 str_repeat (char *repeat_pattern, int n);
 
+int
+str_hex (char *str);
+
 char *
 str_trim				(char *str);
 

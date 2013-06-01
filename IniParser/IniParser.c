@@ -336,6 +336,30 @@ ini_parser_debug_internal ()
 	ini_parser_debug(this);
 }
 
+char
+ini_parser_get_char (IniParser *ip, char *field)
+/**
+*   Retourne le character de la clef associée
+*   @param  char *field	 : clef dont on veut la valeur
+*   @return char		  : character associé ou 0 en cas d'absence de la clef
+*/
+{
+	int index;
+
+	index = _ini_parser_get_index(ip, field);
+
+	if (index == INI_PARSER_INDEX_ERROR)
+		return 0;
+
+	char *res = bb_queue_pick_nth (ip->vList, index);
+
+	if (res == NULL)
+		return 0;
+
+	else
+		return res[0];
+}
+
 void *
 ini_parser_get_value (IniParser *ip, char *field)
 /**
