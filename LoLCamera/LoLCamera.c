@@ -158,7 +158,8 @@ static BOOL camera_translate ()
 	short translate_state = GetKeyState(this->translate_key);
 
 	// listen for translate toggle key
-	if (translate_state != this->last_translate_state && translate_state < 0)
+	if (translate_state != this->last_translate_state && translate_state < 0
+	&& this->interface_opened != LOLCAMERA_CHAT_OPENED_VALUE)
 	{
 		this->last_translate_state = translate_state;
 		camera_translate_toggle(this->translate_request);
@@ -716,7 +717,7 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 
 void camera_load_ini ()
 {
-	char *ini_file = ".//LoLCamera.ini";
+	char *ini_file = "./LoLCamera.ini";
 	// Loading parameters from .ini file :
 	IniParser *parser = ini_parser_new(ini_file);
 	ini_parser_reg_and_read(parser);
