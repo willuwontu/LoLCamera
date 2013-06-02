@@ -995,9 +995,9 @@ BOOL camera_refresh_entity_hovered ()
 
 			if (strcmp(e->player_name, name) == 0)
 			{
-				if (i == 0)
+				if (strcmp(name, this->self_name) == 0)
 				{
-					// We don't want to share the view with ourself
+					// We don't want to share the view with ourself, dont hover self
 					break;
 				}
 

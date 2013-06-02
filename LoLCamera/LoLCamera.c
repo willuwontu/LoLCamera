@@ -24,7 +24,8 @@ typedef enum {
 // Static functions declaration
 static void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode);
 static void camera_compute_lerp_rate (float *lerp_rate, CameraTrackingMode camera_mode);
-BOOL camera_entity_is_near (Entity *e);
+BOOL camera_entity_is_near (Entity *e, float limit);
+
 static BOOL camera_follow_champion_requested ();
 static BOOL camera_restore_requested ();
 static void camera_toggle (BOOL enable);
@@ -205,7 +206,7 @@ static CameraTrackingMode camera_get_mode ()
 		return Free;
 
 	// The champion has been teleported far, focus on the champion
-	if (!camera_is_near(this->champ) && !entity_is_dead(this->self))
+	if (!camera_is_near(this->champ, 3000.0) && !entity_is_dead(this->self))
 		return FocusSelf;
 
     return Normal;
@@ -336,14 +337,14 @@ static void camera_entity_manager ()
 	{
 		// When we are in "dead" spectator mode, it's not important to change camera mode.
 		if (entity_is_dead(this->focused_entity)
-		|| !camera_entity_is_near(this->focused_entity))
+		|| !camera_entity_is_near(this->focused_entity, 2000.0))
 			this->focused_entity = NULL;
 	}
 
 	if (this->hint_entity != NULL)
 	{
 		if (entity_is_dead(this->hint_entity)
-		|| !camera_entity_is_near(this->hint_entity))
+		|| !camera_entity_is_near(this->hint_entity, 2000.0))
 			this->hint_entity = NULL;
 	}
 }
@@ -550,24 +551,19 @@ static void camera_compute_lerp_rate (float *lerp_rate, CameraTrackingMode camer
 	*lerp_rate = local_lerp_rate;
 }
 
-BOOL camera_is_near (MemPos *pos)
+BOOL camera_is_near (MemPos *pos, float limit)
 {
 	if (pos == NULL)
 		return FALSE;
 
 	float distance_cam_champ = vector2D_distance(&pos->v, &this->cam->v);
 
-	return (distance_cam_champ < 3000.0);
+	return (distance_cam_champ < limit);
 }
 
-BOOL camera_entity_is_near (Entity *e)
+BOOL camera_entity_is_near (Entity *e, float limit)
 {
-	if (e == NULL)
-		return FALSE;
-
-	float distance_ally_champ = vector2D_distance(&e->p.v, &this->champ->v);
-
-	return (distance_ally_champ < 2000.0);
+	return camera_is_near(&e->p, limit);
 }
 
 void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
@@ -631,14 +627,14 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 			if (this->focused_entity != NULL)
 			{
 				// ShareEntity is a Normal camera behavior + ally weight
-				focus_weight = 1.0;
+				focus_weight = this->focus_weight;
 				focus_x = this->focused_entity->p.v.x;
 				focus_y = this->focused_entity->p.v.y;
 			}
 
 			if (this->hint_entity != NULL)
 			{
-				hint_weight = 1.0;
+				hint_weight = this->hint_weight;
 				hint_x = this->hint_entity->p.v.x;
 				hint_y = this->hint_entity->p.v.y;
 			}
@@ -776,6 +772,8 @@ void camera_load_ini ()
 	this->mouse_range_max = atof(ini_parser_get_value(parser, "mouse_range_max"));
 	this->dest_range_max  = atof(ini_parser_get_value(parser, "dest_range_max"));
 	this->mouse_dest_range_max  = atof(ini_parser_get_value(parser, "mouse_dest_range_max"));
+	this->focus_weight  = atof(ini_parser_get_value(parser, "focus_weight"));
+	this->hint_weight  = atof(ini_parser_get_value(parser, "hint_weight"));
 
 	this->champ_settings.lerp_rate	  = atof  (ini_parser_get_value(parser, "lerp_rate")); // this controls smoothing, smaller values mean slower camera movement
 	this->champ_settings.threshold	  = atof  (ini_parser_get_value(parser, "threshold")); // minimum threshold before calculations halted because camera is "close enough"

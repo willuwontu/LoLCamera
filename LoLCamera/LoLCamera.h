@@ -102,6 +102,9 @@ struct _Camera
 	Entity *self;
 	char self_name[17];
 
+	float focus_weight;				// configurable in ini
+	float hint_weight;				// configurable in ini
+
 	int team_size;					// Size of the -team- of the array actually, FIXME
 
 	// Memory positions
@@ -138,7 +141,7 @@ BOOL camera_update ();
 void camera_load_ini ();
 inline void camera_set_active (BOOL active);
 Camera *camera_get_instance ();
-BOOL camera_is_near (MemPos *pos);
+BOOL camera_is_near (MemPos *po, float limit);
 
 // from LoLCameraMem.c
 BOOL camera_scan_champions ();
