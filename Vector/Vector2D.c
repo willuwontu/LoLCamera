@@ -165,6 +165,17 @@ vector2D_sscalar (Vector2D *v, float k)
 }
 
 
+int
+vector2D_is_zero (Vector2D *v)
+{
+	return (v->x == 0 && v->y == 0);
+}
+
+void
+vector2D_set_zero (Vector2D *v)
+{
+	vector2D_set_pos(v, 0.0, 0.0);
+}
 
 // --- Debug
 void

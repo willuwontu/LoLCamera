@@ -16,7 +16,8 @@ typedef enum {
     Free,
     FocusSelf,
     FollowEntity,
-    Translate
+    Translate,
+    isTranlating
 
 } CameraTrackingMode;
 
@@ -28,6 +29,7 @@ static BOOL camera_follow_champion_requested ();
 static BOOL camera_restore_requested ();
 static void camera_toggle (BOOL enable);
 static BOOL camera_is_translated ();
+static void camera_translate_toggle (BOOL enable);
 
 static void camera_toggle (BOOL enable)
 {
@@ -55,7 +57,6 @@ static BOOL camera_is_enabled ()
 static void camera_translation_reset ()
 {
 	vector2D_set_pos(&this->distance_translation, 0.0, 0.0);
-	this->translation_state = 0;
 }
 
 static BOOL camera_center_requested ()
@@ -134,54 +135,48 @@ static BOOL camera_left_click ()
 	return FALSE;
 }
 
-static void camera_translate ()
+static void camera_translate_toggle (int state)
 {
-	if (GetKeyState(this->translate_key) < 0)
+	switch (state)
 	{
-		if (GetKeyState(VK_LBUTTON) < 0)
-		{
-			switch (this->translation_state)
-			{
-				case 0:
-					memcpy(&this->start_translation, &this->mouse->v, sizeof(Vector2D));
-					this->request_polling = TRUE;
-					this->translation_state = 1;
-				break;
+		case 0:
+			vector2D_set_zero(&this->distance_translation);
+			this->translate_request = 1;
+		break;
 
-				case 1:
-					memcpy(&this->start_translation, &this->mouse->v, sizeof(Vector2D));
-					this->translation_state = 2;
-				break;
+		case 1:
+			this->distance_translation.x = this->mouse->v.x - this->champ->v.x;
+			this->distance_translation.y = this->mouse->v.y - this->champ->v.y;
+			this->translate_request = 0;
+		break;
+	}
+}
 
-				case 2:
-				break;
-			}
+static BOOL camera_translate ()
+{
+	short translate_state = GetKeyState(this->translate_key);
 
-			this->translate_request = TRUE;
-		}
+	// listen for translate toggle key
+	if (translate_state != this->last_translate_state && translate_state < 0)
+	{
+		this->last_translate_state = translate_state;
+		camera_translate_toggle(this->translate_request);
 	}
 
-	else
-	{
-		if (this->translation_state == 2 || this->translation_state == 3)
-			this->translation_state = 3;
-		else
-			this->translation_state = 0;
-
-		this->translate_request = FALSE;
-	}
+	return this->translate_request;
 }
 
 static BOOL camera_is_translated ()
 {
-	return (this->translation_state == 3);
+	return (
+		this->distance_translation.x != 0.0
+	&&  this->distance_translation.y != 0.0);
 }
 
 static CameraTrackingMode camera_get_mode ()
 {
 	if (!camera_is_enabled())
         return NoUpdate;
-
 
 	// user pressed space or F1 or anything requesting to center the camera on the champion
 	if (camera_center_requested())
@@ -190,6 +185,9 @@ static CameraTrackingMode camera_get_mode ()
 	// A temporary camera has been saved, now is coming the time to restore it
 	if (camera_restore_requested())
 		return RestoreCam;
+
+	if (camera_translate())
+		return isTranlating;
 
 	if (camera_is_translated())
 		return Translate;
@@ -388,7 +386,6 @@ BOOL camera_update ()
 
 	camera_entity_manager();
 	camera_middle_click();
-	camera_translate();
 
 	struct refreshFunctions { BOOL (*func)(); void *arg; char *desc; } refresh_funcs [] =
 	{
@@ -514,6 +511,11 @@ static void camera_compute_lerp_rate (float *lerp_rate, CameraTrackingMode camer
 	switch (camera_mode)
 	{
 		case Translate:
+			local_lerp_rate = local_lerp_rate * 5;
+		break;
+
+		case isTranlating:
+			local_lerp_rate = local_lerp_rate * 1;
 		break;
 
 		case RestoreCam:
@@ -521,7 +523,7 @@ static void camera_compute_lerp_rate (float *lerp_rate, CameraTrackingMode camer
 
 		case CenterCam:
 			// adjust camera smoothing rate when center camera
-				local_lerp_rate = local_lerp_rate * 5;
+			local_lerp_rate = local_lerp_rate * 5;
 		break;
 
 		case FollowEntity:
@@ -626,12 +628,6 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 				drag_y = (this->drag_pos.y - this->mouse->v.y) * 10;
 			}
 
-			if (this->translate_request)
-			{
-				this->distance_translation.x = (this->start_translation.x - this->mouse->v.x);
-				this->distance_translation.y = (this->start_translation.y - this->mouse->v.y);
-			}
-
 			if (this->focused_entity != NULL)
 			{
 				// ShareEntity is a Normal camera behavior + ally weight
@@ -678,8 +674,7 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
                     (focus_x * focus_weight) +
 					(hint_x * hint_weight)
                  ) / weight_sum
-					+ drag_x
-					+ this->distance_translation.x,
+					+ drag_x,
                 (
                     (this->champ->v.y * champ_weight) +
                     (this->mouse->v.y * mouse_weight) +
@@ -688,13 +683,19 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 					(hint_y * hint_weight)
                 ) / weight_sum
 					+ drag_y
-					+ this->distance_translation.y
             );
 
             // The camera goes farther when the camera is moving to the south
             if (this->mouse->v.y < this->champ->v.y)
                 target->y -= distance_mouse_champ / 8.0; // <-- arbitrary value
 		}
+		break;
+
+		case isTranlating:
+			vector2D_set_pos(target,
+				this->distance_translation.x + this->mouse->v.x,
+				this->distance_translation.y + this->mouse->v.y
+		);
 		break;
 
 		case Translate:

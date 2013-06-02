@@ -54,7 +54,8 @@ struct _Camera
 	DWORD win_is_opened_addr;		// Address of the data : address of the variable containing "isShopOpen" (different of 0 if its the case)
 
 	DWORD loading_state_addr;		// Adress of the data : loading state
-	DWORD game_struct_addr;			// Adress of the data : loading state
+	DWORD game_struct_addr;			// Adress of the data : structure of the game
+	DWORD game_state_addr;			// Adress of the data : state of the game
 
 	// Static addresses
 	DWORD entity_ptr,entity_ptr_end;
@@ -63,11 +64,10 @@ struct _Camera
 	DWORD entity_hovered_addr;
 
 	// Translation
-	Vector2D start_translation;
-	int translation_state;
 	Vector2D distance_translation;
-	BOOL translate_request;
+	int translate_request;
 	char translate_key;
+	short int last_translate_state;
 
 	// Settings
 	CameraSettings all_settings[200]; // Champion specific settings
@@ -100,7 +100,7 @@ struct _Camera
 	Entity *followed_entity;	    // The followed entity champion when you press Fx (NULL if none)
 	Entity *hint_entity;			// Keep this entity in sight *if possible* (NULL if none or self)
 	Entity *self;
-	char *self_name;
+	char self_name[17];
 
 	int team_size;					// Size of the -team- of the array actually, FIXME
 

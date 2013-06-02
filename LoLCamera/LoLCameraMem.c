@@ -492,6 +492,64 @@ BOOL camera_scan_loading ()
 	return TRUE;
 }
 
+BOOL camera_scan_game_state ()
+{
+	Camera *this = camera_get_instance();
+
+	BbQueue *res = memscan_search (this->mp, "gameState",
+	/*
+		0047371B   ► └A1 <<98B2CB01>>   mov eax, [dword ds:League_of_Legends.1CBB298]
+		00473720   ·  8B70 04       mov esi, [dword ds:eax+4]
+		00473723   ·  3BF7          cmp esi, edi
+		00473725   ·▲ 74 07         je short League_of_Legends.0047372E
+		00473727   ·  8B40 08       mov eax, [dword ds:eax+8]
+		0047372A   ·  2BC6          sub eax, esi
+	*/
+		(unsigned char[]) {
+			0xA1,0x98,0xB2,0xCB,0x01,
+			0x8B,0x70,0x04,
+			0x3B,0xF7,
+			0x74,0x07,
+			0x8B,0x40,0x08,
+			0x2B,0xC6
+		},
+
+		"x????"
+		"xx?"
+		"xx"
+		"xx"
+		"xx?"
+		"xx",
+
+		"x????"
+		"xxx"
+		"xx"
+		"xx"
+		"xxx"
+		"xx"
+	);
+
+	if (!res)
+	{
+		warning("Cannot find game state address\nUsing the .ini value : 0x%.8x", this->game_state_addr);
+		return FALSE;
+	}
+
+	Buffer *game_state_addr = bb_queue_pick_first(res);
+	memcpy(&this->game_state_addr, game_state_addr->data, game_state_addr->size);
+
+	bb_queue_free_all(res, buffer_free);
+
+	if (!this->game_state_addr)
+	{
+		warning("Cannot scan game state");
+		return FALSE;
+	}
+
+	read_from_memory(this->mp->proc, this->self_name, this->game_state_addr + 0x304, sizeof(this->self_name) - 1);
+
+	return TRUE;
+}
 
 BOOL camera_scan_game_struct ()
 {
@@ -592,6 +650,7 @@ BOOL camera_scan_variables ()
 		camera_scan_loading,
 		camera_scan_mouse_screen,
 		camera_scan_game_struct,
+		camera_scan_game_state,
 		camera_scan_win_is_opened,
 		camera_scan_hovered_champ,
 	};
@@ -601,7 +660,6 @@ BOOL camera_scan_variables ()
 		if (!scan_funcs[i]())
 			res = FALSE;
 	}
-
 
 	info("------------------------------------------------------------------");
 	info("Reading the content of pointers...");
@@ -617,13 +675,6 @@ BOOL camera_refresh_self ()
 
 	DWORD cur = this->entity_ptr;
 	DWORD end = this->entity_ptr_end;
-
-	if (this->self_name == NULL)
-	{
-		this->self_name = this->champions[0]->player_name;
-		this->self = this->champions[0];
-		return TRUE;
-	}
 
 	for (int i = 0; cur != end && i < 10; cur += 4, i++)
 	{

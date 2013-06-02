@@ -109,6 +109,11 @@ vector2D_limit 		(Vector2D *v, float limit);
 void
 vector2D_slimit 	(Vector2D *v, float maxLen);
 
+int
+vector2D_is_zero 	(Vector2D *v);
+
+void
+vector2D_set_zero 	(Vector2D *v);
 
 // --- Operators
 void
