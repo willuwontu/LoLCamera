@@ -655,9 +655,9 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 				if (distance_mouse_champ > this->champ_settings.mouse_range_max)
 					mouse_weight = 1 / (((distance_mouse_champ - this->champ_settings.mouse_range_max) * mouse_falloff_rate) + 1.0);
 
-				else if (distance_mouse_dest > this->champ_settings.mouse_dest_range_max)
-					// increase mouse weight if far from dest
-					mouse_weight += (distance_mouse_dest - this->champ_settings.mouse_dest_range_max) / 1000.0;
+				if (distance_mouse_dest > this->champ_settings.mouse_dest_range_max)
+					// if the mouse is far from dest, reduce dest weight (mouse is more important)
+					dest_weight = dest_weight / (((distance_mouse_dest - this->champ_settings.mouse_dest_range_max) / 1500.0) + 1);
 
 				weight_sum = champ_weight + mouse_weight + dest_weight + focus_weight + hint_weight;
 			}
@@ -683,8 +683,9 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
             );
 
             // The camera goes farther when the camera is moving to the south
-            if (this->mouse->v.y < this->champ->v.y)
-                target->y -= distance_mouse_champ / 8.0; // <-- arbitrary value
+            float distance_mouse_champ_y = this->champ->v.y - this->mouse->v.y;
+            if (distance_mouse_champ_y > 0)
+                target->y -= distance_mouse_champ_y / 8.0; // <-- arbitrary value
 		}
 		break;
 
