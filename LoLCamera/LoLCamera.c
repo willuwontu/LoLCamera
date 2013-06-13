@@ -299,6 +299,7 @@ void camera_init (MemProc *mp)
 
 	patch_list_set(this->patchlist, TRUE);
 
+	this->entities_nearby = bb_queue_new();
 	this->active = TRUE;
 }
 

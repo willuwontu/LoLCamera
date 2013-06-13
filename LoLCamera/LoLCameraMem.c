@@ -546,7 +546,16 @@ BOOL camera_scan_game_state ()
 		return FALSE;
 	}
 
-	read_from_memory(this->mp->proc, this->self_name, this->game_state_addr + 0x304, sizeof(this->self_name) - 1);
+	read_from_memory(this->mp->proc, this->self_name, this->game_state_addr + 0x2F4, sizeof(this->self_name) - 1);
+
+	if (strlen(this->self_name) <= 0)
+	{
+		warning("Cannot find self name");
+		return FALSE;
+	}
+
+	else
+		info("Self name : <%s>", this->self_name);
 
 	return TRUE;
 }
@@ -606,20 +615,24 @@ BOOL camera_scan_game_struct ()
 		return FALSE;
 	}
 
+	/* ToFix:
+		Get the offsets in the memory
+	*/
+
 	// 00A38400    ║·  D99E F0010000                fstp [dword ds:esi+1F0]
-	this->champx_addr = this->game_struct_addr + 0x1F0 - this->mp->base_addr;
+	this->champx_addr = this->game_struct_addr + 0x138 - this->mp->base_addr;
 	// 00A38412    ║·  D99E F8010000                fstp [dword ds:esi+1F8]
-	this->champy_addr = this->game_struct_addr + 0x1F8 - this->mp->base_addr;
+	this->champy_addr = this->game_struct_addr + 0x140 - this->mp->base_addr;
 
 	// 00A383D5    ║·  F30F1186 FC010000            movss [dword ds:esi+1FC], xmm0
-	this->mousex_addr = this->game_struct_addr + 0x1FC - this->mp->base_addr;
+	this->mousex_addr = this->game_struct_addr + 0x144 - this->mp->base_addr;
 	// 00A383F5    ║·  F30F1186 04020000            movss [dword ds:esi+204], xmm0
-	this->mousey_addr = this->game_struct_addr + 0x204 - this->mp->base_addr;
+	this->mousey_addr = this->game_struct_addr + 0x14c - this->mp->base_addr;
 
 	// 00A3B34C    ║·  F30F1183 D0020000            movss [dword ds:ebx+2D0], xmm0
-	this->destx_addr  = this->game_struct_addr + 0x2F8 - this->mp->base_addr;
+	this->destx_addr  = this->game_struct_addr + 0x230 - this->mp->base_addr;
 	// 00A3B36C    ║·  F30F1183 D8020000            movss [dword ds:ebx+2D8], xmm0
-	this->desty_addr  = this->game_struct_addr + 0x300 - this->mp->base_addr;
+	this->desty_addr  = this->game_struct_addr + 0x238 - this->mp->base_addr;
 
 	return TRUE;
 }
@@ -1013,6 +1026,33 @@ BOOL camera_refresh_entity_hovered ()
 	return TRUE;
 }
 
+void camera_refresh_entities_nearby ()
+{
+	Camera *this = camera_get_instance();
+	float distance;
+	int index = 0;
+	float far_limit = 3000.0;
+	Entity *to_remove[10];
+	Entity *to_keep[10];
+	memset(to_remove, 0, sizeof(to_remove));
+
+	foreach_bbqueue_item (this->entities_nearby, Entity *e)
+	{
+		distance = vector2D_distance(&e->p.v, &this->champ->v);
+
+		if (distance > far_limit)
+			to_remove[index] = e;
+		else
+			to_keep[index++] = e;
+	}
+
+	for (int i = 0; i < index; i++)
+	{
+		bb_queue_remv(this->entities_nearby, to_remove[i]);
+	}
+
+	/// TODO
+}
 BOOL camera_refresh_win_is_opened ()
 {
 	Camera *this = camera_get_instance();
@@ -1584,7 +1624,8 @@ void camera_export_to_cheatengine ()
 		this->mouse->addrY,
 		this->dest->addrX,
 		this->dest->addrY,
-		this->cam->addrX + 0x1E8,
+		// Fix the offset ?
+		this->cam->addrX + 0x154,
 		this->win_is_opened_ptr,
 		this->mouse_screen_ptr,
 		this->mouse_screen_ptr,

@@ -101,6 +101,7 @@ struct _Camera
 	Entity *hint_entity;			// Keep this entity in sight *if possible* (NULL if none or self)
 	Entity *self;
 	char self_name[17];
+	BbQueue *entities_nearby;		// List of entities around the champion
 
 	float focus_weight;				// configurable in ini
 	float hint_weight;				// configurable in ini
@@ -158,6 +159,8 @@ BOOL camera_refresh_entity_hovered ();
 BOOL camera_refresh_win_is_opened ();
 BOOL camera_refresh_self ();
 BOOL camera_wait_for_ingame ();
+
+void camera_export_to_cheatengine ();
 
 // --------- Destructors ----------
 void camera_unload ();
