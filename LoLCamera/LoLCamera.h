@@ -127,8 +127,9 @@ struct _Camera
 	int fxstate;					// Fx is pressed ?
 
 	BOOL interface_opened;
-
 	BOOL enabled;
+
+	BOOL wait_loading_screen;		// Wait for the start of the game
 };
 
 

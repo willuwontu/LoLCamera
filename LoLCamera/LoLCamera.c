@@ -307,6 +307,9 @@ BOOL camera_wait_for_ingame ()
 {
 	BOOL waited = FALSE;
 
+	if (!this->wait_loading_screen)
+		return TRUE;
+
 	// Wait here
 	while (!read_memory_as_int(this->mp->proc, this->loading_state_addr))
 	{
@@ -744,6 +747,7 @@ void camera_load_ini ()
 	this->entities_addr_end = strtol(ini_parser_get_value(parser, "entities_addr_end"), NULL, 16);
 	this->locked_camera_addr = strtol(ini_parser_get_value(parser, "locked_camera_addr"), NULL, 16);
 	this->loading_state_addr = strtol(ini_parser_get_value(parser, "loading_state_addr"), NULL, 16);
+	this->wait_loading_screen = strtol(ini_parser_get_value(parser, "wait_loading_screen"), NULL, 16);
 
 	// Addresses
 	this->camx_addr   = str_hex(ini_parser_get_value(parser, "camera_posx_addr"));
@@ -823,7 +827,7 @@ void camera_load_ini ()
 	} tabSet [] = {
 		// If the settings is not found in the .ini, set the value to its default value :
 		{ .p.i = &this->sleep_time,	.v.i = 1.0},
-		{ .p.i = &this->poll_data,	.v.i = 5.0}
+		{ .p.i = &this->poll_data,	.v.i = 5.0},
 	};
 
 	for (int i = 0; i < sizeof(tabSet) / sizeof(struct SettingVal); i++)
