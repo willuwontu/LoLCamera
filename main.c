@@ -9,7 +9,11 @@ int main()
 {
 	BOOL exit_request = FALSE;
 	info("Sources : https://github.com/Spl3en/LoLCamera");
-	enable_debug_privileges();
+
+	if (!enable_debug_privileges())
+	{
+		warning("Debug privileges aren't active");
+	}
 
 	// Force unpatch at exit
 	atexit(camera_unload);
@@ -23,6 +27,7 @@ int main()
 		{
 			// Client is not detected
 			info("Waiting for a new game ...");
+
 			while (!memproc_refresh_handle(mp))
 				Sleep(1000);
 		}
@@ -30,7 +35,6 @@ int main()
 		info("Game detected, main loop started (press 'x' to quit)");
 
 		camera_init(mp);
-
 
 		exit_request = camera_main();
 		camera_unload();

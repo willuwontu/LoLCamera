@@ -63,8 +63,7 @@ get_handle_from_pid (DWORD pid);
 HANDLE
 get_handle_by_name (char *proc_name);
 
-void
-enable_debug_privileges (void);
+BOOL enable_debug_privileges ();
 
 int
 set_privilege (HANDLE hToken, LPCTSTR lpszPrivilege, int bEnablePrivilege);
@@ -194,6 +193,12 @@ read_from_memory (HANDLE process, unsigned char *buffer, DWORD addr, unsigned in
 
 int
 write_to_memory (HANDLE process, unsigned char *buffer, DWORD addr, unsigned int size);
+
+HWND
+get_hwnd_from_pid (DWORD pid);
+
+HWND
+get_hwnd_from_title (char *title);
 
 // --------- Destructors ----------
 

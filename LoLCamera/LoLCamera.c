@@ -213,9 +213,14 @@ static void camera_debug_mode ()
 	}
 }
 
+static BOOL camera_window_is_active ()
+{
+	return (this->mp->hwnd == GetForegroundWindow());
+}
+
 static CameraTrackingMode camera_get_mode ()
 {
-	if (!camera_is_enabled())
+	if (!camera_is_enabled() || !camera_window_is_active())
         return NoUpdate;
 
 	// user pressed space or F1 or anything requesting to center the camera on the champion

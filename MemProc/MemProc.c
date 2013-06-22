@@ -111,6 +111,8 @@ memproc_refresh_handle (MemProc *mp)
 		}
 	}
 
+	mp->hwnd = get_hwnd_from_title(mp->window_name);
+
 	return 1;
 }
 

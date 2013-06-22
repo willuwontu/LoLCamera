@@ -45,6 +45,7 @@ struct _MemProc
 {
 	BbQueue *memchunks;
 	HANDLE proc;
+	HWND hwnd;
 	SearchType stype;
 	int mask_len;
 

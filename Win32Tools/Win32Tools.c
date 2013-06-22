@@ -238,24 +238,63 @@ error_exit (LPTSTR lpszFunction)
 	exit(EXIT_FAILURE);
 }
 
-void
-enable_debug_privileges (void)
+BOOL enable_debug_privileges ()
 {
-	HANDLE hProcess = GetCurrentProcess();
-	HANDLE hToken;
-	int res;
 
-	if (OpenProcessToken(hProcess, TOKEN_ADJUST_PRIVILEGES, &hToken))
+	HANDLE hToken = 0;
+	TOKEN_PRIVILEGES newPrivs;
+
+	if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken))
 	{
-		res = set_privilege(hToken, SE_DEBUG_NAME, FALSE);
 
-		if (res != 1)
-			warning("Debug privilege ERROR.");
-
-		CloseHandle(hToken);
+		warning("Debug privilege : OpenProcessToken ERROR.");
+		return FALSE;
 	}
+
+	if (!LookupPrivilegeValue(NULL, SE_DEBUG_NAME, &newPrivs.Privileges[0].Luid))
+	{
+		warning("Debug privilege : LookupPrivilegeValue ERROR.");
+		CloseHandle(hToken);
+		return FALSE;
+	}
+
+	newPrivs.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+	newPrivs.PrivilegeCount = 1;
+
+	if (!AdjustTokenPrivileges(hToken, FALSE, &newPrivs, 0, NULL, NULL))
+	{
+		warning("Debug privilege : AdjustTokenPrivileges ERROR.");
+		CloseHandle(hToken);
+		return FALSE;
+	}
+
+	CloseHandle(hToken);
+	return TRUE;
 }
 
+HWND
+get_hwnd_from_title (char *title)
+{
+	return FindWindowA(NULL, title);
+}
+
+HWND get_hwnd_from_pid (DWORD pid)
+{
+	HWND hwnd = NULL;
+
+	do
+	{
+		hwnd = FindWindowEx (NULL, hwnd, NULL, NULL);
+		DWORD window_pid = 0;
+		GetWindowThreadProcessId (hwnd, &window_pid);
+
+		if (window_pid == pid)
+			return hwnd;
+	}
+	while (hwnd != NULL);
+
+	return NULL;
+}
 
 MODULEENTRY32 *
 get_module_entry (char *process_name, DWORD pid, HWND window)
