@@ -57,6 +57,14 @@ struct _Camera
 	DWORD game_struct_addr;			// Adress of the data : structure of the game
 	DWORD game_state_addr;			// Adress of the data : state of the game
 
+	// Offset
+	DWORD champx_offset;
+	DWORD champy_offset;
+	DWORD mousex_offset;
+	DWORD mousey_offset;
+	DWORD destx_offset;
+	DWORD desty_offset;
+
 	// Static addresses
 	DWORD entity_ptr,entity_ptr_end;
 	DWORD players_ptr,players_ptr_end;
@@ -154,6 +162,9 @@ BOOL camera_scan_variables ();
 BOOL camera_scan_loading ();
 BOOL camera_scan_game_struct ();
 BOOL camera_scan_hovered_champ ();
+BOOL camera_scan_game_struct_offsets ();
+BOOL camera_scan_champ_offsets ();
+BOOL camera_scan_dest_offsets ();
 
 BOOL camera_refresh_champions ();
 BOOL camera_refresh_entity_hovered ();
