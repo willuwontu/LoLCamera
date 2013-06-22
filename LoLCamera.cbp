@@ -48,6 +48,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="LoLCamera\CameraSettings.h" />
+		<Unit filename="LoLCamera\CameraUnitTest.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="LoLCamera\CameraUnitTest.h" />
 		<Unit filename="LoLCamera\Entity.c">
 			<Option compilerVar="CC" />
 		</Unit>

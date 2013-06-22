@@ -203,10 +203,9 @@ static void camera_debug_mode ()
 				{"Loading state",     camera_ut_loading_state}
 			};
 
-			int i;
-			for (i = 0; i < sizeof(unit_tests) / sizeof(*unit_tests); i++)
+			for (int i = 0; i < sizeof(unit_tests) / sizeof(*unit_tests); i++)
 			{
-				printf("Unit test %s : %s\n", unit_tests[i].str, (unit_tests[i].fct()) ? "OK" : "FAILED");
+				info("Unit test %s : %s", unit_tests[i].str, (unit_tests[i].fct()) ? "OK" : "FAILED");
 			}
 		}
 
@@ -337,6 +336,10 @@ void camera_init (MemProc *mp)
 	);
 
 	patch_list_set(this->patchlist, TRUE);
+
+	if (this->output_cheatengine_table)
+		camera_export_to_cheatengine();
+
 
 	this->entities_nearby = bb_queue_new();
 	this->active = TRUE;
@@ -789,6 +792,7 @@ void camera_load_ini ()
 	this->locked_camera_addr = strtol(ini_parser_get_value(parser, "locked_camera_addr"), NULL, 16);
 	this->loading_state_addr = strtol(ini_parser_get_value(parser, "loading_state_addr"), NULL, 16);
 	this->wait_loading_screen = strtol(ini_parser_get_value(parser, "wait_loading_screen"), NULL, 16);
+	this->output_cheatengine_table = strtol(ini_parser_get_value(parser, "output_cheatengine_table"), NULL, 16);
 
 	// Addresses
 	this->camx_addr   = str_hex(ini_parser_get_value(parser, "camera_posx_addr"));

@@ -30,7 +30,7 @@ int main()
 		info("Game detected, main loop started (press 'x' to quit)");
 
 		camera_init(mp);
-		camera_export_to_cheatengine();
+
 
 		exit_request = camera_main();
 		camera_unload();

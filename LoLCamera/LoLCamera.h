@@ -28,10 +28,6 @@ struct _Camera
 {
 	MemProc *mp;					// Process context
 
-	// Internal
-	BOOL active;					// Loop state
-	BOOL request_polling; 			// Force to poll data the next loop if TRUE
-
 	// From .ini
 	DWORD border_screen_addr;		// Address of the instructions moving the camera
 	DWORD respawn_reset_addr;		// Address of the instructions when the camera resets when the champion respawns
@@ -57,13 +53,13 @@ struct _Camera
 	DWORD game_struct_addr;			// Adress of the data : structure of the game
 	DWORD game_state_addr;			// Adress of the data : state of the game
 
-	// Offset
-	DWORD champx_offset;
-	DWORD champy_offset;
-	DWORD mousex_offset;
-	DWORD mousey_offset;
-	DWORD destx_offset;
-	DWORD desty_offset;
+	// Offsets in the game structure
+		DWORD champx_offset;
+		DWORD champy_offset;
+		DWORD mousex_offset;
+		DWORD mousey_offset;
+		DWORD destx_offset;
+		DWORD desty_offset;
 
 	// Static addresses
 	DWORD entity_ptr,entity_ptr_end;
@@ -108,8 +104,8 @@ struct _Camera
 	Entity *followed_entity;	    // The followed entity champion when you press Fx (NULL if none)
 	Entity *hint_entity;			// Keep this entity in sight *if possible* (NULL if none or self)
 	Entity *self;
-	char self_name[17];
 	BbQueue *entities_nearby;		// List of entities around the champion
+	char self_name[17];
 
 	// Weights
 	float focus_weight;				// configurable in ini
@@ -124,23 +120,24 @@ struct _Camera
 	MemPos *mouse;					// Mouse position
 	MemPos *dest;					// Right click position
 	MemPos *mouse_screen;			// Mouse screen position
-
 	MemPos tmpcam;					// Temporary Camera state
-	BOOL restore_tmpcam;			// Request to restore the temporary camera
-
-	BOOL drag_request;				// User requested a drag
 
 	// Key states
 	short int last_toggle_state;
 	int mbutton_state;
 	int lbutton_state;
-	int fxstate;					// Fx is pressed ?
+	int fxstate;						// Fx is pressed ?
 
 	// Program state
+	BOOL restore_tmpcam;				// Request to restore the temporary camera
+	BOOL drag_request;					// User requested a drag
+	BOOL active;						// Loop state
+	BOOL request_polling; 				// Force to poll data the next loop if TRUE
 	int interface_opened;
 	BOOL enabled;
 	BOOL dbg_mode;
-	BOOL wait_loading_screen;		// Wait for the start of the game
+	BOOL wait_loading_screen;			// Wait for the start of the game
+	BOOL output_cheatengine_table;		// Output the adresses in CheatEngineTable format in "out.ct"
 };
 
 
