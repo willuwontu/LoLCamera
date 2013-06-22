@@ -1807,8 +1807,7 @@ void camera_export_to_cheatengine ()
 		this->mouse->addrY,
 		this->dest->addrX,
 		this->dest->addrY,
-		// Fix the offset ?
-		this->cam->addrX + 0x154,
+		this->entity_hovered_addr,
 		this->win_is_opened_ptr,
 		this->mouse_screen_ptr,
 		this->mouse_screen_ptr,

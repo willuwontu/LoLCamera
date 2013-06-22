@@ -64,7 +64,7 @@
       <Color>80000008</Color>
       <VariableType>Array of byte</VariableType>
       <ByteLength>10</ByteLength>
-      <Address>01ce87b0</Address>
+      <Address>01cf65a8</Address>
       <Offsets>
         <Offset>0</Offset>
       </Offsets>
@@ -380,4 +380,33 @@
                 <Offset>130</Offset>
                 <Offset>10</Offset>
               </Offsets>
-            </CheatEnt
+            </CheatEntry>
+            <CheatEntry>
+              <ID>33</ID>
+              <Description>"AllyF5_posX"</Description>
+              <Color>80000008</Color>
+              <VariableType>Float</VariableType>
+              <Address>01cbf4ec</Address>
+              <Offsets>
+                <Offset>68</Offset>
+                <Offset>10</Offset>
+              </Offsets>
+            </CheatEntry>
+            <CheatEntry>
+              <ID>43</ID>
+              <Description>"AllyF5_posX"</Description>
+              <Color>80000008</Color>
+              <VariableType>Float</VariableType>
+              <Address>01cbf4ec</Address>
+              <Offsets>
+                <Offset>F0</Offset>
+                <Offset>10</Offset>
+              </Offsets>
+            </CheatEntry>
+          </CheatEntries>
+        </CheatEntry>
+      </CheatEntries>
+    </CheatEntry>
+  </CheatEntries>
+  <UserdefinedSymbols/>
+</CheatTable>

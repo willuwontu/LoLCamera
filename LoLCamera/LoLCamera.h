@@ -111,9 +111,11 @@ struct _Camera
 	char self_name[17];
 	BbQueue *entities_nearby;		// List of entities around the champion
 
+	// Weights
 	float focus_weight;				// configurable in ini
 	float hint_weight;				// configurable in ini
 
+	// Players information
 	int team_size;					// Size of the -team- of the array actually, FIXME
 
 	// Memory positions
@@ -134,9 +136,10 @@ struct _Camera
 	int lbutton_state;
 	int fxstate;					// Fx is pressed ?
 
-	BOOL interface_opened;
+	// Program state
+	int interface_opened;
 	BOOL enabled;
-
+	BOOL dbg_mode;
 	BOOL wait_loading_screen;		// Wait for the start of the game
 };
 
@@ -171,6 +174,15 @@ BOOL camera_refresh_entity_hovered ();
 BOOL camera_refresh_win_is_opened ();
 BOOL camera_refresh_self ();
 BOOL camera_wait_for_ingame ();
+
+// from CameraUnitTest.c
+BOOL camera_ut_campos ();
+BOOL camera_ut_champos ();
+BOOL camera_ut_mousepos ();
+BOOL camera_ut_destpos ();
+BOOL camera_ut_is_win_opened ();
+BOOL camera_ut_screen_mouse ();
+BOOL camera_ut_loading_state ();
 
 void camera_export_to_cheatengine ();
 

@@ -100,9 +100,6 @@ vector2D_scalar 	(Vector2D *v, float k);
 void
 vector2D_sscalar 	(Vector2D *v, float k);
 
-void
-vector2D_set_pos 	(Vector2D *v, float x, float y);
-
 Vector2D
 vector2D_limit 		(Vector2D *v, float limit);
 
@@ -145,6 +142,14 @@ vector2D_div 		(Vector2D *v1, Vector2D *v2);
 
 void
 vector2D_sdiv 		(Vector2D *v1, Vector2D *v2);
+
+// --- Accessors
+
+void
+vector2D_get_pos 	(Vector2D *v, float *x, float *y);
+
+void
+vector2D_set_pos 	(Vector2D *v, float x, float y);
 
 // --- Debug
 

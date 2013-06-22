@@ -9,7 +9,6 @@ int main()
 {
 	BOOL exit_request = FALSE;
 	info("Sources : https://github.com/Spl3en/LoLCamera");
-
 	enable_debug_privileges();
 
 	// Force unpatch at exit

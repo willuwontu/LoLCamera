@@ -175,6 +175,45 @@ static BOOL camera_is_translated ()
 	&&  this->distance_translation.y != 0.0);
 }
 
+static void camera_debug_mode ()
+{
+	if (GetKeyState('D') < 0
+	&&  GetKeyState('B') < 0
+	&&  GetKeyState('G') < 0)
+	{
+		if (!this->dbg_mode)
+		{
+			// Debug mode activated
+			this->dbg_mode = TRUE;
+		}
+	}
+
+	else
+	{
+		if (this->dbg_mode)
+		{
+			// On release
+			struct { char *str; BOOL (*fct)(); } unit_tests [] = {
+				{"Camera Position",   camera_ut_campos},
+				{"Champion Position", camera_ut_champos},
+				{"Mouse position",    camera_ut_mousepos},
+				{"Dest position",     camera_ut_destpos},
+				{"Window opened", 	  camera_ut_is_win_opened},
+				{"Screen mouse",      camera_ut_screen_mouse},
+				{"Loading state",     camera_ut_loading_state}
+			};
+
+			int i;
+			for (i = 0; i < sizeof(unit_tests) / sizeof(*unit_tests); i++)
+			{
+				printf("Unit test %s : %s\n", unit_tests[i].str, (unit_tests[i].fct()) ? "OK" : "FAILED");
+			}
+		}
+
+		this->dbg_mode = FALSE;
+	}
+}
+
 static CameraTrackingMode camera_get_mode ()
 {
 	if (!camera_is_enabled())
@@ -390,8 +429,10 @@ BOOL camera_update ()
 {
 	static unsigned int frame_count = 0;
 
+	// Manage camera states
 	camera_entity_manager();
 	camera_middle_click();
+	camera_debug_mode();
 
 	struct refreshFunctions { BOOL (*func)(); void *arg; char *desc; } refresh_funcs [] =
 	{
@@ -401,7 +442,7 @@ BOOL camera_update ()
 		{.func = mempos_refresh,				.arg = this->mouse, 		.desc = "this->mouse MemPos"},
 		{.func = mempos_int_refresh,			.arg = this->mouse_screen,	.desc = "this->mouse_screen MemPos"},
 		{.func = camera_refresh_champions,		.arg = NULL,				.desc = "Entities array"},
-		{.func = camera_refresh_win_is_opened,	.arg = NULL,				.desc = "Shop opened"},
+		{.func = camera_refresh_win_is_opened,	.arg = NULL,				.desc = "Window opened"},
 		{.func = camera_refresh_entity_hovered,	.arg = NULL,				.desc = "Entity hovered"},
 		{.func = camera_refresh_self,	        .arg = NULL,				.desc = "Self champion detection"},
 	};

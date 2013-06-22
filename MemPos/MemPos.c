@@ -84,6 +84,12 @@ mempos_set (MemPos *p, float newX, float newY)
 }
 
 void
+mempos_get (MemPos *p, float *x, float *y)
+{
+	vector2D_get_pos(&p->v, x, y);
+}
+
+void
 mempos_free (MemPos *mempos)
 {
 	if (mempos != NULL)

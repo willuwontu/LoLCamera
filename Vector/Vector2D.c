@@ -88,6 +88,13 @@ vector2D_set_pos (Vector2D *v, float x, float y)
 	v->y = y;
 }
 
+inline void
+vector2D_get_pos (Vector2D *v, float *x, float *y)
+{
+	*x = v->x;
+	*y = v->y;
+}
+
 
 // --- Mathematics
 
