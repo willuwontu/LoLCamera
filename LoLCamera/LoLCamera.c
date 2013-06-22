@@ -146,8 +146,8 @@ static void camera_translate_toggle (int state)
 		break;
 
 		case 1:
-			this->distance_translation.x = this->mouse->v.x - this->champ->v.x;
-			this->distance_translation.y = this->mouse->v.y - this->champ->v.y;
+			this->distance_translation.x = this->cam->v.x - this->champ->v.x;
+			this->distance_translation.y = this->cam->v.y - this->champ->v.y;
 			this->translate_request = 0;
 		break;
 	}
