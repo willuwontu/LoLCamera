@@ -8,6 +8,8 @@
 int main()
 {
 	BOOL exit_request = FALSE;
+
+	console_set_size(150, 30);
 	info("Sources : https://github.com/Spl3en/LoLCamera");
 
 	if (!enable_debug_privileges())
