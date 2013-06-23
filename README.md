@@ -28,3 +28,4 @@ Authors
 Testers
 -------
 - MrGoodKill
+- SephirothSG
