@@ -11,6 +11,8 @@ Keyboard
 - F11 : enable / disable LoLCamera
 - Space / F1 : Center the camera on the champion
 - F2, F3, F4,...F10 : Focus the camera on allies / ennemies
+- M : Activate translation mode. Press M again to keep the current translation distance.
+- D+B+G : Launch tests
 
 Mouse
 
@@ -28,3 +30,4 @@ Authors
 Testers
 -------
 - MrGoodKill
+- SephirothSG
