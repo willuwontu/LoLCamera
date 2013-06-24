@@ -138,6 +138,9 @@ struct _Camera
 	BOOL dbg_mode;
 	BOOL wait_loading_screen;			// Wait for the start of the game
 	BOOL output_cheatengine_table;		// Output the adresses in CheatEngineTable format in "out.ct"
+
+	// We need it for loading champion settings
+	IniParser *parser;
 };
 
 
@@ -152,6 +155,7 @@ void camera_load_ini ();
 inline void camera_set_active (BOOL active);
 Camera *camera_get_instance ();
 BOOL camera_is_near (MemPos *po, float limit);
+void camera_load_settings (char *section);
 
 // from LoLCameraMem.c
 BOOL camera_scan_champions ();

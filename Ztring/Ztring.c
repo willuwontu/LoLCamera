@@ -910,7 +910,10 @@ str_bet (const char *str, const char *start, const char *end)
 	if (pos_start == -1)
 		return NULL;
 
-	pos_end = str_pos(&str[pos_start + start_len], end) + pos_start + start_len;
+	if (end != (void*)-1)
+		pos_end = str_pos(&str[pos_start + start_len], end) + pos_start + start_len;
+	else
+		pos_end = strlen(str);
 
 	if (pos_end == -1)
 		return NULL;
@@ -927,6 +930,34 @@ str_bet (const char *str, const char *start, const char *end)
 	);
 
 	return ret;
+}
+
+void
+str_bet_buffer (const char *str, const char *start, const char *end, char *buffer)
+{
+	int len;
+	int start_len = strlen(start);
+
+	int pos_end;
+	int pos_start = str_pos(str, start);
+
+	if (pos_start == -1)
+		return;
+
+	pos_end = str_pos(&str[pos_start + start_len], end) + pos_start + start_len;
+
+	if (pos_end == -1)
+		return;
+
+	len = (pos_end) - (pos_start + start_len);
+
+	str_substring
+	(
+		str,
+		pos_start + start_len,
+		pos_end - 1,
+		buffer
+	);
 }
 
 char *

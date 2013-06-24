@@ -342,9 +342,13 @@ void camera_init (MemProc *mp)
 
 	patch_list_set(this->patchlist, TRUE);
 
+	// Export to CE
 	if (this->output_cheatengine_table)
 		camera_export_to_cheatengine();
 
+	// Load settings associated with champ name
+	camera_load_settings(this->self->champ_name);
+	ini_parser_free(this->parser);
 
 	this->entities_nearby = bb_queue_new();
 	this->active = TRUE;
@@ -769,11 +773,75 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 	}
 }
 
+void camera_load_settings (char *section)
+{
+	BbQueue *default_settings = ini_parser_get_section(this->parser, section);
+
+	if (bb_queue_is_empty(default_settings))
+	{
+		warning("Can't load \"%s\" settings in .ini (the section #%s doesn't exist)", section, section);
+		return;
+	}
+
+	while (bb_queue_get_length(default_settings))
+	{
+		KeyVal *kv    = bb_queue_get_first(default_settings);
+
+		char *setting = kv->key;
+		char *value   = kv->res;
+
+		char *possible_settings[] = {
+			"lerp_rate", "threshold", "mouse_range_max", "dest_range_max", "mouse_dest_range_max"
+		};
+
+		for (int i = 0; i < sizeof(possible_settings) / sizeof(*possible_settings); i++)
+		{
+			if (strcmp(setting, possible_settings[i]) == 0)
+			{
+				switch (i)
+				{
+					case 0: // lerp rate
+						this->champ_settings.lerp_rate = atof (value); // this controls smoothing, smaller values mean slower camera movement
+						info("%s lerprate = %f", section, this->champ_settings.lerp_rate);
+					break;
+
+					case 1: // threshold
+						this->champ_settings.threshold = atof (value); // minimum threshold before calculations halted because camera is "close enough"
+						info("%s threshold = %f", section, this->champ_settings.threshold);
+					break;
+
+					case 2: // mouse_range_max
+						this->champ_settings.mouse_range_max = atof(value);
+						info("%s mouse_range_max = %f", section, this->champ_settings.mouse_range_max);
+					break;
+
+					case 3: // dest_range_max
+						this->champ_settings.dest_range_max = atof(value);
+						info("%s dest_range_max = %f", section, this->champ_settings.dest_range_max);
+					break;
+
+					case 4: // mouse_dest_range_max
+						this->champ_settings.mouse_dest_range_max = atof(value);
+						info("%s mouse_dest_range_max = %f", section, this->champ_settings.mouse_dest_range_max);
+					break;
+				}
+			}
+		}
+
+		free(value);
+		free(setting);
+		free(kv);
+	}
+
+}
+
 void camera_load_ini ()
 {
 	char *ini_file = "./LoLCamera.ini";
 	// Loading parameters from .ini file :
 	IniParser *parser = ini_parser_new(ini_file);
+	this->parser = parser;
+
 	ini_parser_reg_and_read(parser);
 
  	// Addresses
@@ -798,8 +866,6 @@ void camera_load_ini ()
 	this->loading_state_addr = strtol(ini_parser_get_value(parser, "loading_state_addr"), NULL, 16);
 	this->wait_loading_screen = strtol(ini_parser_get_value(parser, "wait_loading_screen"), NULL, 16);
 	this->output_cheatengine_table = strtol(ini_parser_get_value(parser, "output_cheatengine_table"), NULL, 16);
-
-	// Addresses
 	this->camx_addr   = str_hex(ini_parser_get_value(parser, "camera_posx_addr"));
 	this->camy_addr   = str_hex(ini_parser_get_value(parser, "camera_posy_addr"));
 	this->champx_addr = str_hex(ini_parser_get_value(parser, "champion_posx_addr"));
@@ -824,22 +890,13 @@ void camera_load_ini ()
 	this->translate_key = ini_parser_get_char(parser, "translate_key");
 
 	// Settings
-	this->lerp_rate	  = atof  (ini_parser_get_value(parser, "lerp_rate")); // this controls smoothing, smaller values mean slower camera movement
-	this->threshold	  = atof  (ini_parser_get_value(parser, "threshold")); // minimum threshold before calculations halted because camera is "close enough"
-	this->mouse_range_max = atof(ini_parser_get_value(parser, "mouse_range_max"));
-	this->dest_range_max  = atof(ini_parser_get_value(parser, "dest_range_max"));
-	this->mouse_dest_range_max  = atof(ini_parser_get_value(parser, "mouse_dest_range_max"));
 	this->focus_weight  = atof(ini_parser_get_value(parser, "focus_weight"));
 	this->hint_weight  = atof(ini_parser_get_value(parser, "hint_weight"));
-
-	this->champ_settings.lerp_rate	  = atof  (ini_parser_get_value(parser, "lerp_rate")); // this controls smoothing, smaller values mean slower camera movement
-	this->champ_settings.threshold	  = atof  (ini_parser_get_value(parser, "threshold")); // minimum threshold before calculations halted because camera is "close enough"
-	this->champ_settings.mouse_range_max = atof(ini_parser_get_value(parser, "mouse_range_max"));
-	this->champ_settings.dest_range_max  = atof(ini_parser_get_value(parser, "dest_range_max"));
-	this->champ_settings.mouse_dest_range_max  = atof(ini_parser_get_value(parser, "mouse_dest_range_max"));
-
 	this->sleep_time  = strtol(ini_parser_get_value(parser, "sleep_time"), NULL, 10); // Time slept between two camera updates (in ms)
 	this->poll_data	  = strtol(ini_parser_get_value(parser, "poll_data"), NULL, 10); // Retrieve data from client every X loops
+
+	// Champion Settings
+	camera_load_settings("Default");
 
 	// Addresses - Input checking
 	struct AddrStr { DWORD addr; char *str; } tabAddr [] = {
@@ -885,9 +942,6 @@ void camera_load_ini ()
 		if (*(tabSet[i].p.i) == 0)
 			(*tabSet[i].p.i) = tabSet[i].v.i;
 	}
-
-	// Cleaning
-	ini_parser_free(parser);
 }
 
 inline Camera *camera_get_instance ()

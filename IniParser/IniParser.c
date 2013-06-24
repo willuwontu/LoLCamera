@@ -31,7 +31,7 @@ IniParser *
 ini_parser_new (char *filename)
 /**
 *   Instancie un IniParser
-*   @param  filename  : Nom du fichier de configuration à parser
+*   @param  filename  : Nom du fichier de configuration Ã  parser
 *   @return IniParser
 */
 {
@@ -62,7 +62,7 @@ ini_parser_register_key (IniParser *ip, char *field)
 /**
 *   Enregistre une clef dans l'iniParser
 *   @param  field : la clef
-*   @return int   : L'index de la clé enregistrée
+*   @return int   : L'index de la clÃ© enregistrÃ©e
 */
 {
 	assert(ip != NULL);
@@ -87,7 +87,7 @@ ini_parser_register_key_internal (char *field)
 void
 ini_parser_reg_and_read (IniParser *ip)
 /**
-*   Enregistre automatiquement toutes les clés et lis le fichier
+*   Enregistre automatiquement toutes les clÃ©s et lis le fichier
 */
 {
 	assert(ip != NULL);
@@ -104,6 +104,9 @@ ini_parser_reg_and_read (IniParser *ip)
 	int endOfLoop = 0;
 	int len = 0;
 	int maxLen = 0;
+	char tmp[1024];
+	char section[1024] = {'\0'};
+	int tmp_pos = 0;
 
 	fHandler = fopen(ip->filename, "r");
 
@@ -137,6 +140,29 @@ ini_parser_reg_and_read (IniParser *ip)
 
 	while (!endOfLoop)
 	{
+		if (c == '#')
+		{
+			while ((c = fgetc(fHandler)) != EOF && c != '\n')
+			{
+				tmp[tmp_pos++] = c;
+			}
+			tmp[tmp_pos] = '\0';
+
+			tmp_pos = 0;
+
+			if (strcmp(tmp, "end") == 0)
+			{
+				// End of section
+				section[0] = '\0';
+			}
+
+			else
+			{
+				strncpy(section, tmp, sizeof(section));
+			}
+		}
+
+
 		if (c == '[' || c == ';')
 		{
 			while (c != EOF && c != '\n')
@@ -150,6 +176,7 @@ ini_parser_reg_and_read (IniParser *ip)
 			buffer[pos] = '\0';
 			pos = 0;
 			tmpstr = str_trim(buffer);
+
 			_ini_parser_register_value(ip, tmpstr, index);
 			index = INI_PARSER_INDEX_ERROR;
 		}
@@ -160,7 +187,12 @@ ini_parser_reg_and_read (IniParser *ip)
 			tmpstr = str_trim(buffer);
 			pos = 0;
 
-			index = ini_parser_register_key(ip, tmpstr);
+			if (section[0] != '\0')
+				sprintf(tmp, "[%s]%s", section, tmpstr);
+			else
+				strcpy(tmp, tmpstr);
+
+			index = ini_parser_register_key(ip, tmp);
 		}
 
 		else if (c == EOF)
@@ -203,7 +235,7 @@ ini_parser_read (IniParser *ip)
 *
 *   /!\ Attention !
 *
-*   A partir de ce point, les clef doivent déja être enregistrées manuellement via ini_parser_register_key
+*   A partir de ce point, les clef doivent dÃ©ja Ãªtre enregistrÃ©es manuellement via ini_parser_register_key
 */
 {
 	assert(ip != NULL);
@@ -220,6 +252,9 @@ ini_parser_read (IniParser *ip)
 	int endOfLoop = 0;
 	int len = 0;
 	int maxLen = 0;
+	char tmp[1024];
+	char section[1024];
+	int tmp_pos = 0;
 
 	fHandler = fopen(ip->filename, "r");
 
@@ -252,6 +287,27 @@ ini_parser_read (IniParser *ip)
 
 	while (!endOfLoop)
 	{
+		if (c == '#')
+		{
+			while (c != EOF && c != '\n')
+			{
+				tmp[tmp_pos++] = fgetc(fHandler);
+			}
+
+			tmp_pos = 0;
+			printf("tmp = %s\n", tmp);
+
+			if (strcmp(tmp, "end") == 0)
+			{
+				// End of section
+			}
+
+			else
+			{
+				strncpy(section, tmp, sizeof(section));
+			}
+		}
+
 		if (c == '[' || c == ';')
 		{
 			while (c != EOF && c != '\n')
@@ -339,9 +395,9 @@ ini_parser_debug_internal ()
 char
 ini_parser_get_char (IniParser *ip, char *field)
 /**
-*   Retourne le character de la clef associée
+*   Retourne le character de la clef associÃ©e
 *   @param  char *field	 : clef dont on veut la valeur
-*   @return char		  : character associé ou 0 en cas d'absence de la clef
+*   @return char		  : character associÃ© ou 0 en cas d'absence de la clef
 */
 {
 	int index;
@@ -363,9 +419,9 @@ ini_parser_get_char (IniParser *ip, char *field)
 void *
 ini_parser_get_value (IniParser *ip, char *field)
 /**
-*   Retourne la valeur de la clef associée
+*   Retourne la valeur de la clef associÃ©e
 *   @param  char *field	 : clef dont on veut la valeur
-*   @return void *		  : pointeur générique sur la valeur retournée
+*   @return void *		  : pointeur gÃ©nÃ©rique sur la valeur retournÃ©e
 */
 {
 	int index;
@@ -376,6 +432,39 @@ ini_parser_get_value (IniParser *ip, char *field)
 		return NULL;
 
 	return bb_queue_pick_nth (ip->vList, index);
+}
+
+BbQueue *
+ini_parser_get_section (IniParser *ip, char *section)
+/**
+*   Retourne les clefs/valeurs de la section associÃ©e
+*   @param  char *section : section dont on veut les valeurs
+*   @return BbQueue *     : Liste chaÃ®nÃ©e de struct {char *key; void *res};
+*/
+{
+	BbQueue *res = bb_queue_new();
+	char tmp_section[1024];
+	int idx = 1;
+
+	foreach_bbqueue_item (ip->sList, char *key)
+	{
+		if (key[0] == '[')
+		{
+			str_bet_buffer(key, "[", "]", tmp_section);
+
+			if (strcmp(section, tmp_section) == 0)
+			{
+				KeyVal *kv = malloc(sizeof(KeyVal));
+				kv->key = str_bet(key, "]", (void*)-1);
+				kv->res = bb_queue_pick_nth(ip->vList, idx);
+				bb_queue_add(res, kv);
+			}
+		}
+
+		idx++;
+	}
+
+	return res;
 }
 
 void *
@@ -433,7 +522,7 @@ _ini_parser_get_index (IniParser *ip, char *buffer)
 void
 ini_parser_free (IniParser *p)
 /**
-*   Libère en mémoire un IniParser
+*   LibÃ¨re en mÃ©moire un IniParser
 */
 {
 	if (p == NULL)

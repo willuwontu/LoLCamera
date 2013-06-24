@@ -103,6 +103,7 @@
 #define bb_queue_dec_length(q)		  ((q)->len--)
 #define bb_queue_pick_last_child(q)	 ((q)->last)
 #define bb_queue_pick_first_child(q)	((q)->first)
+#define bb_queue_is_empty(q)			(bb_queue_get_length((q)) == 0)
 
 #define break_foreach					   	\
 do {										\

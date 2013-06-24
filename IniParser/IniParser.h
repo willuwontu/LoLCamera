@@ -71,6 +71,13 @@ struct _IniParser
 }	IniParser;
 
 
+typedef struct
+{
+	char *key;
+	void *res;
+
+} 	KeyVal;
+
 /** * * * * * * * *
 *   @Constructors  *
  * * * * * * * * * */
@@ -98,7 +105,8 @@ void
 ini_parser_debug			(IniParser *ip);
 void
 ini_parser_reg_and_read	 (IniParser *ip);
-
+BbQueue *
+ini_parser_get_section (IniParser *ip, char *section);
 int
 ini_parser_register_key_internal	(char *field);
 void *

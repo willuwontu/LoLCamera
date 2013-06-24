@@ -61,7 +61,10 @@ patch_set_activated (Patch *p, BOOL activated)
 	if (activated)
 	{
 		if (p->activated)
+		{
 			warning("Patch \"%s\" is already activated", p->description);
+			return;
+		}
 
 		PatchItem *pi;
 

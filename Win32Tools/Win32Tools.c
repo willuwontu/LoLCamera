@@ -580,10 +580,10 @@ console_stack_pos (int todo)
 void
 console_set_size (int w, int h)
 {
-	char buffer[1024];
-	snprintf(buffer, sizeof(buffer), "mode %.3d,%.3d", w, h);
-
-	system(buffer);
+	HWND console = GetConsoleWindow();
+	RECT r;
+	GetWindowRect(console, &r);
+	MoveWindow(console, r.left, r.top, w, h, TRUE);
 }
 
 void

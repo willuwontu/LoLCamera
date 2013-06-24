@@ -49,7 +49,13 @@ BbQueue *memscan_search (MemProc *mp, char *desc, unsigned char *pattern, unsign
 			len++;
 		}
 
-		info("%.*s -> 0x%.8x", len, str-len, ptr);
+		char buffer[4];
+		read_from_memory(mp->proc, buffer, ptr, 4);
+		int ibuffer;
+		float fbuffer;
+		memcpy(&ibuffer, buffer, sizeof(buffer));
+		memcpy(&fbuffer, buffer, sizeof(buffer));
+		info("%.*s -> 0x%.8x (%.2d - 0x%.8x - %.2f)", len, str-len, ptr, ibuffer, ibuffer, fbuffer);
 		str++;
 	}
 

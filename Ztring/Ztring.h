@@ -192,6 +192,9 @@ str_debug_len		   (const unsigned char *str, int len);
 char *
 str_bet				 (const char *str, const char *start, const char *end);
 
+void
+str_bet_buffer 			(const char *str, const char *start, const char *end, char *buffer);
+
 int
 str_sort_by_alpha	   (char *str1, char *str2);
 
