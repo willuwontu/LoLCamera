@@ -577,6 +577,12 @@ console_stack_pos (int todo)
 	}
 }
 
+int
+window_is_active (HWND window)
+{
+	return (window == GetForegroundWindow());
+}
+
 void
 console_set_size (int w, int h)
 {

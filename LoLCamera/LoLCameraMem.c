@@ -602,9 +602,6 @@ BOOL camera_scan_game_struct ()
 		return FALSE;
 	}
 
-	/* ToFix:
-		Get the offsets in the memory
-	*/
 	camera_scan_game_struct_offsets();
 
 	// 00A38400    ║·  D99E F0010000                fstp [dword ds:esi+1F0]
@@ -617,79 +614,61 @@ BOOL camera_scan_game_struct ()
 	// 00A383F5    ║·  F30F1186 04020000            movss [dword ds:esi+204], xmm0
 	this->mousey_addr = this->game_struct_addr + this->mousey_offset - this->mp->base_addr;
 
-	// 00A3B34C    ║·  F30F1183 D0020000            movss [dword ds:ebx+2D0], xmm0
-	this->destx_addr  = this->game_struct_addr + this->destx_offset - this->mp->base_addr;
-	// 00A3B36C    ║·  F30F1183 D8020000            movss [dword ds:ebx+2D8], xmm0
-	this->desty_addr  = this->game_struct_addr + this->desty_offset - this->mp->base_addr;
-
 	return TRUE;
 }
 
 BOOL camera_scan_game_struct_offsets ()
 {
-	return (camera_scan_champ_offsets()
-	&&      camera_scan_dest_offsets());
+	return (camera_scan_champ_offsets());
 }
 
-BOOL camera_scan_dest_offsets ()
+BOOL camera_scan_dest ()
 {
 	Camera *this = camera_get_instance();
 
-	BbQueue *res = memscan_search(this->mp, "DestOffX/DestOffY",
+	BbQueue *res = memscan_search(this->mp, "DestX/DestY",
 		/*
-			00ACCB01  ║·  F30F1180 20020000  movss [dword ds:eax+220], xmm0
-			00ACCB09  ║·  F30F1005 784DCE01  movss xmm0, [dword ds:League_of_Legends.1CE4D78]      ; float 108.7037
-			00ACCB11  ║·  F30F1180 24020000  movss [dword ds:eax+224], xmm0
-			00ACCB19  ║·  F30F1005 7C4DCE01  movss xmm0, [dword ds:League_of_Legends.1CE4D7C]      ; float 937.5073
-			00ACCB21  ║·  F30F1180 28020000  movss [dword ds:eax+228], xmm0
-			00ACCB29  ║·▼ 0F84 21010000      je League_of_Legends.00ACCC50
-			00ACCB2F  ║·  8B4D 08            mov ecx, [dword ss:arg1]
-			00ACCB32  ║·  33C0               xor eax, eax
-			00ACCB34  ║·  3845 10            cmp [byte ss:arg3], al
-			00ACCB37  ║·  0F95C0             setne al
-			00ACCB3A  ║·  8B5C81 58          mov ebx, [dword ds:eax*4+ecx+58]
-			00ACCB3E  ║·  85DB               test ebx, ebx
+			00AB56EA  ║·  F30F1005 <<A40DDE03>>  movss xmm0, [dword ds:League_of_Legends.3DE0DA4]           ; float 2112.587
+			00AB56F2  ║·  8B97 B8280000          mov edx, [dword ds:edi+28B8]
+			00AB56F8  ║·  F6D9                   neg cl
+			00AB56FA  ║·  1AC9                   sbb cl, cl
+			00AB56FC  ║·  80E3 3F                and bl, 3F
+			00AB56FF  ║·  F30F114424 1A          movss [dword ss:esp+1A], xmm0
+			00AB5705  ║·  F30F1005 A80DDE03      movss xmm0, [dword ds:League_of_Legends.3DE0DA8]           ; float 55.18872
+			00AB570D  ║·  F30F114424 1E          movss [dword ss:esp+1E], xmm0
+			00AB5713  ║·  F30F1005 <<AC0DDE03>>  movss xmm0, [dword ds:League_of_Legends.3DE0DAC]           ; float 4633.090
 		*/
 		(unsigned char []) {
-			0xF3,0x0F,0x11,0x80,0x20,0x02,0x00,0x00,
-			0xF3,0x0F,0x10,0x05,0x78,0x4D,0xCE,0x01,
-			0xF3,0x0F,0x11,0x80,0x24,0x02,0x00,0x00,
-			0xF3,0x0F,0x10,0x05,0x7C,0x4D,0xCE,0x01,
-			0xF3,0x0F,0x11,0x80,0x28,0x02,0x00,0x00,
-			0x0F,0x84,0x21,0x01,0x00,0x00,
-			0x8B,0x4D,0x08,
-			0x33,0xC0,
-			0x38,0x45,0x10,
-			0x0F,0x95,0xC0,
-			0x8B,0x5C,0x81,0x58,
-			0x85,0xDB
+			0xF3,0x0F,0x10,0x05,0xA4,0x0D,0xDE,0x03,
+			0x8B,0x97,0xB8,0x28,0x00,0x00,
+			0xF6,0xD9,
+			0x1A,0xC9,
+			0x80,0xE3,0x3F,
+			0xF3,0x0F,0x11,0x44,0x24,0x1A,
+			0xF3,0x0F,0x10,0x05,0xA8,0x0D,0xDE,0x03,
+			0xF3,0x0F,0x11,0x44,0x24,0x1E,
+			0xF3,0x0F,0x10,0x05,0xAC,0x0D,0xDE,0x03
 		},
 
-		"xxxx????"
-		"xxxx????"
-		"xxxx????"
-		"xxxx????"
-		"xxxx????"
-		"xx????"
-		"xx?"
-		"xx"
-		"xx?"
-		"xxx"
-		"xxx?"
-		"xx",
+			"xxxx????"
+			"xx????"
+			"xx"
+			"xx"
+			"xxx"
+			"xxx???"
+			"xxx?????"
+			"xxx???"
+			"xxx?????",
 
-		"xxxx????"
-		"xxxxxxxx"
-		"xxxxxxxx"
-		"xxxxxxxx"
-		"xxxx????"
-		"xxxxxx"
-		"xxx"
-		"xx"
-		"xxx"
-		"xxx"
-		"xxxx"
-		"xx"
+			"xxxx????"
+			"xxxxxx"
+			"xx"
+			"xx"
+			"xxx"
+			"xxxxxx"
+			"xxxxxxxx"
+			"xxxxxx"
+			"xxxx????"
 	);
 
 	if (!res)
@@ -701,14 +680,10 @@ BOOL camera_scan_dest_offsets ()
 	Buffer *destx = bb_queue_pick_first(res);
 	Buffer *desty = bb_queue_pick_last(res);
 
-	memcpy(&this->destx_offset, destx->data, destx->size);
-	memcpy(&this->desty_offset, desty->data, desty->size);
+	memcpy(&this->destx_addr, destx->data, destx->size);
+	memcpy(&this->desty_addr, desty->data, desty->size);
 
 	bb_queue_free_all(res, buffer_free);
-
-	// It appears that the game_struct = esi - 0x10
-	this->destx_offset += 0x10;
-	this->desty_offset += 0x10;
 
 	return TRUE;
 }
@@ -845,10 +820,12 @@ BOOL camera_scan_variables ()
 		camera_scan_campos,
 		camera_scan_loading,
 		camera_scan_mouse_screen,
+		camera_scan_dest,
 		camera_scan_game_struct,
 		camera_scan_game_state,
 		camera_scan_win_is_opened,
 		camera_scan_hovered_champ,
+		camera_scan_victory,
 	};
 
 	for (int i = 0; i < (sizeof(scan_funcs) / sizeof(BOOL (*)())); i++)
@@ -947,6 +924,86 @@ BOOL camera_scan_hovered_champ ()
 	return TRUE;
 }
 
+BOOL camera_scan_victory ()
+{
+	Camera *this = camera_get_instance();
+
+	BbQueue *res = memscan_search (this->mp, "VictoryState",
+	/*
+		00AB2B67   ·  56                                   push esi
+		00AB2B68   ·▼ 75 0F                                jne short League_of_Legends.00AB2B79
+		00AB2B6A   ·  833D 20A1CA01 00                     cmp [dword ds:League_of_Legends.1CAA120], 0
+		00AB2B71   ·▼ 75 06                                jne short League_of_Legends.00AB2B79
+		00AB2B73   ·  5E                                   pop esi
+		00AB2B74   ·▲ E9 9755F6FF                          jmp League_of_Legends.00A18110
+		00AB2B79   ►  A1 <<08A1CA01>>                      mov eax, [dword ds:League_of_Legends.1CAA108]
+		00AB2B7E   ·  83F8 02                              cmp eax, 2
+		00AB2B81   ·▼ 74 04                                je short League_of_Legends.00AB2B87
+		00AB2B83   ·  85C0                                 test eax, eax
+	*/
+		(unsigned char []) {
+			0x56,
+			0x75,0x0F,
+			0x83,0x3D,0x20,0xA1,0xCA,0x01,0x00,
+			0x75,0x06,
+			0x5E,
+			0xE9,0x97,0x55,0xF6,0xFF,
+			0xA1,0x08,0xA1,0xCA,0x01,
+			0x83,0xF8,0x02,
+			0x74,0x04,
+			0x85,0xC0
+		},
+
+		"x"
+		"xx"
+		"xx????x"
+		"xx"
+		"x"
+		"x????"
+		"x????"
+		"xxx"
+		"xx"
+		"xx",
+
+		"x"
+		"xx"
+		"xxxxxxx"
+		"xx"
+		"x"
+		"xxxxx"
+		"x????"
+		"xxx"
+		"xx"
+		"xx"
+	);
+
+	if (!res)
+	{
+		warning("Cannot find VictoryState address\nUsing the .ini value : 0x%.8x", this->victory_state_addr);
+		return FALSE;
+	}
+
+	Buffer *victory_state_addr = bb_queue_pick_first(res);
+	memcpy(&this->victory_state_addr, victory_state_addr->data, victory_state_addr->size);
+
+	bb_queue_free_all(res, buffer_free);
+
+	if (!this->victory_state_addr)
+	{
+		warning("Cannot scan victory_state_addr");
+		return FALSE;
+	}
+
+	int victory_state = read_memory_as_int(this->mp->proc, this->victory_state_addr);
+
+	if (victory_state != 0)
+	{
+		this->victory_state = victory_state;
+	}
+
+	return (victory_state != 0);
+}
+
 BOOL camera_scan_champions ()
 {
 	Camera *this = camera_get_instance();
@@ -1024,6 +1081,14 @@ BOOL camera_scan_champions ()
 	return TRUE;
 }
 
+BOOL camera_refresh_victory ()
+{
+	Camera *this = camera_get_instance();
+
+	this->victory_state = read_memory_as_int(this->mp->proc, this->victory_state_addr);
+
+	return TRUE;
+}
 
 BOOL camera_refresh_champions ()
 {

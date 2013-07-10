@@ -52,14 +52,14 @@ struct _Camera
 	DWORD loading_state_addr;		// Adress of the data : loading state
 	DWORD game_struct_addr;			// Adress of the data : structure of the game
 	DWORD game_state_addr;			// Adress of the data : state of the game
+	DWORD victory_state_addr;		// Adress of the data : Victory or Defeat
+
 
 	// Offsets in the game structure
-		DWORD champx_offset;
-		DWORD champy_offset;
-		DWORD mousex_offset;
-		DWORD mousey_offset;
-		DWORD destx_offset;
-		DWORD desty_offset;
+	DWORD champx_offset;
+	DWORD champy_offset;
+	DWORD mousex_offset;
+	DWORD mousey_offset;
 
 	// Static addresses
 	DWORD entity_ptr,entity_ptr_end;
@@ -138,18 +138,28 @@ struct _Camera
 	BOOL dbg_mode;
 	BOOL wait_loading_screen;			// Wait for the start of the game
 	BOOL output_cheatengine_table;		// Output the adresses in CheatEngineTable format in "out.ct"
+	int victory_state;
 
 	// We need it for loading champion settings
 	IniParser *parser;
 };
 
+typedef enum {
+
+	END_OF_LOLCAMERA,
+	WAIT_FOR_END_OF_GAME,
+	WAIT_FOR_NEW_GAME,
+	PLAY
+
+
+} LoLCameraState;
 
 // --------- Constructors ---------
 void camera_init (MemProc *mp);
 
 
-// ----------- Methods ------------
-BOOL camera_main ();
+// ----------- Methods ------------m
+LoLCameraState camera_main ();
 BOOL camera_update ();
 void camera_load_ini ();
 inline void camera_set_active (BOOL active);
@@ -169,12 +179,14 @@ BOOL camera_scan_hovered_champ ();
 BOOL camera_scan_game_struct_offsets ();
 BOOL camera_scan_champ_offsets ();
 BOOL camera_scan_dest_offsets ();
+BOOL camera_scan_victory ();
 
 BOOL camera_refresh_champions ();
 BOOL camera_refresh_entity_hovered ();
 BOOL camera_refresh_win_is_opened ();
 BOOL camera_refresh_self ();
 BOOL camera_wait_for_ingame ();
+BOOL camera_refresh_victory ();
 
 // from CameraUnitTest.c
 BOOL camera_ut_campos ();

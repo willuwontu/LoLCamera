@@ -7,7 +7,8 @@
 
 int main()
 {
-	BOOL exit_request = FALSE;
+	LoLCameraState state = PLAY;
+	MemProc *mp = NULL;
 
 	console_set_size(1200, 600);
 	info("Sources : https://github.com/Spl3en/LoLCamera");
@@ -20,9 +21,19 @@ int main()
 	// Force unpatch at exit
 	atexit(camera_unload);
 
-	while (!exit_request)
+	while (state != END_OF_LOLCAMERA)
 	{
-		MemProc *mp = memproc_new("League of Legends.exe", "League of Legends (TM) Client");
+		if (state == WAIT_FOR_END_OF_GAME)
+		{
+			while (mp->proc)
+			{
+				memproc_refresh_handle(mp);
+				Sleep(5000);
+				info("Waiting for the end of the game... 5s pause");
+			}
+		}
+
+		mp = memproc_new("League of Legends.exe", "League of Legends (TM) Client");
 		memproc_set_default_baseaddr(mp, 0x00400000);
 
 		if (!mp->proc)
@@ -38,10 +49,11 @@ int main()
 
 		camera_init(mp);
 
-		exit_request = camera_main();
+		state = camera_main();
 		camera_unload();
 
-		memproc_free(mp);
+		if (state == END_OF_LOLCAMERA)
+			memproc_free(mp);
 	}
 
 	return 0;

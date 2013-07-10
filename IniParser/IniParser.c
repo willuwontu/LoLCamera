@@ -327,6 +327,11 @@ ini_parser_read (IniParser *ip)
 
 		else if (c == '=')
 		{
+			while (buffer[pos-1] == ' ')
+			{
+				pos--;
+			}
+
 			buffer[pos] = '\0';
 			tmpstr = str_trim(buffer);
 			pos = 0;

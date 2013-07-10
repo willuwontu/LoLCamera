@@ -94,8 +94,8 @@ memproc_refresh_handle (MemProc *mp)
 
 	if (mp->process_name != NULL)
 	{
-		if ((mp->base_addr = get_baseaddr(mp->process_name)) == 0
-		  && mp->default_baseaddr != 0)
+		if (((mp->base_addr = get_baseaddr(mp->process_name)) == 0)
+		&&   (mp->default_baseaddr != 0))
 		{
 			mp->base_addr = mp->default_baseaddr;
 		}

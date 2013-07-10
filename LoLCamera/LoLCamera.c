@@ -13,6 +13,8 @@ typedef enum {
     RestoreCam,
     NoMove,
     NoUpdate,
+    EndOfGame,
+    ForeGround,
     Free,
     FocusSelf,
     FollowEntity,
@@ -25,7 +27,6 @@ typedef enum {
 static void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode);
 static void camera_compute_lerp_rate (float *lerp_rate, CameraTrackingMode camera_mode);
 BOOL camera_entity_is_near (Entity *e, float limit);
-
 static BOOL camera_follow_champion_requested ();
 static BOOL camera_restore_requested ();
 static void camera_toggle (BOOL enable);
@@ -39,6 +40,7 @@ static void camera_toggle (BOOL enable)
 	// Enable / Disable patches
 	patch_list_set(this->patchlist, this->enabled);
 }
+
 
 static BOOL camera_is_enabled ()
 {
@@ -66,9 +68,6 @@ static BOOL camera_center_requested ()
 	if ((GetKeyState(VK_SPACE) < 0 || (GetKeyState(VK_F1) < 0)) && (this->interface_opened != LOLCAMERA_CHAT_OPENED_VALUE))
     {
     	// Polling data is requested because we want to center the camera exactly where the champion is
-    	// Also disable the focusing champ feature if enabled
-    	// Disable translation
-    	// Disable hint entity
         this->request_polling = TRUE;
         this->focused_entity = NULL;
         this->hint_entity = NULL;
@@ -192,6 +191,7 @@ static void camera_debug_mode ()
 	{
 		if (this->dbg_mode)
 		{
+			info("------ Tests ------");
 			// On release
 			struct { char *str; BOOL (*fct)(); } unit_tests [] = {
 				{"Camera Position",   camera_ut_campos},
@@ -218,9 +218,21 @@ static BOOL camera_window_is_active ()
 	return (this->mp->hwnd == GetForegroundWindow());
 }
 
+BOOL camera_victory_state ()
+{
+	return (this->victory_state == 3);
+}
+
 static CameraTrackingMode camera_get_mode ()
 {
-	if (!camera_is_enabled() || !camera_window_is_active())
+	// End of game = end of LoLCamera
+	if (camera_victory_state())
+		return EndOfGame;
+
+	if (!camera_window_is_active())
+		return ForeGround;
+
+	if (!camera_is_enabled())
         return NoUpdate;
 
 	// user pressed space or F1 or anything requesting to center the camera on the champion
@@ -302,7 +314,7 @@ void camera_init (MemProc *mp)
 	DWORD text_section = this->mp->base_addr + 0x1000;
 	unsigned int text_size = 0x008B7000;
 
-	// Zeroing
+	// Zeroing stuff
 	memset(this->champions, 0, sizeof(Entity *));
 
 	// Read static vars from .ini
@@ -332,7 +344,12 @@ void camera_init (MemProc *mp)
 	this->cam   	   = mempos_new (this->mp, this->camx_addr,     this->camy_addr);
 	this->champ 	   = mempos_new (this->mp, this->champx_addr,   this->champy_addr);
 	this->mouse 	   = mempos_new (this->mp, this->mousex_addr,   this->mousey_addr);
-	this->dest  	   = mempos_new (this->mp, this->destx_addr,    this->desty_addr);
+	this->dest  	   = (MemPos[]) {{
+		.addrX = this->destx_addr,
+		.addrY = this->desty_addr,
+		.ctxt  = this->mp
+	}};
+	mempos_refresh(this->dest);
 
 	this->mouse_screen = mempos_int_new (
 		this->mp,
@@ -457,6 +474,7 @@ BOOL camera_update ()
 		{.func = camera_refresh_win_is_opened,	.arg = NULL,				.desc = "Window opened"},
 		{.func = camera_refresh_entity_hovered,	.arg = NULL,				.desc = "Entity hovered"},
 		{.func = camera_refresh_self,	        .arg = NULL,				.desc = "Self champion detection"},
+		{.func = camera_refresh_victory,	    .arg = NULL,				.desc = "Victory State"},
 	};
 
 	if (frame_count++ % this->poll_data == 0 || this->request_polling)
@@ -514,7 +532,7 @@ void camera_set_tracking_mode (CameraTrackingMode *out_mode)
 	*out_mode = mode;
 }
 
-BOOL camera_main ()
+LoLCameraState camera_main ()
 {
 	Vector2D target;
 	float lerp_rate;
@@ -528,13 +546,30 @@ BOOL camera_main ()
 			// Interrupt request
 
 			if (c == 'X' || c == 'x')
-				return TRUE;
+				return END_OF_LOLCAMERA;
 		}
 
 		Sleep(this->sleep_time);
 
 		// Check if enabled.
 		camera_set_tracking_mode(&camera_mode);
+
+		// End of game = End of LoLCamera
+		if (camera_mode == EndOfGame)
+			return WAIT_FOR_END_OF_GAME;
+
+		// Client has been alt-tabbed
+		if (camera_mode == ForeGround)
+		{
+			//  Detect if client is disconnected
+			if (!memproc_refresh_handle(this->mp))
+			{
+				info("Client not detected anymore.");
+				this->active = FALSE;
+			}
+
+			continue;
+		}
 
 		if (camera_mode == NoUpdate || !camera_update())
 			continue;
@@ -560,7 +595,7 @@ BOOL camera_main ()
 		mempos_set(this->cam, this->cam->v.x, this->cam->v.y);
 	}
 
-	return FALSE;
+	return WAIT_FOR_NEW_GAME;
 }
 
 static void camera_compute_lerp_rate (float *lerp_rate, CameraTrackingMode camera_mode)
@@ -707,10 +742,10 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 
 				// adjust weights based on distance
 				if (distance_dest_champ > this->champ_settings.dest_range_max)
-					dest_weight = 1 / (((distance_dest_champ - this->champ_settings.dest_range_max) * dest_falloff_rate) + 1.0);
+					dest_weight = 1.0 / (((distance_dest_champ - this->champ_settings.dest_range_max) * dest_falloff_rate) + 1.0);
 
 				if (distance_mouse_champ > this->champ_settings.mouse_range_max)
-					mouse_weight = 1 / (((distance_mouse_champ - this->champ_settings.mouse_range_max) * mouse_falloff_rate) + 1.0);
+					mouse_weight = 1.0 / (((distance_mouse_champ - this->champ_settings.mouse_range_max) * mouse_falloff_rate) + 1.0);
 
 				if (distance_mouse_dest > this->champ_settings.mouse_dest_range_max)
 					// if the mouse is far from dest, reduce dest weight (mouse is more important)
@@ -885,6 +920,7 @@ void camera_load_ini ()
 	this->entities_addr_end = str_hex(ini_parser_get_value(parser, "entities_addr_end"));
 	this->locked_camera_addr = str_hex(ini_parser_get_value(parser, "locked_camera_addr"));
 	this->loading_state_addr = str_hex(ini_parser_get_value(parser, "loading_state_addr"));
+	this->victory_state_addr = str_hex(ini_parser_get_value(parser, "victory_state_addr"));
 
 	// Hotkeys
 	this->translate_key = ini_parser_get_char(parser, "translate_key");
