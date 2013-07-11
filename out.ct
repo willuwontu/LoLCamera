@@ -48,14 +48,14 @@
       <Description>"DestX"</Description>
       <Color>80000008</Color>
       <VariableType>Float</VariableType>
-      <Address>03de0da4</Address>
+      <Address>03de489c</Address>
     </CheatEntry>
     <CheatEntry>
       <ID>10</ID>
       <Description>"DestY"</Description>
       <Color>80000008</Color>
       <VariableType>Float</VariableType>
-      <Address>03de0dac</Address>
+      <Address>03de48a4</Address>
     </CheatEntry>
     <CheatEntry>
       <ID>19</ID>

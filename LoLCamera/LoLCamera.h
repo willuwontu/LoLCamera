@@ -104,8 +104,8 @@ struct _Camera
 	Entity *followed_entity;	    // The followed entity champion when you press Fx (NULL if none)
 	Entity *hint_entity;			// Keep this entity in sight *if possible* (NULL if none or self)
 	Entity *self;
-	BbQueue *entities_nearby;		// List of entities around the champion
 	char self_name[17];
+	Entity *nearby[10];				// Array of entities nearby the champion
 
 	// Weights : Configurable in ini
 	float focus_weight;

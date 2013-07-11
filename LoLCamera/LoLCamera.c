@@ -176,9 +176,9 @@ static BOOL camera_is_translated ()
 
 static void camera_debug_mode ()
 {
-	if (GetKeyState('D') < 0
-	&&  GetKeyState('B') < 0
-	&&  GetKeyState('G') < 0)
+	if (GetKeyState('W') < 0
+	&&  GetKeyState('X') < 0
+	&&  GetKeyState('C') < 0)
 	{
 		if (!this->dbg_mode)
 		{
@@ -344,12 +344,7 @@ void camera_init (MemProc *mp)
 	this->cam   	   = mempos_new (this->mp, this->camx_addr,     this->camy_addr);
 	this->champ 	   = mempos_new (this->mp, this->champx_addr,   this->champy_addr);
 	this->mouse 	   = mempos_new (this->mp, this->mousex_addr,   this->mousey_addr);
-	this->dest  	   = (MemPos[]) {{
-		.addrX = this->destx_addr,
-		.addrY = this->desty_addr,
-		.ctxt  = this->mp
-	}};
-	mempos_refresh(this->dest);
+	this->dest  	   = mempos_new (this->mp, this->destx_addr,    this->desty_addr);
 
 	this->mouse_screen = mempos_int_new (
 		this->mp,
@@ -367,7 +362,7 @@ void camera_init (MemProc *mp)
 	camera_load_settings(this->self->champ_name);
 	ini_parser_free(this->parser);
 
-	this->entities_nearby = bb_queue_new();
+	memset(this->nearby, 0, sizeof(this->nearby));
 	this->active = TRUE;
 }
 
@@ -711,6 +706,7 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 			float hint_weight   = 0.0;
 			float focus_weight  = 0.0;
 
+
 			if (this->drag_request)
 			{
 				drag_x = (this->drag_pos.x - this->mouse->v.x) * 10;
@@ -886,8 +882,6 @@ void camera_load_ini ()
 	this->champy_addr = strtol(ini_parser_get_value(parser, "champion_posy_addr"), NULL, 16);
 	this->mousex_addr = strtol(ini_parser_get_value(parser, "mouse_posx_addr"), NULL, 16);
 	this->mousey_addr = strtol(ini_parser_get_value(parser, "mouse_posy_addr"), NULL, 16);
-	this->destx_addr  = strtol(ini_parser_get_value(parser, "dest_posx_addr"), NULL, 16);
-	this->desty_addr  = strtol(ini_parser_get_value(parser, "dest_posy_addr"), NULL, 16);
 	this->mouse_screen_ptr = strtol(ini_parser_get_value(parser, "mouse_screen_ptr"), NULL, 16);
 	this->win_is_opened_ptr = strtol(ini_parser_get_value(parser, "win_is_opened_ptr"), NULL, 16);
 	this->respawn_reset_addr = strtol(ini_parser_get_value(parser, "respawn_reset_addr"), NULL, 16);

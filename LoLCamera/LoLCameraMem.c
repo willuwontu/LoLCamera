@@ -628,47 +628,35 @@ BOOL camera_scan_dest ()
 
 	BbQueue *res = memscan_search(this->mp, "DestX/DestY",
 		/*
-			00AB56EA  ║·  F30F1005 <<A40DDE03>>  movss xmm0, [dword ds:League_of_Legends.3DE0DA4]           ; float 2112.587
-			00AB56F2  ║·  8B97 B8280000          mov edx, [dword ds:edi+28B8]
-			00AB56F8  ║·  F6D9                   neg cl
-			00AB56FA  ║·  1AC9                   sbb cl, cl
-			00AB56FC  ║·  80E3 3F                and bl, 3F
-			00AB56FF  ║·  F30F114424 1A          movss [dword ss:esp+1A], xmm0
-			00AB5705  ║·  F30F1005 A80DDE03      movss xmm0, [dword ds:League_of_Legends.3DE0DA8]           ; float 55.18872
-			00AB570D  ║·  F30F114424 1E          movss [dword ss:esp+1E], xmm0
-			00AB5713  ║·  F30F1005 <<AC0DDE03>>  movss xmm0, [dword ds:League_of_Legends.3DE0DAC]           ; float 4633.090
+			00AB9A58  ║·  C605 9748DE03 FF       mov [byte ds:League_of_Legends.3DE4897], 0FF
+			00AB9A5F  ║·  891D 9048DE03          mov [dword ds:League_of_Legends.3DE4890], ebx
+			00AB9A65  ║·  892D 9848DE03          mov [dword ds:League_of_Legends.3DE4898], ebp
+			00AB9A6B  ║·  F30F1105 <<9C48DE03>>  movss [dword ds:League_of_Legends.3DE489C], xmm0            ; float 449.7802
+			00AB9A73  ║·  F30F1105 A048DE03      movss [dword ds:League_of_Legends.3DE48A0], xmm0            ; float 107.7351
+			00AB9A7B  ║·  F30F1105 <<A448DE03>>  movss [dword ds:League_of_Legends.3DE48A4], xmm0            ; float 2566.354
 		*/
 		(unsigned char []) {
-			0xF3,0x0F,0x10,0x05,0xA4,0x0D,0xDE,0x03,
-			0x8B,0x97,0xB8,0x28,0x00,0x00,
-			0xF6,0xD9,
-			0x1A,0xC9,
-			0x80,0xE3,0x3F,
-			0xF3,0x0F,0x11,0x44,0x24,0x1A,
-			0xF3,0x0F,0x10,0x05,0xA8,0x0D,0xDE,0x03,
-			0xF3,0x0F,0x11,0x44,0x24,0x1E,
-			0xF3,0x0F,0x10,0x05,0xAC,0x0D,0xDE,0x03
+			0xC6,0x05,0x97,0x48,0xDE,0x03,0xFF,
+			0x89,0x1D,0x90,0x48,0xDE,0x03,
+			0x89,0x2D,0x98,0x48,0xDE,0x03,
+			0xF3,0x0F,0x11,0x05,0x9C,0x48,0xDE,0x03,
+			0xF3,0x0F,0x11,0x05,0xA0,0x48,0xDE,0x03,
+			0xF3,0x0F,0x11,0x05,0xA4,0x48,0xDE,0x03
 		},
 
-			"xxxx????"
-			"xx????"
-			"xx"
-			"xx"
-			"xxx"
-			"xxx???"
-			"xxx?????"
-			"xxx???"
-			"xxx?????",
+		"xx????x"
+		"xx????"
+		"xx????"
+		"xxxx????"
+		"xxxx????"
+		"xxxx????",
 
-			"xxxx????"
-			"xxxxxx"
-			"xx"
-			"xx"
-			"xxx"
-			"xxxxxx"
-			"xxxxxxxx"
-			"xxxxxx"
-			"xxxx????"
+		"xxxxxxx"
+		"xxxxxx"
+		"xxxxxx"
+		"xxxx????"
+		"xxxxxxxx"
+		"xxxx????"
 	);
 
 	if (!res)
@@ -682,6 +670,9 @@ BOOL camera_scan_dest ()
 
 	memcpy(&this->destx_addr, destx->data, destx->size);
 	memcpy(&this->desty_addr, desty->data, desty->size);
+
+	this->destx_addr -= this->mp->base_addr;
+	this->desty_addr -= this->mp->base_addr;
 
 	bb_queue_free_all(res, buffer_free);
 
@@ -1277,30 +1268,30 @@ BOOL camera_refresh_entity_hovered ()
 void camera_refresh_entities_nearby ()
 {
 	Camera *this = camera_get_instance();
+	float far_limit = 3000.0;
+
 	float distance;
 	int index = 0;
-	float far_limit = 3000.0;
-	Entity *to_remove[10];
-	Entity *to_keep[10];
-	memset(to_remove, 0, sizeof(to_remove));
 
-	foreach_bbqueue_item (this->entities_nearby, Entity *e)
+	memset(this->nearby, 0, sizeof(this->nearby));
+
+	DWORD cur = this->entity_ptr;
+	DWORD end = this->entity_ptr_end;
+
+	for (int i = 0; cur != end && i < 10; cur += 4, i++)
 	{
+		Entity *e = this->champions[i];
 		distance = vector2D_distance(&e->p.v, &this->champ->v);
 
 		if (distance > far_limit)
-			to_remove[index] = e;
-		else
-			to_keep[index++] = e;
+		{
+			printf("Nearby = %s\n", e->champ_name);
+			this->nearby[index++] = e;
+		}
 	}
-
-	for (int i = 0; i < index; i++)
-	{
-		bb_queue_remv(this->entities_nearby, to_remove[i]);
-	}
-
-	/// TODO
 }
+
+
 BOOL camera_refresh_win_is_opened ()
 {
 	Camera *this = camera_get_instance();
