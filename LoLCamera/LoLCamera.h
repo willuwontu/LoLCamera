@@ -172,6 +172,7 @@ inline void camera_set_active (BOOL active);
 Camera *camera_get_instance ();
 BOOL camera_is_near (MemPos *po, float limit);
 void camera_load_settings (char *section);
+BOOL exit_request ();
 
 // from LoLCameraMem.c
 BOOL camera_scan_champions ();

@@ -10,17 +10,17 @@ BbQueue *memscan_search (MemProc *mp, char *desc, unsigned char *pattern, unsign
 
 	if (bb_queue_get_length(results) > 1)
 	{
-		infob("%s : (%d) occurences found : ", __FUNCTION__, bb_queue_get_length(results));
+		debugb("%s : (%d) occurences found : ", __FUNCTION__, bb_queue_get_length(results));
 		foreach_bbqueue_item (results, MemBlock *block)
-			printf("0x%.8x ", (int) block->addr);
-		printf("\n");
+			debugb("0x%.8x ", (int) block->addr);
+		debugb("\n");
 	}
 
 	if (bb_queue_get_length(results) == 0)
 	{
 		error("\"%s\" : Nothing found", desc);
 		str_debug_len(pattern, strlen(search_mask));
-		printf("search_mask = %s\n", search_mask);
+		debugb("search_mask = %s\n", search_mask);
 		return NULL;
 	}
 
@@ -35,7 +35,7 @@ BbQueue *memscan_search (MemProc *mp, char *desc, unsigned char *pattern, unsign
 
 	BbQueue *res = scan_search(str, res_mask);
 
-	info("\"%s\" : found at 0x%.8x :", desc, ptr);
+	debug("\"%s\" : found at 0x%.8x :", desc, ptr);
 	str = desc;
 
 	foreach_bbqueue_item (res, Buffer *b)
@@ -49,13 +49,13 @@ BbQueue *memscan_search (MemProc *mp, char *desc, unsigned char *pattern, unsign
 			len++;
 		}
 
-		char buffer[4];
+		char buffer[4] = {[0 ... 3] = 0};
 		read_from_memory(mp->proc, buffer, ptr, 4);
-		int ibuffer;
-		float fbuffer;
+		int ibuffer = 0;
+		float fbuffer = 0;
 		memcpy(&ibuffer, buffer, sizeof(buffer));
 		memcpy(&fbuffer, buffer, sizeof(buffer));
-		info("%.*s -> 0x%.8x (%.2d - 0x%.8x - %.2f)", len, str-len, ptr, ibuffer, ibuffer, fbuffer);
+		debug("%.*s -> 0x%.8x (%.2d - 0x%.8x - %.2f)", len, str-len, ptr, ibuffer, ibuffer, fbuffer);
 		str++;
 	}
 

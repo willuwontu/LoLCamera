@@ -618,7 +618,6 @@ _error (char *msg, ...)
 	va_end (args);
 
 	console_set_col(0x07);
-	system("pause");
 }
 
 void
@@ -645,6 +644,21 @@ _info (char *msg, ...)
 	va_end (args);
 
 	console_set_col(0x07);
+}
+
+void
+_debug (char *msg, ...)
+{
+	#if DEBUG_ACTIVATED == 1
+	va_list args;
+	console_set_col(0x03);
+
+	va_start (args, msg);
+		vfprintf (stdout, msg, args);
+	va_end (args);
+
+	console_set_col(0x07);
+	#endif
 }
 
 LPVOID

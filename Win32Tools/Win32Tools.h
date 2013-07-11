@@ -35,19 +35,32 @@
 	do {_warning("[?] (%s) " msg "\n", __FUNCTION__, ##__VA_ARGS__);} while(0)
 
 #define error(msg, ...) \
+	do {_error("[!] (%s) " msg "\n", __FUNCTION__, ##__VA_ARGS__); system("pause");} while(0)
+
+#define important(msg, ...) \
 	do {_error("[!] (%s) " msg "\n", __FUNCTION__, ##__VA_ARGS__);} while(0)
 
 #define info(msg, ...) \
 	do {_info("[+] " msg "\n", ##__VA_ARGS__);} while(0)
 
+#define debug(msg, ...) \
+	do {_debug("[+] " msg "\n", ##__VA_ARGS__);} while(0)
+
+#define debugb(msg, ...) \
+	do {_debug("[+] " msg, ##__VA_ARGS__);} while(0)
+
 #define infob(msg, ...) \
 	do {_info("[+] " msg, ##__VA_ARGS__);} while(0)
+
+
 
 
 #define PUSH_POS 	0
 #define POP_POS 	1
 
 #define COMPILE_GDI 0
+
+#define DEBUG_ACTIVATED 1
 
 // ----------- Methods ------------
 
@@ -169,6 +182,9 @@ _warning (char *msg, ...);
 
 void
 _info (char *msg, ...);
+
+void
+_debug (char *msg, ...);
 
 void
 console_stack_pos (int todo);

@@ -11,7 +11,8 @@ int main()
 	MemProc *mp = NULL;
 
 	console_set_size(1200, 600);
-	info("Sources : https://github.com/Spl3en/LoLCamera");
+	important("Sources : https://github.com/Spl3en/LoLCamera");
+	important("Keep pressing X to exit");
 
 	if (!enable_debug_privileges())
 	{
@@ -42,7 +43,12 @@ int main()
 			info("Waiting for a new game ...");
 
 			while (!memproc_refresh_handle(mp))
+			{
+				if (exit_request())
+					return 0;
+
 				Sleep(1000);
+			}
 		}
 
 		info("Game detected, main loop started (press 'x' to quit)");

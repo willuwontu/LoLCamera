@@ -73,7 +73,7 @@ patch_set_activated (Patch *p, BOOL activated)
 			char *str = ztring_get_text(pi->z);
 
 			if (write_to_memory(p->ctxt->proc, str, p->addr + pi->offset, ztring_get_len(pi->z)))
-				info("Patch \"%s\" : success (0x%.8x)", p->description, p->addr);
+				debug("Patch \"%s\" : success (0x%.8x)", p->description, p->addr);
 
 			else
 			{
@@ -93,7 +93,7 @@ patch_set_activated (Patch *p, BOOL activated)
 
 		// Restore the initial bytes
 		if (write_to_memory(p->ctxt->proc, p->signature, p->addr, p->size))
-			info("UnPatch \"%s\" : success (0x%.8x)", p->description, p->addr);
+			debug("UnPatch \"%s\" : success (0x%.8x)", p->description, p->addr);
 		else
 			warning("UnPatch \"%s\" : failure (0x%.8x)", p->description, p->addr);
 	}
@@ -138,7 +138,7 @@ patch_free (Patch *patch)
 void
 patch_debug (Patch *p)
 {
-	info (
+	debug (
 		"\n--- Patch Debug : ---\n"
 		" addr  = 0x%.8x\n"
 		" size  = %d\n",
@@ -222,7 +222,7 @@ patch_item_debug (PatchItem *pi)
 		loop++;
 	}
 
-	info (
+	debug (
 		"\n--- PatchItem Debug : ---\n"
 		" size = %d bytes\n"
 		" offset = 0x%.8x\n"

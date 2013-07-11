@@ -542,7 +542,7 @@ BOOL camera_scan_game_state ()
 	}
 
 	else
-		info("Self name : <%s>", this->self_name);
+		debug("Self name : <%s>", this->self_name);
 
 	return TRUE;
 }
@@ -1064,9 +1064,9 @@ BOOL camera_scan_champions ()
 			entity_init(e, this->mp, cur);
 
 		if (e == NULL) // 0 = self
-			info("  --> Ally %d not found", i);
+			debug("  --> Ally %d not found", i);
 		else
-			info("  --> Entity %d found (pos: x=%.0f y=%.0f hp=%.0f hpmax=%.0f pname=\"%s\" cname=\"%s\" - 0x%.8x)", i, e->p.v.x, e->p.v.y, e->hp, e->hp_max, e->player_name, e->champ_name, cur);
+			debug("  --> Entity %d found (pos: x=%.0f y=%.0f hp=%.0f hpmax=%.0f pname=\"%s\" cname=\"%s\" - 0x%.8x)", i, e->p.v.x, e->p.v.y, e->hp, e->hp_max, e->player_name, e->champ_name, cur);
 	}
 
 	return TRUE;
@@ -1345,7 +1345,7 @@ static void camera_get_patches (Patch **patches, int size, MemProc *mp, char *de
 static BOOL camera_search_signature (unsigned char *pattern, DWORD *addr, char **code_ptr, char *mask, char *name)
 {
 	Camera *this = camera_get_instance();
-	infob("Looking for \"%s\" ...", name);
+	debugb("Looking for \"%s\" ...", name);
 
 	memproc_search(this->mp, pattern, mask, NULL, SEARCH_TYPE_BYTES);
 	BbQueue *results = memproc_get_res(this->mp);
@@ -1364,7 +1364,7 @@ static BOOL camera_search_signature (unsigned char *pattern, DWORD *addr, char *
 		warning("Multiple occurences of \"%s\" found (%d found) :", name, bb_queue_get_length(results));
 
 		foreach_bbqueue_item (results, memblock) {
-			printf(" -> 0x%.8x\n", (int) memblock->addr);
+			debugb(" -> 0x%.8x\n", (int) memblock->addr);
 		}
 	}
 
@@ -1373,7 +1373,7 @@ static BOOL camera_search_signature (unsigned char *pattern, DWORD *addr, char *
 	*code_ptr = malloc(memblock->size);
 	memcpy(*code_ptr, memblock->data, memblock->size);
 
-	printf(" -> 0x%.8x\n", (int) memblock->addr);
+	debug(" -> 0x%.8x", (int) memblock->addr);
 
 	bb_queue_free_all(results, memblock_free);
 
@@ -1398,7 +1398,7 @@ static BbQueue *camera_search_signatures (unsigned char *pattern, char *mask, ch
 		{
 			MemBuffer *mb = membuffer_new(*(addr[i]), pattern, size);
 			bb_queue_add(addresses, mb);
-			printf("  --> [%d] - 0x%.8x\n", i, (int) *(addr[i]));
+			debugb("  --> [%d] - 0x%.8x\n", i, (int) *(addr[i]));
 		}
 
 		return addresses;
@@ -1415,26 +1415,26 @@ static BbQueue *camera_search_signatures (unsigned char *pattern, char *mask, ch
 			{
 				MemBuffer *mb = membuffer_new(*(addr[i]), pattern, size);
 				bb_queue_add(addresses, mb);
-				printf("  --> [%d] - 0x%.8x\n", i, (int) *(addr[i]));
+				debugb("  --> [%d] - 0x%.8x\n", i, (int) *(addr[i]));
 			}
 		}
 	}
 
 	int loop = 0;
 
-	printf(" ->");
+	debugb(" ->");
 
 	foreach_bbqueue_item (results, memblock) {
 		MemBuffer *mb = membuffer_new(memblock->addr, memblock->data, memblock->size);
 		bb_queue_add(addresses, mb);
 		*(addr[loop++]) = memblock->addr;
-		printf(" 0x%.8x ", (int) memblock->addr);
+		debugb(" 0x%.8x ", (int) memblock->addr);
 
 		if (!is_last_bbqueue_item(results))
-			printf("-");
+			debugb("-");
 	}
 
-	printf("\n");
+	debugb("\n");
 
 	bb_queue_free_all(results, memblock_free);
 

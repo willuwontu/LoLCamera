@@ -365,7 +365,6 @@ void camera_init (MemProc *mp)
 
 	// Load settings associated with champ name
 	camera_load_settings(this->self->champ_name);
-	ini_parser_free(this->parser);
 
 	memset(this->nearby, 0, sizeof(this->nearby));
 	this->active = TRUE;
@@ -381,6 +380,9 @@ BOOL camera_wait_for_ingame ()
 	// Wait here
 	while (!read_memory_as_int(this->mp->proc, this->loading_state_addr))
 	{
+		if (exit_request())
+			exit(0);
+
 		waited = TRUE;
 		info("Loading screen detected - Retry in 3seconds.", this->loading_state_addr);
 		Sleep(3000);
@@ -533,6 +535,20 @@ void camera_set_tracking_mode (CameraTrackingMode *out_mode)
 	*out_mode = mode;
 }
 
+BOOL exit_request ()
+{
+	if (kbhit())
+	{
+		char c = getch();
+		// Interrupt request
+
+		if (c == 'X' || c == 'x')
+			return TRUE;
+	}
+
+	return FALSE;
+}
+
 LoLCameraState camera_main ()
 {
 	Vector2D target;
@@ -541,14 +557,8 @@ LoLCameraState camera_main ()
 
 	while (this->active)
 	{
-		if (kbhit())
-		{
-			char c = getch();
-			// Interrupt request
-
-			if (c == 'X' || c == 'x')
-				return END_OF_LOLCAMERA;
-		}
+		if (exit_request())
+			return END_OF_LOLCAMERA;
 
 		Sleep(this->sleep_time);
 

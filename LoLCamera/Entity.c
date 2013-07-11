@@ -84,7 +84,7 @@ entity_is_alive (Entity *e)
 void
 entity_debug (Entity *e)
 {
-	info("Entity DEBUG (0x%.8x) : x=%f / y=%f - hp=%f / hpm=%f", e->entity_data, e->p.v.x, e->p.v.y, e->hp, e->hp_max);
+	debug("Entity DEBUG (0x%.8x) : x=%f / y=%f - hp=%f / hpm=%f", e->entity_data, e->p.v.x, e->p.v.y, e->hp, e->hp_max);
 }
 
 void
