@@ -321,6 +321,9 @@ void camera_init (MemProc *mp)
 	camera_load_ini();
 
 	// Get loading screen address
+	info("Process detected");
+	Sleep(1000);
+
 	info("Dumping process...");
 	memproc_dump(this->mp, text_section, text_section + text_size);
 	camera_scan_loading();
@@ -328,6 +331,8 @@ void camera_init (MemProc *mp)
 	// Wait for client ingame
 	if (camera_wait_for_ingame())
 	{
+		info("Game start detected ... Initializing");
+		Sleep(2000);
 		// Dumping the process again (loading screen detected)
 		memproc_clear(this->mp);
 		info("Dumping process again after loading screen...");
@@ -470,6 +475,7 @@ BOOL camera_update ()
 		{.func = camera_refresh_entity_hovered,	.arg = NULL,				.desc = "Entity hovered"},
 		{.func = camera_refresh_self,	        .arg = NULL,				.desc = "Self champion detection"},
 		{.func = camera_refresh_victory,	    .arg = NULL,				.desc = "Victory State"},
+		{.func = camera_refresh_entities_nearby,.arg = NULL,				.desc = "Nearby champions"},
 	};
 
 	if (frame_count++ % this->poll_data == 0 || this->request_polling)
@@ -659,6 +665,7 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 	float focus_x = 0.0, focus_y = 0.0;
 	float drag_x = 0.0, drag_y = 0.0;
 	float hint_x = 0.0, hint_y = 0.0;
+	float average_x = 0.0, average_y = 0.0;
 
 	switch (camera_mode)
 	{
@@ -703,14 +710,36 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 			float dest_weight  = this->dest_weight;
 
 			// Optional weights
-			float hint_weight   = 0.0;
-			float focus_weight  = 0.0;
-
+			float hint_weight    = 0.0;
+			float focus_weight   = 0.0;
+			float global_weight  = 0.0;
 
 			if (this->drag_request)
 			{
 				drag_x = (this->drag_pos.x - this->mouse->v.x) * 10;
 				drag_y = (this->drag_pos.y - this->mouse->v.y) * 10;
+			}
+
+			if (this->global_entities)
+			{
+				if (this->nb_nearby == 0)
+					global_weight = 0.0;
+
+				else
+				{
+					global_weight = this->global_weight;
+
+					float sum_x = 0, sum_y = 0;
+
+					for (int i = 0; i < this->nb_nearby; i++)
+					{
+						sum_x += this->nearby[i]->p.v.x;
+						sum_y += this->nearby[i]->p.v.y;
+					}
+
+					average_x = sum_x / (float) this->nb_nearby;
+					average_y = sum_y / (float) this->nb_nearby;
+				}
 			}
 
 			if (this->focused_entity != NULL)
@@ -747,7 +776,7 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 					// if the mouse is far from dest, reduce dest weight (mouse is more important)
 					dest_weight = dest_weight / (((distance_mouse_dest - this->champ_settings.mouse_dest_range_max) / 1500.0) + 1);
 
-				weight_sum = champ_weight + mouse_weight + dest_weight + focus_weight + hint_weight;
+				weight_sum = champ_weight + mouse_weight + dest_weight + focus_weight + hint_weight + global_weight;
 			}
 
             // Compute the target (weighted averages)
@@ -757,7 +786,8 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
                     (this->mouse->v.x * mouse_weight) +
                     (this->dest->v.x * dest_weight) +
                     (focus_x * focus_weight) +
-					(hint_x * hint_weight)
+					(hint_x * hint_weight) +
+                    (average_x * global_weight)
                  ) / weight_sum
 					+ drag_x,
                 (
@@ -765,7 +795,8 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
                     (this->mouse->v.y * mouse_weight) +
                     (this->dest->v.y * dest_weight) +
                     (focus_y * focus_weight) +
-					(hint_y * hint_weight)
+					(hint_y * hint_weight) +
+                    (average_y * global_weight)
                 ) / weight_sum
 					+ drag_y
             );

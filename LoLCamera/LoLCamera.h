@@ -106,6 +106,7 @@ struct _Camera
 	Entity *self;
 	char self_name[17];
 	Entity *nearby[10];				// Array of entities nearby the champion
+	int nb_nearby;
 
 	// Weights : Configurable in ini
 	float focus_weight;
@@ -113,6 +114,7 @@ struct _Camera
 	float champ_weight;
 	float dest_weight;
 	float mouse_weight;
+	float global_weight;
 
 	// Players information
 	int team_size;					// Size of the -team- of the array actually, FIXME
@@ -132,6 +134,7 @@ struct _Camera
 	int fxstate;						// Fx is pressed ?
 
 	// Program state
+	BOOL global_entities;			        // Position the camera according to entities position
 	BOOL restore_tmpcam;				// Request to restore the temporary camera
 	BOOL drag_request;					// User requested a drag
 	BOOL active;						// Loop state
@@ -190,6 +193,7 @@ BOOL camera_refresh_win_is_opened ();
 BOOL camera_refresh_self ();
 BOOL camera_wait_for_ingame ();
 BOOL camera_refresh_victory ();
+BOOL camera_refresh_entities_nearby ();
 
 // from CameraUnitTest.c
 BOOL camera_ut_campos ();

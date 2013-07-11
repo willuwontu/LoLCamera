@@ -685,22 +685,22 @@ BOOL camera_scan_champ_offsets ()
 
 	BbQueue *res = memscan_search (this->mp, "MouseOffX/MouseOffY/ChampOffX/ChampOffY",
 	/*
-		00ACA22D  ║·  F30F1005 744DCE01  movss xmm0, [dword ds:League_of_Legends.1CE4D74]      ; float 647.3337
-		00ACA235  ║·  F30F1186 <<3401>>0000  movss [dword ds:esi+134], xmm0
-		00ACA23D  ║·  F30F1005 784DCE01  movss xmm0, [dword ds:League_of_Legends.1CE4D78]      ; float 168.0568
-		00ACA245  ║·  F30F1186 38010000  movss [dword ds:esi+138], xmm0
-		00ACA24D  ║·  F30F1005 7C4DCE01  movss xmm0, [dword ds:League_of_Legends.1CE4D7C]      ; float 467.0539
-		00ACA255  ║·  F30F1186 <<3C01>>0000  movss [dword ds:esi+13C], xmm0
-		00ACA25D  ║·  D940 68            fld [dword ds:eax+68]
-		00ACA260  ║·  D99E <<2801>>0000      fstp [dword ds:esi+128]
-		00ACA266  ║·  D940 6C            fld [dword ds:eax+6C]
-		00ACA269  ║·  D99E 2C010000      fstp [dword ds:esi+12C]
-		00ACA26F  ║·  D940 70            fld [dword ds:eax+70]
-		00ACA272  ║·  D99E <<3001>>0000      fstp [dword ds:esi+130]
-		00ACA278  ║►  FF15 9C9BD600      call [dword ds:<&USER32.GetActiveWindow>]             ; [USER32.GetActiveWindow
-		00ACA27E  ║·  3B05 A4A0CA01      cmp eax, [dword ds:League_of_Legends.1CAA0A4]
-		00ACA284  ║·▼ 0F85 A9020000      jne League_of_Legends.00ACA533
-		00ACA28A  ║·  833D 085DCF01 00   cmp [dword ds:League_of_Legends.1CF5D08], 0
+		00ACA22D  ║·  F30F1005 744DCE01  		movss xmm0, [dword ds:League_of_Legends.1CE4D74]      ; float 647.3337
+		00ACA235  ║·  F30F1186 <<3401>>0000  	movss [dword ds:esi+134], xmm0
+		00ACA23D  ║·  F30F1005 784DCE01  		movss xmm0, [dword ds:League_of_Legends.1CE4D78]      ; float 168.0568
+		00ACA245  ║·  F30F1186 38010000  		movss [dword ds:esi+138], xmm0
+		00ACA24D  ║·  F30F1005 7C4DCE01  		movss xmm0, [dword ds:League_of_Legends.1CE4D7C]      ; float 467.0539
+		00ACA255  ║·  F30F1186 <<3C01>>0000  	movss [dword ds:esi+13C], xmm0
+		00ACA25D  ║·  D940 68            		fld [dword ds:eax+68]
+		00ACA260  ║·  D99E <<2801>>0000      	fstp [dword ds:esi+128]
+		00ACA266  ║·  D940 6C            		fld [dword ds:eax+6C]
+		00ACA269  ║·  D99E 2C010000      		fstp [dword ds:esi+12C]
+		00ACA26F  ║·  D940 70            		fld [dword ds:eax+70]
+		00ACA272  ║·  D99E <<3001>>0000      	fstp [dword ds:esi+130]
+		00ACA278  ║►  FF15 9C9BD600      		call [dword ds:<&USER32.GetActiveWindow>]             ; [USER32.GetActiveWindow]
+		00ACA27E  ║·  3B05 A4A0CA01      		cmp eax, [dword ds:League_of_Legends.1CAA0A4]
+		00ACA284  ║·▼ 0F85 A9020000      		jne League_of_Legends.00ACA533
+		00ACA28A  ║·  833D 085DCF01 00   		cmp [dword ds:League_of_Legends.1CF5D08], 0
 	*/
 		(unsigned char[]) {
 			0xF3,0x0F,0x10,0x05,0x74,0x4D,0xCE,0x01,
@@ -1265,10 +1265,10 @@ BOOL camera_refresh_entity_hovered ()
 	return TRUE;
 }
 
-void camera_refresh_entities_nearby ()
+BOOL camera_refresh_entities_nearby ()
 {
 	Camera *this = camera_get_instance();
-	float far_limit = 3000.0;
+	float in_screen = 2000.0;
 
 	float distance;
 	int index = 0;
@@ -1278,17 +1278,21 @@ void camera_refresh_entities_nearby ()
 	DWORD cur = this->entity_ptr;
 	DWORD end = this->entity_ptr_end;
 
+	this->nb_nearby = 0;
+
 	for (int i = 0; cur != end && i < 10; cur += 4, i++)
 	{
 		Entity *e = this->champions[i];
 		distance = vector2D_distance(&e->p.v, &this->champ->v);
 
-		if (distance > far_limit)
+		if (distance < in_screen)
 		{
-			printf("Nearby = %s\n", e->champ_name);
 			this->nearby[index++] = e;
+			this->nb_nearby = index;
 		}
 	}
+
+	return TRUE;
 }
 
 
