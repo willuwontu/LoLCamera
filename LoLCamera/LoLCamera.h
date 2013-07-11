@@ -107,9 +107,12 @@ struct _Camera
 	BbQueue *entities_nearby;		// List of entities around the champion
 	char self_name[17];
 
-	// Weights
-	float focus_weight;				// configurable in ini
-	float hint_weight;				// configurable in ini
+	// Weights : Configurable in ini
+	float focus_weight;
+	float hint_weight;
+	float champ_weight;
+	float dest_weight;
+	float mouse_weight;
 
 	// Players information
 	int team_size;					// Size of the -team- of the array actually, FIXME

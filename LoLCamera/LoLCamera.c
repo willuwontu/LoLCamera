@@ -703,12 +703,12 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 			float distance_mouse_dest  = vector2D_distance(&this->dest->v, &this->mouse->v);
 
 			// Always activated
-			float champ_weight = 1.0;
-			float mouse_weight = 1.0;
-			float dest_weight  = 1.0;
+			float champ_weight = this->champ_weight;
+			float mouse_weight = this->mouse_weight;
+			float dest_weight  = this->dest_weight;
 
 			// Optional weights
-			float hint_weight  = 0.0;
+			float hint_weight   = 0.0;
 			float focus_weight  = 0.0;
 
 			if (this->drag_request)
@@ -926,8 +926,12 @@ void camera_load_ini ()
 	this->translate_key = ini_parser_get_char(parser, "translate_key");
 
 	// Settings
-	this->focus_weight  = atof(ini_parser_get_value(parser, "focus_weight"));
+	this->focus_weight = atof(ini_parser_get_value(parser, "focus_weight"));
 	this->hint_weight  = atof(ini_parser_get_value(parser, "hint_weight"));
+	this->champ_weight = atof(ini_parser_get_value(parser, "champ_weight"));
+	this->dest_weight  = atof(ini_parser_get_value(parser, "dest_weight"));
+	this->mouse_weight = atof(ini_parser_get_value(parser, "mouse_weight"));
+
 	this->sleep_time  = strtol(ini_parser_get_value(parser, "sleep_time"), NULL, 10); // Time slept between two camera updates (in ms)
 	this->poll_data	  = strtol(ini_parser_get_value(parser, "poll_data"), NULL, 10); // Retrieve data from client every X loops
 
