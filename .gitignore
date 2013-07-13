@@ -15,7 +15,7 @@ local.properties
 .classpath
 .settings/
 .loadpath
-out.ct
+
 
 # External tool builders
 .externalToolBuilders/
@@ -169,3 +169,5 @@ pip-log.txt
 #########################################################################
 LoLCamera.layout
 LoLCamera.depend
+out.ct
+LoLCamera.ico

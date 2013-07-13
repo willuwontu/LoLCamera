@@ -1283,7 +1283,7 @@ BOOL camera_refresh_entities_nearby ()
 	for (int i = 0; cur != end && i < 10; cur += 4, i++)
 	{
 		Entity *e = this->champions[i];
-		distance = vector2D_distance(&e->p.v, &this->champ->v);
+		distance = vector2D_distance(&e->p.v, &this->cam->v);
 
 		if (distance < in_screen)
 		{
