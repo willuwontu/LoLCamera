@@ -15,6 +15,7 @@ typedef enum {
     NoUpdate,
     EndOfGame,
     ForeGround,
+    InterfaceHovered,
     Free,
     FocusSelf,
     FollowEntity,
@@ -44,7 +45,7 @@ static void camera_toggle (BOOL enable)
 
 static BOOL camera_is_enabled ()
 {
-	short toggle_state = GetKeyState(TOGGLE_KEY);
+	short toggle_state = GetKeyState(this->toggle_key);
 
 	// listen for toggle key
 	if (toggle_state != this->last_toggle_state && toggle_state < 0)
@@ -223,6 +224,11 @@ BOOL camera_victory_state ()
 	return (this->victory_state == 3);
 }
 
+BOOL camera_interface_is_hovered ()
+{
+	return (this->interface_hovered == 1);
+}
+
 static CameraTrackingMode camera_get_mode ()
 {
 	// End of game = end of LoLCamera
@@ -264,6 +270,10 @@ static CameraTrackingMode camera_get_mode ()
 	// The champion has been teleported far, focus on the champion
 	if (!camera_is_near(this->champ, 3000.0) && !entity_is_dead(this->self))
 		return FocusSelf;
+
+	// User hovered the interface, moving the camera uselessly
+	if (camera_interface_is_hovered())
+		return InterfaceHovered;
 
     return Normal;
 }
@@ -478,6 +488,7 @@ BOOL camera_update ()
 		{.func = camera_refresh_self,	        .arg = NULL,				.desc = "Self champion detection"},
 		{.func = camera_refresh_victory,	    .arg = NULL,				.desc = "Victory State"},
 		{.func = camera_refresh_entities_nearby,.arg = NULL,				.desc = "Nearby champions"},
+		{.func = camera_refresh_hover_interface,.arg = NULL,				.desc = "Hover Interface"},
 	};
 
 	if (frame_count++ % this->poll_data == 0 || this->request_polling)
@@ -549,6 +560,11 @@ BOOL exit_request ()
 	return FALSE;
 }
 
+void camera_save_last_campos (Vector2D *campos)
+{
+	memcpy(&this->last_campos, campos, sizeof(Vector2D));
+}
+
 LoLCameraState camera_main ()
 {
 	Vector2D target;
@@ -604,6 +620,9 @@ LoLCameraState camera_main ()
 
         // update the ingame gamera position
 		mempos_set(this->cam, this->cam->v.x, this->cam->v.y);
+
+		// Save last camera position
+		camera_save_last_campos(&this->cam->v);
 	}
 
 	return WAIT_FOR_NEW_GAME;
@@ -679,6 +698,10 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 
 	switch (camera_mode)
 	{
+		case InterfaceHovered:
+			memcpy(target, &this->last_campos, sizeof(Vector2D));
+		break;
+
 		case Free:
 			vector2D_set_pos(target,
                 (
@@ -959,6 +982,7 @@ void camera_load_ini ()
 
 	// Hotkeys
 	this->translate_key = ini_parser_get_char(parser, "translate_key");
+	this->toggle_key = strtol(ini_parser_get_value(parser, "toggle_key"), NULL, 16);
 
 	// Settings
 	this->focus_weight = atof(ini_parser_get_value(parser, "focus_weight"));

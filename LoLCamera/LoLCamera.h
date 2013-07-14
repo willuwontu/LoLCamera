@@ -54,6 +54,7 @@ struct _Camera
 	DWORD game_state_addr;			// Adress of the data : state of the game
 	DWORD victory_state_addr;		// Adress of the data : Victory or Defeat
 
+	DWORD interface_hovered_addr;	// Address of the data : Is the interface hovered ?
 
 	// Offsets in the game structure
 	DWORD champx_offset;
@@ -70,8 +71,11 @@ struct _Camera
 	// Translation
 	Vector2D distance_translation;
 	int translate_request;
-	char translate_key;
 	short int last_translate_state;
+
+	// Hotkeys
+	char toggle_key;
+	char translate_key;
 
 	// Settings
 	CameraSettings all_settings[200]; // Champion specific settings
@@ -144,7 +148,9 @@ struct _Camera
 	BOOL dbg_mode;
 	BOOL wait_loading_screen;			// Wait for the start of the game
 	BOOL output_cheatengine_table;		// Output the adresses in CheatEngineTable format in "out.ct"
+	BOOL interface_hovered;
 	int victory_state;
+	Vector2D last_campos;
 
 	// We need it for loading champion settings
 	IniParser *parser;
@@ -195,6 +201,8 @@ BOOL camera_refresh_self ();
 BOOL camera_wait_for_ingame ();
 BOOL camera_refresh_victory ();
 BOOL camera_refresh_entities_nearby ();
+BOOL camera_refresh_hover_interface ();
+
 
 // from CameraUnitTest.c
 BOOL camera_ut_campos ();

@@ -426,6 +426,73 @@ BOOL camera_scan_campos ()
 	return TRUE;
 }
 
+BOOL camera_refresh_hover_interface ()
+{
+	Camera *this = camera_get_instance();
+
+	this->interface_hovered = read_memory_as_int(this->mp->proc, this->interface_hovered_addr);
+
+	return TRUE;
+}
+
+BOOL camera_scan_hover_interface ()
+{
+	Camera *this = camera_get_instance();
+
+	BbQueue *res = memscan_search (this->mp, "HoverInterface",
+	/*
+		00AB08B8   ·  0F94C0                    sete al
+		00AB08BB   ·  84C0                      test al, al
+		00AB08BD   ·▼ 74 61                     je short League_of_Legends.00AB0920
+		00AB08BF   ·  803D E278D201 00          cmp [byte ds:League_of_Legends.1D278E2], 0
+		00AB08C6   ·▼ 75 56                     jne short League_of_Legends.00AB091E
+		00AB08C8   ·  803D <<5448DE03>> 00      cmp [byte ds:League_of_Legends.3DE4854], 0
+	*/
+		(unsigned char[]) {
+			0x0F,0x94,0xC0,
+			0x84,0xC0,
+			0x74,0x61,
+			0x80,0x3D,	0xE2,0x78,0xD2,0x01,	0x00,
+			0x75,0x56,
+			0x80,0x3D,	0x54,0x48,0xDE,0x03,	0x00
+		},
+			"xxx"
+			"xx"
+			"xx"
+			"xx????x"
+			"xx"
+			"xx????x",
+
+			"xxx"
+			"xx"
+			"xx"
+			"xxxxxxx"
+			"xx"
+			"xx????x"
+	);
+
+	if (!res)
+	{
+		warning("Cannot find HoverInterface address\nUsing the .ini value : 0x%.8x", this->interface_hovered_addr);
+		return FALSE;
+	}
+
+	Buffer *interface_hovered_addr = bb_queue_pick_first(res);
+	memcpy(&this->interface_hovered_addr, interface_hovered_addr->data, interface_hovered_addr->size);
+
+	bb_queue_free_all(res, buffer_free);
+
+	if (!this->interface_hovered_addr)
+	{
+		warning("Cannot scan HoverInterface");
+		return FALSE;
+	}
+
+	camera_refresh_hover_interface();
+
+	return TRUE;
+}
+
 
 BOOL camera_scan_loading ()
 {
@@ -817,6 +884,7 @@ BOOL camera_scan_variables ()
 		camera_scan_win_is_opened,
 		camera_scan_hovered_champ,
 		camera_scan_victory,
+		camera_scan_hover_interface,
 	};
 
 	for (int i = 0; i < (sizeof(scan_funcs) / sizeof(BOOL (*)())); i++)
@@ -1294,7 +1362,6 @@ BOOL camera_refresh_entities_nearby ()
 
 	return TRUE;
 }
-
 
 BOOL camera_refresh_win_is_opened ()
 {
