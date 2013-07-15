@@ -76,6 +76,7 @@ struct _Camera
 	// Hotkeys
 	char toggle_key;
 	char translate_key;
+	char center_key;
 
 	// Settings
 	CameraSettings all_settings[200]; // Champion specific settings

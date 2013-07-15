@@ -213,6 +213,9 @@ str_is_empty			(char *str);
 BbQueue *
 str_explode			 (char *str, const char *delimiter);
 
+int
+is_letter (char c);
+
 /* * File * */
 char *
 file_get_extension	  (const char *filename);

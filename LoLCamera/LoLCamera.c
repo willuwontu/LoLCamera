@@ -66,13 +66,16 @@ static void camera_translation_reset ()
 static BOOL camera_center_requested ()
 {
 	// Disable when space / F1 is pressed
-	if ((GetKeyState(VK_SPACE) < 0 || (GetKeyState(VK_F1) < 0)) && (this->interface_opened != LOLCAMERA_CHAT_OPENED_VALUE))
+	if ((GetKeyState(this->center_key) < 0 || (GetKeyState(VK_F1) < 0))
+	 && (this->interface_opened != LOLCAMERA_CHAT_OPENED_VALUE))
     {
     	// Polling data is requested because we want to center the camera exactly where the champion is
         this->request_polling = TRUE;
         this->focused_entity = NULL;
         this->hint_entity = NULL;
         camera_translation_reset();
+        mempos_set(this->cam, this->champ->v.x, this->champ->v.y);
+
         return TRUE;
     }
 
@@ -981,8 +984,14 @@ void camera_load_ini ()
 	this->victory_state_addr = str_hex(ini_parser_get_value(parser, "victory_state_addr"));
 
 	// Hotkeys
-	this->translate_key = ini_parser_get_char(parser, "translate_key");
-	this->toggle_key = strtol(ini_parser_get_value(parser, "toggle_key"), NULL, 16);
+	if ((this->translate_key = ini_parser_get_char(parser, "translate_key")) == 0)
+		this->translate_key  = strtol(ini_parser_get_value(parser, "translate_key"), NULL, 16);
+
+	if ((this->toggle_key = ini_parser_get_char(parser, "toggle_key")) == 0)
+		this->toggle_key  = strtol(ini_parser_get_value(parser, "toggle_key"), NULL, 16);
+
+	if ((this->center_key = ini_parser_get_char(parser, "center_key")) == 0)
+		this->center_key  = strtol(ini_parser_get_value(parser, "center_key"), NULL, 16);
 
 	// Settings
 	this->focus_weight = atof(ini_parser_get_value(parser, "focus_weight"));

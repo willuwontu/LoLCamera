@@ -1138,6 +1138,15 @@ str_debug_len (const unsigned char *str, int len)
 	printf("\n");
 }
 
+int
+is_letter (char c)
+{
+	return (
+		(c >= 'A' && c <= 'Z')
+	||  (c >= 'a' && c <= 'z')
+	);
+}
+
 void
 ztring_debug (Ztring *z)
 {

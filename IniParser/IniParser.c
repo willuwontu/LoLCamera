@@ -418,7 +418,14 @@ ini_parser_get_char (IniParser *ip, char *field)
 		return 0;
 
 	else
-		return res[0];
+	{
+		char c = res[0];
+
+		if (!is_letter(c))
+			return 0;
+
+		else return c;
+	}
 }
 
 void *
