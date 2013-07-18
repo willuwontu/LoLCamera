@@ -881,6 +881,7 @@ void camera_load_settings (char *section)
 		return;
 	}
 
+	info("------------------------------------------------------------------");
 	while (bb_queue_get_length(default_settings))
 	{
 		KeyVal *kv    = bb_queue_get_first(default_settings);
@@ -930,6 +931,7 @@ void camera_load_settings (char *section)
 		free(setting);
 		free(kv);
 	}
+	info("------------------------------------------------------------------");
 
 }
 
@@ -1005,35 +1007,6 @@ void camera_load_ini ()
 
 	// Champion Settings
 	camera_load_settings("Default");
-
-	// Addresses - Input checking
-	struct AddrStr { DWORD addr; char *str; } tabAddr [] = {
-        { .addr = this->win_is_opened_ptr, .str = "win_is_opened_ptr" }, //
-        { .addr = this->respawn_reset_addr, .str = "respawn_reset_addr" }, //
-        { .addr = this->border_screen_addr, .str = "border_screen_addr" }, //                  ██████████
-        { .addr = this->champx_addr,        .str = "champion_posx_addr" }, //              ████░░      ░░████
-        { .addr = this->champy_addr,        .str = "champion_posy_addr" }, //            ██░░              ░░██
-        { .addr = this->locked_camera_addr, .str = "locked_camera_addr" }, //          ██                    ░░██
-        { .addr = this->mouse_screen_ptr,   .str = "mouse_screen_ptr" },   //        ██              ██  ██  ░░██
-                                                                           //      ██░░              ██  ██      ██
-        { .addr = this->camx_addr,          .str = "camera_posx_addr" },   //      ██                ██  ██      ██
-        { .addr = this->camy_addr,          .str = "camera_posy_addr" },   //      ██          ░░░░        ░░░░  ██
-        { .addr = this->allies_cam_addr[0], .str = "allies_cam_addr0" },   //      ██░░    ░░                ░░  ██
-        { .addr = this->allies_cam_addr[1], .str = "allies_cam_addr1" },   //        ██░░  ██        ██      ██░░██
-        { .addr = this->mousex_addr,        .str = "mouse_posx_addr" },    //          ████░░              ░░████
-        { .addr = this->mousey_addr,        .str = "mouse_posy_addr" },    //            ████░░░░        ░░████
-        { .addr = this->destx_addr,         .str = "dest_posx_addr" },     //          ██░░░░██████████████░░░░██
-        { .addr = this->desty_addr,         .str = "dest_posy_addr" },     //        ██░░░░░░░░░░████████░░░░░░░░██
-        { .addr = this->self_cam_addr,      .str = "self_cam_addr" },      //          ██████████        ████████
-        { .addr = this->entities_addr,      .str = "entities_addr" },      //
-        { .addr = this->entities_addr_end,  .str = "entities_addr_end" },  //
-        { .addr = this->loading_state_addr, .str = "loading_state_addr" }, //
-	};
-
-	// Todo : corresponding scanning function corresponding to each data to get directly in the client
-	for (int i = 0; i < sizeof(tabAddr) / sizeof(struct AddrStr); i++)
-		if (!tabAddr[i].addr)
-			info("\"%s\" cannot be read in %s", tabAddr[i].str, ini_file);
 
 	// Settings - Input checking
 	struct SettingVal {

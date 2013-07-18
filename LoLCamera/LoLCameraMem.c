@@ -1420,8 +1420,7 @@ static BOOL camera_search_signature (unsigned char *pattern, DWORD *addr, char *
 
 	if (bb_queue_get_length(results) <= 0)
 	{
-		printf("\n");
-		warning("\"%s\" not found (already patched ?)\nUsing the current .ini value : 0x%.8x", name, *addr);
+		warning("\"%s\" not found (already patched ?)", name);
 		return FALSE;
 	}
 
@@ -1450,7 +1449,7 @@ static BOOL camera_search_signature (unsigned char *pattern, DWORD *addr, char *
 static BbQueue *camera_search_signatures (unsigned char *pattern, char *mask, char *name, DWORD **addr, int size)
 {
 	Camera *this = camera_get_instance();
-	infob("Looking for \"%s\" ...", name);
+	debugb("Looking for \"%s\" ...", name);
 
 	memproc_search(this->mp, pattern, mask, NULL, SEARCH_TYPE_BYTES);
 	BbQueue *addresses = bb_queue_new();
@@ -1459,8 +1458,7 @@ static BbQueue *camera_search_signatures (unsigned char *pattern, char *mask, ch
 
 	if (bb_queue_get_length(results) <= 0)
 	{
-		printf("\n");
-		warning("\"%s\" not found (already patched ?)\nUsing the current .ini value :", name);
+		warning("\"%s\" not found (already patched ?)", name);
 		for (int i = 0; i < size; i++)
 		{
 			MemBuffer *mb = membuffer_new(*(addr[i]), pattern, size);
