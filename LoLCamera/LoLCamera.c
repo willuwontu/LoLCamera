@@ -1,6 +1,5 @@
 #include "LoLCamera.h"
 
-// Todo : Find a userfriendly way to put TOGGLE_KEY in the .ini
 #define TOGGLE_KEY	 VK_F11   // which key toggles the camera adjustments
 
 // Singleton

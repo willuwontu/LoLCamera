@@ -1,7 +1,7 @@
 #include "LoLCamera.h"
 
-static BbQueue * camera_search_signatures (unsigned char *pattern, char *mask, char *name, DWORD **addr, int size);
-static BOOL      camera_search_signature  (unsigned char *pattern, DWORD *addr, char **code_ptr, char *mask, char *name);
+static BOOL 	 camera_search_signatures (unsigned char *pattern, char *mask, char *name, DWORD **addr, int size, BbQueue *addresses);
+static BOOL      camera_search_signature  (unsigned char *pattern, DWORD *addr, unsigned char **code_ptr, char *mask, char *name);
 static Patch *   camera_get_patch         (MemProc *mp, char *description, DWORD *addr, unsigned char *sig, char *sig_mask, unsigned char *patch, char *patch_mask);
 static void      camera_get_patches       (Patch **patches, int size, MemProc *mp, char *description, DWORD **addrs, unsigned char *sig, char *sig_mask, unsigned char *patch, char *patch_mask);
 
@@ -1374,15 +1374,89 @@ BOOL camera_refresh_win_is_opened ()
 	return (buffer[0] != 0xFF);
 }
 
+void camera_save_patch (long int id, DWORD *addr, unsigned char *code, int len)
+{
+	char patch_path[100];
+
+	sprintf(patch_path, "./patches/patch_%ld", id);
+	FILE *patch_file = fopen(patch_path, "wb+");
+
+	// 1st try : the folder maybe doesn't exist
+	if (!patch_file)
+	{
+		// Maybe patches folder doesn't exit
+		_mkdir("patches");
+		patch_file = fopen(patch_path, "w+");
+	}
+
+	// 2nd try
+	if (!patch_file)
+	{
+		warning("Cannot save patches. Please exit with X ONLY or it may crashes the client.");
+		return;
+	}
+
+	fwrite(addr, sizeof(DWORD), 1, patch_file);
+	fwrite(&len, sizeof(int), 1, patch_file);
+	fwrite(code, sizeof(char), len, patch_file);
+
+	fclose(patch_file);
+}
+
+unsigned char *camera_read_patch (long int id, int *len, DWORD *addr)
+{
+	char patch_path[100];
+	sprintf(patch_path, "./patches/patch_%ld", id);
+	FILE *patch_file = fopen(patch_path, "rb");
+
+	// 1st try : the folder maybe doesn't exist
+	if (!patch_file)
+	{
+		return NULL;
+	}
+
+	fread(addr, sizeof(DWORD), 1, patch_file);
+	fread(len, sizeof(int), 1, patch_file);
+
+	char *code = malloc(*len);
+	fread(code, sizeof(char), *len, patch_file);
+
+	return code;
+}
+
 // ------------ Scanners ------------
+static long int patch_id = 0;
 
 static Patch *camera_get_patch (MemProc *mp, char *description, DWORD *addr, unsigned char *sig, char *sig_mask, unsigned char *patch, char *patch_mask)
 {
-	char *code;
+	unsigned char *code = NULL;
+	int len;
 
 	// Get the address of the signature
 	if (!camera_search_signature (sig, addr, &code, sig_mask, description))
-		return NULL;
+	{
+		// Error : Try to restore the former saved patches
+		code = camera_read_patch(patch_id, &len, addr);
+
+		if ((code != NULL)
+		&&  (write_to_memory(mp->proc, code, *addr, len)))
+		{
+				// Phew ... it worked
+				info("Patch %d restored", patch_id);
+		}
+
+		else
+		{
+			important("Cannot load patch %d... Please restart the League of Legends client. Sorry :(", patch_id);
+			return NULL;
+		}
+	}
+
+	// Save the patch
+	else
+		camera_save_patch(patch_id, addr, code, strlen(patch_mask));
+
+	patch_id++;
 
 	// Create a new patch
 	return patch_new (description, mp, *addr, code, sig, patch, patch_mask);
@@ -1390,10 +1464,49 @@ static Patch *camera_get_patch (MemProc *mp, char *description, DWORD *addr, uns
 
 static void camera_get_patches (Patch **patches, int size, MemProc *mp, char *description, DWORD **addrs, unsigned char *sig, char *sig_mask, unsigned char *patch, char *patch_mask)
 {
-	BbQueue *occs = camera_search_signatures (sig, sig_mask, description, addrs, size);
+	BbQueue *addresses = bb_queue_new();
+	unsigned char *code = NULL;
+	int len;
+
+	if (!camera_search_signatures (sig, sig_mask, description, addrs, size, addresses))
+	{
+		foreach_bbqueue_item (addresses, MemBuffer *mb)
+		{
+			DWORD addr;
+			(void) mb;
+
+			// Error : Try to restore the former saved patches
+			code = camera_read_patch(patch_id, &len, &addr);
+			if ((code != NULL)
+			&&  (write_to_memory(mp->proc, code, addr, len)))
+			{
+				// Phew ... it worked
+				info("Patch %d restored", patch_id);
+				patch_id++;
+			}
+
+			else
+			{
+				important("Cannot load patch %d... Please restart the League of Legends client. Sorry :(", patch_id);
+				return;
+			}
+		}
+	}
+
+	else
+	{
+		foreach_bbqueue_item (addresses, MemBuffer *mb)
+		{
+			DWORD addr = mb->addr;
+			unsigned char *code = mb->buffer->data;
+			camera_save_patch(patch_id, &addr, code, strlen(patch_mask));
+			patch_id++;
+		}
+	}
+
 	int loop = 0;
 
-	foreach_bbqueue_item (occs, MemBuffer *mb)
+	foreach_bbqueue_item (addresses, MemBuffer *mb)
 	{
 		DWORD addr = mb->addr;
 		unsigned char *code = mb->buffer->data;
@@ -1406,10 +1519,10 @@ static void camera_get_patches (Patch **patches, int size, MemProc *mp, char *de
 			break;
 	}
 
-	bb_queue_free_all(occs, membuffer_free);
+	bb_queue_free_all(addresses, membuffer_free);
 }
 
-static BOOL camera_search_signature (unsigned char *pattern, DWORD *addr, char **code_ptr, char *mask, char *name)
+static BOOL camera_search_signature (unsigned char *pattern, DWORD *addr, unsigned char **code_ptr, char *mask, char *name)
 {
 	Camera *this = camera_get_instance();
 	debugb("Looking for \"%s\" ...", name);
@@ -1446,13 +1559,12 @@ static BOOL camera_search_signature (unsigned char *pattern, DWORD *addr, char *
 	return TRUE;
 }
 
-static BbQueue *camera_search_signatures (unsigned char *pattern, char *mask, char *name, DWORD **addr, int size)
+static BOOL camera_search_signatures (unsigned char *pattern, char *mask, char *name, DWORD **addr, int size, BbQueue *addresses)
 {
 	Camera *this = camera_get_instance();
 	debugb("Looking for \"%s\" ...", name);
 
 	memproc_search(this->mp, pattern, mask, NULL, SEARCH_TYPE_BYTES);
-	BbQueue *addresses = bb_queue_new();
 	BbQueue *results = memproc_get_res(this->mp);
 	MemBlock *memblock;
 
@@ -1466,7 +1578,7 @@ static BbQueue *camera_search_signatures (unsigned char *pattern, char *mask, ch
 			debugb("  --> [%d] - 0x%.8x\n", i, (int) *(addr[i]));
 		}
 
-		return addresses;
+		return FALSE;
 	}
 
 	if (bb_queue_get_length(results) != size)
@@ -1503,7 +1615,7 @@ static BbQueue *camera_search_signatures (unsigned char *pattern, char *mask, ch
 
 	bb_queue_free_all(results, memblock_free);
 
-	return addresses;
+	return TRUE;
 }
 
 void camera_export_to_cheatengine ()

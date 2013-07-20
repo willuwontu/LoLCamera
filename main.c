@@ -4,6 +4,7 @@
 */
 
 #include "./LoLCamera/LoLCamera.h"
+#include <signal.h>
 
 int main()
 {
@@ -11,8 +12,11 @@ int main()
 	MemProc *mp = NULL;
 
 	console_set_size(1200, 600);
-	important("Sources : https://github.com/Spl3en/LoLCamera");
-	important("Keep pressing X to exit");
+	important("Sources      : https://github.com/Spl3en/LoLCamera");
+	important("Last version : https://sourceforge.net/projects/lolcamera/files");
+	important("------------------------------------------------------------------");
+	important("Keep pressing X in this console to exit safely (strongly recommanded)");
+	important("------------------------------------------------------------------");
 
 	if (!enable_debug_privileges())
 	{
@@ -20,6 +24,7 @@ int main()
 	}
 
 	// Force unpatch at exit
+	signal(SIGINT, camera_unload);
 	atexit(camera_unload);
 
 	while (state != END_OF_LOLCAMERA)
@@ -62,5 +67,5 @@ int main()
 			memproc_free(mp);
 	}
 
-	return 0;
+	exit(0);
 }

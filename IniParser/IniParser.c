@@ -7,7 +7,7 @@
 
 #include "IniParser.h"
 
-IniParser *this = NULL;
+static IniParser *this = NULL;
 
 /*
 *   Private Functions Declarations

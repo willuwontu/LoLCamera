@@ -38,7 +38,7 @@
 	do {_error("[!] (%s) " msg "\n", __FUNCTION__, ##__VA_ARGS__); system("pause");} while(0)
 
 #define important(msg, ...) \
-	do {_error("[!] (%s) " msg "\n", __FUNCTION__, ##__VA_ARGS__);} while(0)
+	do {_error("[!] " msg "\n", ##__VA_ARGS__);} while(0)
 
 #define info(msg, ...) \
 	do {_info("[+] " msg "\n", ##__VA_ARGS__);} while(0)
