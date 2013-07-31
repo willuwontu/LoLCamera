@@ -3,7 +3,7 @@
 static BOOL 	 camera_search_signatures (unsigned char *pattern, char *mask, char *name, DWORD **addr, int size, BbQueue *addresses);
 static BOOL      camera_search_signature  (unsigned char *pattern, DWORD *addr, unsigned char **code_ptr, char *mask, char *name);
 static Patch *   camera_get_patch         (MemProc *mp, char *description, DWORD *addr, unsigned char *sig, char *sig_mask, unsigned char *patch, char *patch_mask);
-static void      camera_get_patches       (Patch **patches, int size, MemProc *mp, char *description, DWORD **addrs, unsigned char *sig, char *sig_mask, unsigned char *patch, char *patch_mask);
+void     		 camera_get_patches       (Patch **patches, int size, MemProc *mp, char *description, DWORD **addrs, unsigned char *sig, char *sig_mask, unsigned char *patch, char *patch_mask);
 
 BOOL camera_scan_patch ()
 {
@@ -130,9 +130,9 @@ BOOL camera_scan_patch ()
 			0xF3,0x0F,0x10,0x44,0x24,0x1C,
 			0xF3,0x0F,0x10,0x4C,0x24,0x20,
 			0xF3,0x0F,0x10,0x54,0x24,0x24,
-			0xF3,0x0F,0x11,0x1D,0x8C,0x4B,0xBA,0x01,
-			0xF3,0x0F,0x11,0x25,0x90,0x4B,0xBA,0x01,
-			0xF3,0x0F,0x11,0x2D,0x94,0x4B,0xBA,0x01
+			0xF3,0x0F,0x11,0x1D,0x8C,0x4B,	0xBA,0x01,
+			0xF3,0x0F,0x11,0x25,0x90,0x4B,	0xBA,0x01,
+			0xF3,0x0F,0x11,0x2D,0x94,0x4B,	0xBA,0x01
 		},
 			"xxx???"
 			"xxx???"
@@ -324,18 +324,19 @@ BOOL camera_scan_patch ()
 			"xxxxxxxx"
 	);
 
+/*
 	camera_get_patches (this->F2345_pressed, 2,
 		this->mp, "Center the camera on the ally X when FX is pressed",
 		(DWORD *[2]) {
 			&this->allies_cam_addr[0],
 			&this->allies_cam_addr[1]
 		},
-		/*
-			00A47860  ║·  D946 68               fld [dword ds:esi+68]
-			00A47863  ║·  D95B 14               fstp [dword ds:ebx+14]
-			00A47866  ║·  D946 70               fld [dword ds:esi+70]
-			00A47869  ║·  D95B 1C               fstp [dword ds:ebx+1C]
-		*/
+		//
+		//	00A47860  ║·  D946 68               fld [dword ds:esi+68]
+		//	00A47863  ║·  D95B 14               fstp [dword ds:ebx+14]
+		//	00A47866  ║·  D946 70               fld [dword ds:esi+70]
+		//	00A47869  ║·  D95B 1C               fstp [dword ds:ebx+1C]
+		//
 
 		(unsigned char []) {
 			"\xD9\x46\x6C" // xx?
@@ -357,6 +358,7 @@ BOOL camera_scan_patch ()
 			"xxx"
 			"xxx"
 	);
+*/
 
 	this->patchlist = patch_list_get();
 
@@ -402,7 +404,7 @@ BOOL camera_scan_campos ()
 
 	if (!res)
 	{
-		warning("Cannot find %s address\nUsing the .ini value : 0x%.8x", description, this->entities_addr);
+		warning("Cannot find %s address", description);
 		return FALSE;
 	}
 
@@ -473,7 +475,7 @@ BOOL camera_scan_hover_interface ()
 
 	if (!res)
 	{
-		warning("Cannot find HoverInterface address\nUsing the .ini value : 0x%.8x", this->interface_hovered_addr);
+		warning("Cannot find HoverInterface address");
 		return FALSE;
 	}
 
@@ -528,7 +530,7 @@ BOOL camera_scan_loading ()
 
 	if (!res)
 	{
-		warning("Cannot find loading state address\nUsing the .ini value : 0x%.8x", this->loading_state_addr);
+		warning("Cannot find loading state address\n");
 		return FALSE;
 	}
 
@@ -585,7 +587,7 @@ BOOL camera_scan_game_state ()
 
 	if (!res)
 	{
-		warning("Cannot find game state address\nUsing the .ini value : 0x%.8x", this->game_state_addr);
+		warning("Cannot find game state address");
 		return FALSE;
 	}
 
@@ -654,7 +656,7 @@ BOOL camera_scan_game_struct ()
 
 	if (!res)
 	{
-		warning("Cannot find game struct address\nUsing the .ini value : 0x%.8x", this->game_struct_addr);
+		warning("Cannot find game struct address");
 		return FALSE;
 	}
 
@@ -966,7 +968,7 @@ BOOL camera_scan_hovered_champ ()
 
 	if (!res)
 	{
-		warning("Cannot find entity hovered address\nUsing the .ini value : 0x%.8x", this->entity_hovered_addr);
+		warning("Cannot find entity hovered address");
 		return FALSE;
 	}
 
@@ -1038,7 +1040,7 @@ BOOL camera_scan_victory ()
 
 	if (!res)
 	{
-		warning("Cannot find VictoryState address\nUsing the .ini value : 0x%.8x", this->victory_state_addr);
+		warning("Cannot find VictoryState address");
 		return FALSE;
 	}
 
@@ -1092,7 +1094,7 @@ BOOL camera_scan_champions ()
 
 	if (!res)
 	{
-		warning("Cannot find entities array address\nUsing the .ini value : 0x%.8x", this->entities_addr);
+		warning("Cannot find entities array address");
 		return FALSE;
 	}
 
@@ -1209,7 +1211,7 @@ BOOL camera_scan_mouse_screen ()
 
 	if (!res)
 	{
-		warning("Cannot find mouse_screen_ptr address\nUsing the .ini value : 0x%.8x", this->mouse_screen_ptr);
+		warning("Cannot find mouse_screen_ptr address");
 		return FALSE;
 	}
 
@@ -1265,7 +1267,7 @@ BOOL camera_scan_win_is_opened ()
 
 	if (!res)
 	{
-		warning("Cannot find win_is_opened_ptr address\nUsing the .ini value : 0x%.8x", this->win_is_opened_ptr);
+		warning("Cannot find win_is_opened_ptr address");
 		return FALSE;
 	}
 
@@ -1462,7 +1464,7 @@ static Patch *camera_get_patch (MemProc *mp, char *description, DWORD *addr, uns
 	return patch_new (description, mp, *addr, code, sig, patch, patch_mask);
 }
 
-static void camera_get_patches (Patch **patches, int size, MemProc *mp, char *description, DWORD **addrs, unsigned char *sig, char *sig_mask, unsigned char *patch, char *patch_mask)
+void camera_get_patches (Patch **patches, int size, MemProc *mp, char *description, DWORD **addrs, unsigned char *sig, char *sig_mask, unsigned char *patch, char *patch_mask)
 {
 	BbQueue *addresses = bb_queue_new();
 	unsigned char *code = NULL;

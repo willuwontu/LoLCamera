@@ -52,6 +52,9 @@
 #define infob(msg, ...) \
 	do {_info("[+] " msg, ##__VA_ARGS__);} while(0)
 
+#define infobn(msg, ...) \
+	do {_info(msg, ##__VA_ARGS__);} while(0)
+
 
 
 

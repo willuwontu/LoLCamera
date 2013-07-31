@@ -31,11 +31,18 @@ int main()
 	{
 		if (state == WAIT_FOR_END_OF_GAME)
 		{
+			int already_displayed_message = FALSE;
+
 			while (mp->proc)
 			{
 				memproc_refresh_handle(mp);
 				Sleep(5000);
-				info("Waiting for the end of the game... 5s pause");
+
+				if (!already_displayed_message)
+				{
+					info("Waiting for the end of the game...");
+					already_displayed_message = TRUE;
+				}
 			}
 		}
 

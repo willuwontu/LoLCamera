@@ -14,6 +14,7 @@ memproc_new (char *process_name, char *window_name)
 	mp->process_name = process_name;
 	mp->window_name = window_name;
 	mp->base_addr = 0;
+	mp->default_baseaddr = 0;
 
 	memproc_refresh_handle(mp);
 

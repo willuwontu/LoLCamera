@@ -1,7 +1,5 @@
 #include "LoLCamera.h"
 
-#define TOGGLE_KEY	 VK_F11   // which key toggles the camera adjustments
-
 // Singleton
 static Camera *this = NULL;
 
@@ -39,6 +37,8 @@ static void camera_toggle (BOOL enable)
 
 	// Enable / Disable patches
 	patch_list_set(this->patchlist, this->enabled);
+
+	info("LoLCamera %s.", (this->enabled) ? "enabled" : "disabled");
 }
 
 
@@ -179,9 +179,8 @@ static BOOL camera_is_translated ()
 
 static void camera_debug_mode ()
 {
-	if (GetKeyState('W') < 0
-	&&  GetKeyState('X') < 0
-	&&  GetKeyState('C') < 0)
+	if (GetKeyState('G') < 0
+	&&  GetKeyState('H') < 0)
 	{
 		if (!this->dbg_mode)
 		{
@@ -263,7 +262,8 @@ static CameraTrackingMode camera_get_mode ()
 
 	// Following ally & ennemies champions
 	if (camera_follow_champion_requested ())
-		return FollowEntity;
+		//return FollowEntity;
+		return NoMove;
 
 	// If our champion is dead, set free mode
 	if (entity_is_dead(this->self))
@@ -289,9 +289,10 @@ static BOOL camera_follow_champion_requested ()
 	{
 		if (GetKeyState(keys[i]) < 0 && this->team_size > i)
 		{
-			this->followed_entity = this->champions[i];
-			this->fxstate = (this->fxstate) ? this->fxstate : 1;
-			fx_pressed = TRUE;
+			//this->followed_entity = this->champions[i];
+			//this->fxstate = (this->fxstate) ? this->fxstate : 1;
+			//fx_pressed = TRUE;
+			return TRUE;
 		}
 	}
 
@@ -390,13 +391,24 @@ BOOL camera_wait_for_ingame ()
 		return TRUE;
 
 	// Wait here
+	int already_displayed_message = FALSE;
 	while (!read_memory_as_int(this->mp->proc, this->loading_state_addr))
 	{
 		if (exit_request())
 			exit(0);
 
 		waited = TRUE;
-		info("Loading screen detected - Retry in 3seconds.", this->loading_state_addr);
+
+		if (!already_displayed_message)
+		{
+			infob("Loading screen detected", this->loading_state_addr);
+			already_displayed_message = TRUE;
+		}
+		else
+		{
+			infobn(".");
+		}
+
 		Sleep(3000);
 	}
 
