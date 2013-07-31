@@ -1,5 +1,5 @@
 /**
-*	Discussion thread	: http://www.reddit.com/r/leagueoflegends/comments/1bo5eg/new_camera_idea_my_solution/
+*	Discussion thread	: http://www.reddit.com/r/leagueoflegends/comments/1jgfn8/lolcamera_first_release_tool/
 *	Source				: https://github.com/Spl3en/LoLCamera
 */
 
@@ -12,8 +12,8 @@ int main()
 	MemProc *mp = NULL;
 
 	console_set_size(1200, 600);
-	important("Sources      : https://github.com/Spl3en/LoLCamera");
-	important("Last version : https://sourceforge.net/projects/lolcamera/files");
+	important("Sources & Hotkeys : https://github.com/Spl3en/LoLCamera");
+	important("Last .exe version : https://sourceforge.net/projects/lolcamera/files");
 	important("------------------------------------------------------------------");
 	important("Keep pressing X in this console to exit safely (strongly recommanded)");
 	important("------------------------------------------------------------------");
