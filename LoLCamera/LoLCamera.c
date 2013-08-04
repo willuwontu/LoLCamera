@@ -30,6 +30,7 @@ static BOOL camera_restore_requested ();
 static void camera_toggle (BOOL enable);
 static BOOL camera_is_translated ();
 static void camera_translate_toggle (BOOL enable);
+BOOL camera_interface_is_hovered ();
 
 static void camera_toggle (BOOL enable)
 {
@@ -40,7 +41,6 @@ static void camera_toggle (BOOL enable)
 
 	info("LoLCamera %s.", (this->enabled) ? "enabled" : "disabled");
 }
-
 
 static BOOL camera_is_enabled ()
 {
@@ -74,6 +74,7 @@ static BOOL camera_center_requested ()
         this->hint_entity = NULL;
         camera_translation_reset();
         mempos_set(this->cam, this->champ->v.x, this->champ->v.y);
+        vector2D_set_zero(&this->lmb);
 
         return TRUE;
     }
@@ -94,25 +95,27 @@ static void camera_save_state ()
 
 static BOOL camera_left_click ()
 {
+	// If the LMB - champ is too close or too far, reset
+	float lmb_champ_distance = vector2D_distance_between(&this->lmb, &this->champ->v);
+
+	if (lmb_champ_distance > 1500.0 || lmb_champ_distance < 300.0)
+		vector2D_set_zero(&this->lmb);
+
 	if (GetKeyState(VK_LBUTTON) < 0)
 	{
-		// Attempt to fix issue #8 (Minimap click-hold, then return problem)
-		float distance_mouse_champ = vector2D_distance(&this->mouse->v, &this->champ->v);
+		this->lbutton_state = 1;
 
-		// we don't want to stop the camera when we click around the champion
-		if (distance_mouse_champ > 2500.0)
+		// We want to move the camera only when we click on the minimap
+		if (camera_interface_is_hovered())
 		{
 			switch (this->lbutton_state)
 			{
 				case 0:
-					// Force polling before saving the camera
-					this->request_polling = TRUE;
-					this->lbutton_state = 1;
 				break;
 
 				case 1:
-					camera_save_state();
 					this->lbutton_state = 2;
+					camera_save_state();
 				break;
 
 				case 2:
@@ -125,10 +128,21 @@ static BOOL camera_left_click ()
 
 	else
 	{
-		if (this->lbutton_state == 2)
+		// On release
+		switch (this->lbutton_state)
 		{
-			// On release
-			this->restore_tmpcam = TRUE;
+			case 1:
+			{
+				// Save LMB position
+				float x, y;
+				vector2D_get_pos(&this->mouse->v, &x, &y);
+				vector2D_set_pos(&this->lmb, x, y);
+			}
+			break;
+
+			case 2:
+				this->restore_tmpcam = TRUE;
+			break;
 		}
 
 		this->lbutton_state = 0;
@@ -318,6 +332,10 @@ void camera_init (MemProc *mp)
 	if (this == NULL)
 		this = calloc(sizeof(Camera), 1);
 
+	// Allocation error
+	if (this == NULL)
+		fatal_error("Not enough memory for starting LoLCamera.");
+
 	this->enabled = TRUE;
 	this->mp = mp;
 	this->active = FALSE;
@@ -331,6 +349,7 @@ void camera_init (MemProc *mp)
 	memset(this->champions, 0, sizeof(Entity *));
 
 	// Read static vars from .ini
+	this->section_settings_name = "Default";
 	camera_load_ini();
 
 	// Get loading screen address
@@ -377,10 +396,16 @@ void camera_init (MemProc *mp)
 		camera_export_to_cheatengine();
 
 	// Load settings associated with champ name
+	this->section_settings_name = this->self->champ_name;
 	camera_load_settings(this->self->champ_name);
 
 	memset(this->nearby, 0, sizeof(this->nearby));
 	this->active = TRUE;
+}
+
+BOOL bypass_login_screen_request (int key)
+{
+	return (key == 'p' || key == 'P');
 }
 
 BOOL camera_wait_for_ingame ()
@@ -394,14 +419,23 @@ BOOL camera_wait_for_ingame ()
 	int already_displayed_message = FALSE;
 	while (!read_memory_as_int(this->mp->proc, this->loading_state_addr))
 	{
-		if (exit_request())
-			exit(0);
+		int key;
+
+		if ((key = get_kb()) != -1)
+		{
+			// User input
+			if (bypass_login_screen_request(key))
+				break;
+
+			if (exit_request(key))
+				exit(0);
+		}
 
 		waited = TRUE;
 
 		if (!already_displayed_message)
 		{
-			infob("Loading screen detected", this->loading_state_addr);
+			infob("Loading screen detected.\nKeep pressing 'P' if you wish to bypass that detection (only if you are already in game).\n");
 			already_displayed_message = TRUE;
 		}
 		else
@@ -409,8 +443,11 @@ BOOL camera_wait_for_ingame ()
 			infobn(".");
 		}
 
-		Sleep(3000);
+		Sleep(1000);
 	}
+
+	if (already_displayed_message)
+		printf("\n");
 
 	return waited;
 }
@@ -487,6 +524,7 @@ BOOL camera_update ()
 	// Manage camera states
 	camera_entity_manager();
 	camera_middle_click();
+	camera_left_click();
 	camera_debug_mode();
 
 	struct refreshFunctions { BOOL (*func)(); void *arg; char *desc; } refresh_funcs [] =
@@ -560,18 +598,25 @@ void camera_set_tracking_mode (CameraTrackingMode *out_mode)
 	*out_mode = mode;
 }
 
-BOOL exit_request ()
+int get_kb ()
 {
 	if (kbhit())
 	{
-		char c = getch();
-		// Interrupt request
-
-		if (c == 'X' || c == 'x')
-			return TRUE;
+		int c = (int) getch();
+		return c;
 	}
 
-	return FALSE;
+	return -1;
+}
+
+BOOL exit_request (int c)
+{
+	return (c == 'X' || c == 'x');
+}
+
+BOOL reload_ini_request (int c)
+{
+	return (c == 'R' || c == 'r');
 }
 
 void camera_save_last_campos (Vector2D *campos)
@@ -587,8 +632,20 @@ LoLCameraState camera_main ()
 
 	while (this->active)
 	{
-		if (exit_request())
-			return END_OF_LOLCAMERA;
+		int key;
+
+		// User input
+		if ((key = get_kb()) != -1)
+		{
+			if (reload_ini_request(key))
+			{
+				info("Reloading ini...");
+				camera_load_ini();
+			}
+
+			if (exit_request(key))
+				return END_OF_LOLCAMERA;
+		}
 
 		Sleep(this->sleep_time);
 
@@ -709,6 +766,7 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 	float drag_x = 0.0, drag_y = 0.0;
 	float hint_x = 0.0, hint_y = 0.0;
 	float average_x = 0.0, average_y = 0.0;
+	float lmb_x = 0.0, lmb_y = 0.0;
 
 	switch (camera_mode)
 	{
@@ -755,11 +813,20 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 			float champ_weight = this->champ_weight;
 			float mouse_weight = this->mouse_weight;
 			float dest_weight  = this->dest_weight;
+			float lmb_weight   = this->lmb_weight;
 
 			// Optional weights
 			float hint_weight    = 0.0;
 			float focus_weight   = 0.0;
 			float global_weight  = 0.0;
+			lmb_x = this->lmb.x;
+			lmb_y = this->lmb.y;
+
+			// LMB is not set
+			if (lmb_x == 0 || lmb_y == 0)
+			{
+				lmb_weight = 0.0;
+			}
 
 			if (this->drag_request)
 			{
@@ -823,7 +890,7 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 					// if the mouse is far from dest, reduce dest weight (mouse is more important)
 					dest_weight = dest_weight / (((distance_mouse_dest - this->champ_settings.mouse_dest_range_max) / 1500.0) + 1);
 
-				weight_sum = champ_weight + mouse_weight + dest_weight + focus_weight + hint_weight + global_weight;
+				weight_sum = champ_weight + mouse_weight + dest_weight + focus_weight + hint_weight + global_weight + lmb_weight;
 			}
 
             // Compute the target (weighted averages)
@@ -834,7 +901,8 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
                     (this->dest->v.x * dest_weight) +
                     (focus_x * focus_weight) +
 					(hint_x * hint_weight) +
-                    (average_x * global_weight)
+                    (average_x * global_weight) +
+                    (this->lmb.x * lmb_weight)
                  ) / weight_sum
 					+ drag_x,
                 (
@@ -843,7 +911,8 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
                     (this->dest->v.y * dest_weight) +
                     (focus_y * focus_weight) +
 					(hint_y * hint_weight) +
-                    (average_y * global_weight)
+                    (average_y * global_weight) +
+                    (this->lmb.y * lmb_weight)
                 ) / weight_sum
 					+ drag_y
             );
@@ -948,53 +1017,13 @@ void camera_load_settings (char *section)
 
 void camera_load_ini ()
 {
-	char *ini_file = "./LoLCamera.ini";
+	IniParser *parser = this->parser;
+
 	// Loading parameters from .ini file :
-	IniParser *parser = ini_parser_new(ini_file);
+	parser = ini_parser_new("./LoLCamera.ini");
 	this->parser = parser;
 
 	ini_parser_reg_and_read(parser);
-
- 	// Addresses
-	this->camx_addr   = strtol(ini_parser_get_value(parser, "camera_posx_addr"), NULL, 16);
-	this->camy_addr   = strtol(ini_parser_get_value(parser, "camera_posy_addr"), NULL, 16);
-	this->champx_addr = strtol(ini_parser_get_value(parser, "champion_posx_addr"), NULL, 16);
-	this->champy_addr = strtol(ini_parser_get_value(parser, "champion_posy_addr"), NULL, 16);
-	this->mousex_addr = strtol(ini_parser_get_value(parser, "mouse_posx_addr"), NULL, 16);
-	this->mousey_addr = strtol(ini_parser_get_value(parser, "mouse_posy_addr"), NULL, 16);
-	this->mouse_screen_ptr = strtol(ini_parser_get_value(parser, "mouse_screen_ptr"), NULL, 16);
-	this->win_is_opened_ptr = strtol(ini_parser_get_value(parser, "win_is_opened_ptr"), NULL, 16);
-	this->respawn_reset_addr = strtol(ini_parser_get_value(parser, "respawn_reset_addr"), NULL, 16);
-	this->border_screen_addr = strtol(ini_parser_get_value(parser, "border_screen_addr"), NULL, 16);
-	this->allies_cam_addr[0] = strtol(ini_parser_get_value(parser, "allies_cam_addr0"), NULL, 16);
-	this->allies_cam_addr[1] = strtol(ini_parser_get_value(parser, "allies_cam_addr1"), NULL, 16);
-	this->self_cam_addr = strtol(ini_parser_get_value(parser, "self_cam_addr"), NULL, 16);
-	this->entities_addr = strtol(ini_parser_get_value(parser, "entities_addr"), NULL, 16);
-	this->entities_addr_end = strtol(ini_parser_get_value(parser, "entities_addr_end"), NULL, 16);
-	this->locked_camera_addr = strtol(ini_parser_get_value(parser, "locked_camera_addr"), NULL, 16);
-	this->loading_state_addr = strtol(ini_parser_get_value(parser, "loading_state_addr"), NULL, 16);
-	this->wait_loading_screen = strtol(ini_parser_get_value(parser, "wait_loading_screen"), NULL, 16);
-	this->output_cheatengine_table = strtol(ini_parser_get_value(parser, "output_cheatengine_table"), NULL, 16);
-	this->camx_addr   = str_hex(ini_parser_get_value(parser, "camera_posx_addr"));
-	this->camy_addr   = str_hex(ini_parser_get_value(parser, "camera_posy_addr"));
-	this->champx_addr = str_hex(ini_parser_get_value(parser, "champion_posx_addr"));
-	this->champy_addr = str_hex(ini_parser_get_value(parser, "champion_posy_addr"));
-	this->mousex_addr = str_hex(ini_parser_get_value(parser, "mouse_posx_addr"));
-	this->mousey_addr = str_hex(ini_parser_get_value(parser, "mouse_posy_addr"));
-	this->destx_addr  = str_hex(ini_parser_get_value(parser, "dest_posx_addr"));
-	this->desty_addr  = str_hex(ini_parser_get_value(parser, "dest_posy_addr"));
-	this->mouse_screen_ptr = str_hex(ini_parser_get_value(parser, "mouse_screen_ptr"));
-	this->win_is_opened_ptr = str_hex(ini_parser_get_value(parser, "win_is_opened_ptr"));
-	this->respawn_reset_addr = str_hex(ini_parser_get_value(parser, "respawn_reset_addr"));
-	this->border_screen_addr = str_hex(ini_parser_get_value(parser, "border_screen_addr"));
-	this->allies_cam_addr[0] = str_hex(ini_parser_get_value(parser, "allies_cam_addr0"));
-	this->allies_cam_addr[1] = str_hex(ini_parser_get_value(parser, "allies_cam_addr1"));
-	this->self_cam_addr = str_hex(ini_parser_get_value(parser, "self_cam_addr"));
-	this->entities_addr = str_hex(ini_parser_get_value(parser, "entities_addr"));
-	this->entities_addr_end = str_hex(ini_parser_get_value(parser, "entities_addr_end"));
-	this->locked_camera_addr = str_hex(ini_parser_get_value(parser, "locked_camera_addr"));
-	this->loading_state_addr = str_hex(ini_parser_get_value(parser, "loading_state_addr"));
-	this->victory_state_addr = str_hex(ini_parser_get_value(parser, "victory_state_addr"));
 
 	// Hotkeys
 	if ((this->translate_key = ini_parser_get_char(parser, "translate_key")) == 0)
@@ -1007,17 +1036,23 @@ void camera_load_ini ()
 		this->center_key  = strtol(ini_parser_get_value(parser, "center_key"), NULL, 16);
 
 	// Settings
+	this->champ_weight = atof(ini_parser_get_value(parser, "champ_weight"));
+	this->mouse_weight = atof(ini_parser_get_value(parser, "mouse_weight"));
+	this->dest_weight  = atof(ini_parser_get_value(parser, "dest_weight"));
+	this->lmb_weight   = atof(ini_parser_get_value(parser, "lmb_weight"));
+
 	this->focus_weight = atof(ini_parser_get_value(parser, "focus_weight"));
 	this->hint_weight  = atof(ini_parser_get_value(parser, "hint_weight"));
-	this->champ_weight = atof(ini_parser_get_value(parser, "champ_weight"));
-	this->dest_weight  = atof(ini_parser_get_value(parser, "dest_weight"));
-	this->mouse_weight = atof(ini_parser_get_value(parser, "mouse_weight"));
+	this->global_weight  = atof(ini_parser_get_value(parser, "global_weight"));
 
 	this->sleep_time  = strtol(ini_parser_get_value(parser, "sleep_time"), NULL, 10); // Time slept between two camera updates (in ms)
 	this->poll_data	  = strtol(ini_parser_get_value(parser, "poll_data"), NULL, 10); // Retrieve data from client every X loops
 
+	this->wait_loading_screen = strtol(ini_parser_get_value(parser, "wait_loading_screen"), NULL, 10);
+	this->pause_seconds_after_minimap_click = strtol(ini_parser_get_value(parser, "pause_seconds_after_minimap_click"), NULL, 10);
+
 	// Champion Settings
-	camera_load_settings("Default");
+	camera_load_settings(this->section_settings_name);
 
 	// Settings - Input checking
 	struct SettingVal {
@@ -1034,6 +1069,9 @@ void camera_load_ini ()
 		if (*(tabSet[i].p.i) == 0)
 			(*tabSet[i].p.i) = tabSet[i].v.i;
 	}
+
+	// Events init
+	event_init(&this->reset_after_minimap_click, this->pause_seconds_after_minimap_click, this->pause_seconds_after_minimap_click);
 }
 
 inline Camera *camera_get_instance ()

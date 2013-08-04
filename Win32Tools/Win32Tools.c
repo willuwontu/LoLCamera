@@ -1423,6 +1423,8 @@ GetFilePointer (HANDLE FileHandle)
 	return SetFilePointer(FileHandle, 0, 0, FILE_CURRENT);
 }
 
+
+
 #if COMPILE_GDI
 int
 save_bmp_file (char *filename, HBITMAP bitmap, HDC bitmapDC, int width, int height)

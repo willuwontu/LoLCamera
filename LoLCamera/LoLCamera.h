@@ -15,6 +15,7 @@
 #include "../Patcher/Patcher.h"
 #include "../Scanner/Scanner.h"
 #include "../MemBuffer/MemBuffer.h"
+#include "../Event/Event.h"
 #include "./Entity.h"
 #include "./CameraSettings.h"
 
@@ -121,17 +122,19 @@ struct _Camera
 	float dest_weight;
 	float mouse_weight;
 	float global_weight;
+	float lmb_weight;
 
 	// Players information
 	int team_size;					// Size of the -team- of the array actually, FIXME
 
-	// Memory positions
+	// Vector positions
 	MemPos *cam;					// Camera ingame position
 	MemPos *champ;					// User champion position
+	MemPos *dest;					// Last Right mouse button click position
 	MemPos *mouse;					// Mouse position
-	MemPos *dest;					// Right click position
 	MemPos *mouse_screen;			// Mouse screen position
 	MemPos tmpcam;					// Temporary Camera state
+	Vector2D lmb;					// Last Left mouse button click position
 
 	// Key states
 	short int last_toggle_state;
@@ -153,6 +156,11 @@ struct _Camera
 	BOOL interface_hovered;
 	int victory_state;
 	Vector2D last_campos;
+	int pause_seconds_after_minimap_click;
+	char *section_settings_name;
+
+	// Events
+	Event reset_after_minimap_click;
 
 	// We need it for loading champion settings
 	IniParser *parser;
@@ -180,7 +188,8 @@ inline void camera_set_active (BOOL active);
 Camera *camera_get_instance ();
 BOOL camera_is_near (MemPos *po, float limit);
 void camera_load_settings (char *section);
-BOOL exit_request ();
+BOOL exit_request (int key);
+int get_kb ();
 
 // from LoLCameraMem.c
 BOOL camera_scan_champions ();

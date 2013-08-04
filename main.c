@@ -56,8 +56,13 @@ int main()
 
 			while (!memproc_refresh_handle(mp))
 			{
-				if (exit_request())
-					return 0;
+				int key;
+				if ((key = get_kb()) != -1)
+				{
+					// User input
+					if (exit_request(key))
+						return 0;
+				}
 
 				Sleep(1000);
 			}

@@ -104,8 +104,8 @@ ini_parser_reg_and_read (IniParser *ip)
 	int endOfLoop = 0;
 	int len = 0;
 	int maxLen = 0;
-	char tmp[1024];
-	char section[1024] = {'\0'};
+	char tmp[1024 * 2];
+	char section[1024 * 2] = {'\0'};
 	int tmp_pos = 0;
 
 	fHandler = fopen(ip->filename, "r");
@@ -161,7 +161,6 @@ ini_parser_reg_and_read (IniParser *ip)
 				strncpy(section, tmp, sizeof(section));
 			}
 		}
-
 
 		if (c == '[' || c == ';')
 		{

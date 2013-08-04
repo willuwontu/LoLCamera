@@ -39,6 +39,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="BbQueue\BbQueue.h" />
+		<Unit filename="Event\Event.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Event\Event.h" />
 		<Unit filename="IniParser\IniParser.c">
 			<Option compilerVar="CC" />
 		</Unit>
