@@ -159,6 +159,7 @@ struct _Camera
 	int ms_after_minimap_click;
 	char *section_settings_name;
 	BOOL wait_for_end_of_pause;
+	BOOL dead_mode;
 
 	// Events
 	Event reset_after_minimap_click;

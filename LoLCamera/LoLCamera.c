@@ -12,7 +12,6 @@ typedef enum {
     NoUpdate,
     EndOfGame,
     ForeGround,
-    InterfaceHovered,
     Free,
     FocusSelf,
     FollowEntity,
@@ -72,6 +71,10 @@ static void camera_sensor_reset ()
 	camera_translation_reset();
 	mempos_set(this->cam, this->champ->v.x, this->champ->v.y);
 	vector2D_set_zero(&this->lmb);
+
+	// Events reset
+	event_stop(&this->reset_after_minimap_click);
+	this->wait_for_end_of_pause = FALSE;
 }
 
 static BOOL camera_center_requested ()
@@ -158,9 +161,19 @@ static BOOL camera_left_click ()
 				// On release click on minimap :
 
 				// Wait before reseting the view
-				event_start_now(&this->reset_after_minimap_click);
-				this->lbutton_state = 3;
-				this->wait_for_end_of_pause = TRUE;
+				if (!this->dead_mode)
+				{
+					event_start_now(&this->reset_after_minimap_click);
+					this->lbutton_state = 3;
+					this->wait_for_end_of_pause = TRUE;
+				}
+				else
+				{
+					// Dead mode : we need to refresh the camera position
+					camera_save_state(&this->cam->v);
+					this->lbutton_state = 0;
+					this->restore_tmpcam = TRUE;
+				}
 			break;
 
 			case 3:
@@ -286,7 +299,7 @@ BOOL camera_reset_conditions ()
 {
 	return (
 		!camera_is_near(this->champ, 3000.0)
-	&&  !entity_is_dead(this->self)
+	&&  !this->dead_mode
 	&&  !this->wait_for_end_of_pause);
 }
 
@@ -328,7 +341,7 @@ static CameraTrackingMode camera_get_mode ()
 		return NoMove;
 
 	// If our champion is dead, set free mode
-	if (entity_is_dead(this->self))
+	if (this->dead_mode)
 		return Free;
 
 	// The champion has been teleported far, focus on the champion
@@ -672,6 +685,11 @@ void camera_save_last_campos (Vector2D *campos)
 	memcpy(&this->last_campos, campos, sizeof(*campos));
 }
 
+void camera_update_states ()
+{
+	this->dead_mode = entity_is_dead(this->self);
+}
+
 LoLCameraState camera_main ()
 {
 	Vector2D target;
@@ -696,6 +714,9 @@ LoLCameraState camera_main ()
 		}
 
 		Sleep(this->sleep_time);
+
+		// Update states
+		camera_update_states();
 
 		// Check if enabled.
 		camera_set_tracking_mode(&camera_mode);
@@ -818,21 +839,20 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 
 	switch (camera_mode)
 	{
-		case InterfaceHovered:
-			memcpy(target, &this->last_campos, sizeof(Vector2D));
-		break;
-
 		case Free:
-			vector2D_set_pos(target,
-                (
-                    (this->mouse->v.x) +
-                    (this->cam->v.x)
-                 ) / 2.0,
-                (
-                    (this->mouse->v.y) +
-                    (this->cam->v.y)
-                ) / 2.0
-            );
+			if (!camera_interface_is_hovered())
+			{
+				vector2D_set_pos(target,
+					(
+						(this->mouse->v.x) +
+						(this->cam->v.x)
+					 ) / 2.0,
+					(
+						(this->mouse->v.y) +
+						(this->cam->v.y)
+					) / 2.0
+				);
+			}
 		break;
 
 		case RestoreCam :
