@@ -160,6 +160,7 @@ static BOOL camera_left_click ()
 				// Wait before reseting the view
 				event_start_now(&this->reset_after_minimap_click);
 				this->lbutton_state = 3;
+				this->wait_for_end_of_pause = TRUE;
 			break;
 
 			case 3:
@@ -168,8 +169,8 @@ static BOOL camera_left_click ()
 				{
 					event_stop(&this->reset_after_minimap_click);
 					this->restore_tmpcam = TRUE;
-					this->lbutton_state  = 0;
 					this->wait_for_end_of_pause = FALSE;
+					this->lbutton_state  = 0;
 				}
 				else
 				{
@@ -281,6 +282,14 @@ BOOL camera_is_freezing ()
 	return (this->wait_for_end_of_pause == TRUE);
 }
 
+BOOL camera_reset_conditions ()
+{
+	return (
+		!camera_is_near(this->champ, 3000.0)
+	&&  !entity_is_dead(this->self)
+	&&  !this->wait_for_end_of_pause);
+}
+
 static CameraTrackingMode camera_get_mode ()
 {
 	// End of game = end of LoLCamera
@@ -316,7 +325,6 @@ static CameraTrackingMode camera_get_mode ()
 
 	// Following ally & ennemies champions
 	if (camera_follow_champion_requested ())
-		//return FollowEntity;
 		return NoMove;
 
 	// If our champion is dead, set free mode
@@ -324,8 +332,8 @@ static CameraTrackingMode camera_get_mode ()
 		return Free;
 
 	// The champion has been teleported far, focus on the champion
-	// if (!camera_is_near(this->champ, 3000.0) && !entity_is_dead(this->self))
-	//	return FocusSelf;
+	if (camera_reset_conditions())
+		return FocusSelf;
 
 	// User hovered the interface, moving the camera uselessly
 	if (camera_interface_is_hovered())
