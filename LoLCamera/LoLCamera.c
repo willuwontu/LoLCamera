@@ -62,20 +62,25 @@ static void camera_translation_reset ()
 	vector2D_set_pos(&this->distance_translation, 0.0, 0.0);
 }
 
+static void camera_sensor_reset ()
+{
+    // Polling data is requested because we want to center the camera exactly where the champion is
+	this->request_polling = TRUE;
+
+	this->focused_entity = NULL;
+	this->hint_entity = NULL;
+	camera_translation_reset();
+	mempos_set(this->cam, this->champ->v.x, this->champ->v.y);
+	vector2D_set_zero(&this->lmb);
+}
+
 static BOOL camera_center_requested ()
 {
 	// Disable when space / F1 is pressed
 	if ((GetKeyState(this->center_key) < 0 || (GetKeyState(VK_F1) < 0))
 	 && (this->interface_opened != LOLCAMERA_CHAT_OPENED_VALUE))
     {
-    	// Polling data is requested because we want to center the camera exactly where the champion is
-        this->request_polling = TRUE;
-        this->focused_entity = NULL;
-        this->hint_entity = NULL;
-        camera_translation_reset();
-        mempos_set(this->cam, this->champ->v.x, this->champ->v.y);
-        vector2D_set_zero(&this->lmb);
-
+		camera_sensor_reset();
         return TRUE;
     }
 
@@ -84,23 +89,29 @@ static BOOL camera_center_requested ()
 
 static BOOL camera_restore_requested ()
 {
-	return this->restore_tmpcam;
+	if (this->restore_tmpcam)
+	{
+		camera_sensor_reset();
+		return TRUE;
+	}
+
+	return FALSE;
 }
 
-static void camera_save_state ()
+static void camera_save_state (Vector2D *vector)
 {
-	memcpy(&this->tmpcam, this->cam, sizeof(this->cam));
-	memcpy(&this->tmpcam.v, &this->cam->v, sizeof(this->cam->v));
+	memcpy(&this->tmpcam.v, vector, sizeof(Vector2D));
+}
+
+static void save_lmb_pos ()
+{
+	float x, y;
+	vector2D_get_pos(&this->mouse->v, &x, &y);
+	vector2D_set_pos(&this->lmb, x, y);
 }
 
 static BOOL camera_left_click ()
 {
-	// If the LMB - champ is too close or too far, reset
-	float lmb_champ_distance = vector2D_distance_between(&this->lmb, &this->champ->v);
-
-	if (lmb_champ_distance > 1500.0 || lmb_champ_distance < 300.0)
-		vector2D_set_zero(&this->lmb);
-
 	if (GetKeyState(VK_LBUTTON) < 0)
 	{
 		this->lbutton_state = 1;
@@ -115,7 +126,7 @@ static BOOL camera_left_click ()
 
 				case 1:
 					this->lbutton_state = 2;
-					camera_save_state();
+					camera_save_state(&this->champ->v);
 				break;
 
 				case 2:
@@ -131,21 +142,42 @@ static BOOL camera_left_click ()
 		// On release
 		switch (this->lbutton_state)
 		{
+			default :
+				this->lbutton_state = 0;
+			break;
+
 			case 1:
-			{
+				// On release click anywhere :
+
 				// Save LMB position
-				float x, y;
-				vector2D_get_pos(&this->mouse->v, &x, &y);
-				vector2D_set_pos(&this->lmb, x, y);
-			}
+				save_lmb_pos();
+				this->lbutton_state = 0;
 			break;
 
 			case 2:
-				this->restore_tmpcam = TRUE;
+				// On release click on minimap :
+
+				// Wait before reseting the view
+				event_start_now(&this->reset_after_minimap_click);
+				this->lbutton_state = 3;
+			break;
+
+			case 3:
+				// Wait the end of the event before reseting
+				if (event_update(&this->reset_after_minimap_click))
+				{
+					event_stop(&this->reset_after_minimap_click);
+					this->restore_tmpcam = TRUE;
+					this->lbutton_state  = 0;
+					this->wait_for_end_of_pause = FALSE;
+				}
+				else
+				{
+					this->wait_for_end_of_pause = TRUE;
+				}
 			break;
 		}
 
-		this->lbutton_state = 0;
 	}
 
 
@@ -244,6 +276,11 @@ BOOL camera_interface_is_hovered ()
 	return (this->interface_hovered == 1);
 }
 
+BOOL camera_is_freezing ()
+{
+	return (this->wait_for_end_of_pause == TRUE);
+}
+
 static CameraTrackingMode camera_get_mode ()
 {
 	// End of game = end of LoLCamera
@@ -263,6 +300,9 @@ static CameraTrackingMode camera_get_mode ()
 	// A temporary camera has been saved, now is coming the time to restore it
 	if (camera_restore_requested())
 		return RestoreCam;
+
+	if (camera_is_freezing())
+		return NoMove;
 
 	if (camera_translate())
 		return isTranlating;
@@ -284,12 +324,12 @@ static CameraTrackingMode camera_get_mode ()
 		return Free;
 
 	// The champion has been teleported far, focus on the champion
-	if (!camera_is_near(this->champ, 3000.0) && !entity_is_dead(this->self))
-		return FocusSelf;
+	// if (!camera_is_near(this->champ, 3000.0) && !entity_is_dead(this->self))
+	//	return FocusSelf;
 
 	// User hovered the interface, moving the camera uselessly
 	if (camera_interface_is_hovered())
-		return InterfaceHovered;
+		return NoMove;
 
     return Normal;
 }
@@ -320,7 +360,7 @@ static BOOL camera_follow_champion_requested ()
 
 	if (this->fxstate == 1)
 	{
-		camera_save_state();
+		camera_save_state(&this->champ->v);
 		this->fxstate = 2;
 	}
 
@@ -621,7 +661,7 @@ BOOL reload_ini_request (int c)
 
 void camera_save_last_campos (Vector2D *campos)
 {
-	memcpy(&this->last_campos, campos, sizeof(Vector2D));
+	memcpy(&this->last_campos, campos, sizeof(*campos));
 }
 
 LoLCameraState camera_main ()
@@ -881,10 +921,10 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 
 				// adjust weights based on distance
 				if (distance_dest_champ > this->champ_settings.dest_range_max)
-					dest_weight = 1.0 / (((distance_dest_champ - this->champ_settings.dest_range_max) * dest_falloff_rate) + 1.0);
+					dest_weight *= 1.0 / (((distance_dest_champ - this->champ_settings.dest_range_max) * dest_falloff_rate) + 1.0);
 
 				if (distance_mouse_champ > this->champ_settings.mouse_range_max)
-					mouse_weight = 1.0 / (((distance_mouse_champ - this->champ_settings.mouse_range_max) * mouse_falloff_rate) + 1.0);
+					mouse_weight *= 1.0 / (((distance_mouse_champ - this->champ_settings.mouse_range_max) * mouse_falloff_rate) + 1.0);
 
 				if (distance_mouse_dest > this->champ_settings.mouse_dest_range_max)
 					// if the mouse is far from dest, reduce dest weight (mouse is more important)
@@ -1049,7 +1089,7 @@ void camera_load_ini ()
 	this->poll_data	  = strtol(ini_parser_get_value(parser, "poll_data"), NULL, 10); // Retrieve data from client every X loops
 
 	this->wait_loading_screen = strtol(ini_parser_get_value(parser, "wait_loading_screen"), NULL, 10);
-	this->pause_seconds_after_minimap_click = strtol(ini_parser_get_value(parser, "pause_seconds_after_minimap_click"), NULL, 10);
+	this->ms_after_minimap_click = strtol(ini_parser_get_value(parser, "ms_after_minimap_click"), NULL, 10);
 
 	// Champion Settings
 	camera_load_settings(this->section_settings_name);
@@ -1071,7 +1111,7 @@ void camera_load_ini ()
 	}
 
 	// Events init
-	event_init(&this->reset_after_minimap_click, this->pause_seconds_after_minimap_click, this->pause_seconds_after_minimap_click);
+	event_init(&this->reset_after_minimap_click, this->ms_after_minimap_click, this->ms_after_minimap_click);
 }
 
 inline Camera *camera_get_instance ()

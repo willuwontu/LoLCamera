@@ -135,6 +135,7 @@ struct _Camera
 	MemPos *mouse_screen;			// Mouse screen position
 	MemPos tmpcam;					// Temporary Camera state
 	Vector2D lmb;					// Last Left mouse button click position
+	Vector2D last_campos;				// Last camera position
 
 	// Key states
 	short int last_toggle_state;
@@ -155,9 +156,9 @@ struct _Camera
 	BOOL output_cheatengine_table;		// Output the adresses in CheatEngineTable format in "out.ct"
 	BOOL interface_hovered;
 	int victory_state;
-	Vector2D last_campos;
-	int pause_seconds_after_minimap_click;
+	int ms_after_minimap_click;
 	char *section_settings_name;
+	BOOL wait_for_end_of_pause;
 
 	// Events
 	Event reset_after_minimap_click;
