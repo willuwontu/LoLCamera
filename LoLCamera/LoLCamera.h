@@ -44,6 +44,7 @@ struct _Camera
 	DWORD players_addr;				// Address of the data : entities array start
 	DWORD players_addr_end;			// Address of the data : entities array end
 	DWORD camx_addr, camy_addr; 	// Address of the data : cameraX, cameray
+	DWORD camsb_addr;				// Address of the event : Mouse Screen Border
 	DWORD champx_addr, champy_addr;	// Address of the data : championX / championY
 	DWORD mousex_addr, mousey_addr; // Address of the data : mouseX / mouseY
 	DWORD destx_addr, desty_addr;   // Address of the data : destX / destY (right click)
@@ -83,7 +84,7 @@ struct _Camera
 	// Settings
 	CameraSettings all_settings[200]; // Champion specific settings
 	CameraSettings champ_settings;	  // Current champion settings
-	float lerp_rate;				// This controls smoothing, smaller values mean slower camera movement
+	float camera_scroll_speed;				// This controls smoothing, smaller values mean slower camera movement
 	float threshold;				// Minimum threshold before calculations halted because camera is "close enough"
 									// Controls the range at which these factors start falling off :
 	float mouse_range_max,			// mouse-champ range
@@ -144,7 +145,6 @@ struct _Camera
 	int fxstate;						// Fx is pressed ?
 
 	// Program state
-	BOOL global_entities;			        // Position the camera according to entities position
 	BOOL restore_tmpcam;				// Request to restore the temporary camera
 	BOOL drag_request;					// User requested a drag
 	BOOL active;						// Loop state
@@ -160,6 +160,7 @@ struct _Camera
 	char *section_settings_name;
 	BOOL wait_for_end_of_pause;
 	BOOL dead_mode;
+	BOOL screen_border_reached;
 
 	// Events
 	Event reset_after_minimap_click;
@@ -215,6 +216,7 @@ BOOL camera_wait_for_ingame ();
 BOOL camera_refresh_victory ();
 BOOL camera_refresh_entities_nearby ();
 BOOL camera_refresh_hover_interface ();
+BOOL camera_refresh_screen_border ();
 
 
 // from CameraUnitTest.c

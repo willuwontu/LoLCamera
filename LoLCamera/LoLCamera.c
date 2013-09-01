@@ -22,7 +22,7 @@ typedef enum {
 
 // Static functions declaration
 static void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode);
-static void camera_compute_lerp_rate (float *lerp_rate, CameraTrackingMode camera_mode);
+static void camera_compute_camera_scroll_speed (float *camera_scroll_speed, CameraTrackingMode camera_mode);
 BOOL camera_entity_is_near (Entity *e, float limit);
 static BOOL camera_follow_champion_requested ();
 static BOOL camera_restore_requested ();
@@ -602,6 +602,7 @@ BOOL camera_update ()
 		{.func = camera_refresh_victory,	    .arg = NULL,				.desc = "Victory State"},
 		{.func = camera_refresh_entities_nearby,.arg = NULL,				.desc = "Nearby champions"},
 		{.func = camera_refresh_hover_interface,.arg = NULL,				.desc = "Hover Interface"},
+		{.func = camera_refresh_screen_border,  .arg = NULL,                .desc = "ScreenBorder detection"}
 	};
 
 	if (frame_count++ % this->poll_data == 0 || this->request_polling)
@@ -693,7 +694,7 @@ void camera_update_states ()
 LoLCameraState camera_main ()
 {
 	Vector2D target;
-	float lerp_rate;
+	float camera_scroll_speed;
 	CameraTrackingMode camera_mode;
 
 	while (this->active)
@@ -744,15 +745,15 @@ LoLCameraState camera_main ()
 		// Compute target
 		camera_compute_target(&target, camera_mode);
 
-		// Compute lerp rate
-		camera_compute_lerp_rate(&lerp_rate, camera_mode);
+		// Compute Camera Scroll Speed
+		camera_compute_camera_scroll_speed (&camera_scroll_speed, camera_mode);
 
         // Smoothing
 		if (abs(target.x - this->cam->v.x) > this->champ_settings.threshold)
-			this->cam->v.x += (target.x - this->cam->v.x) * lerp_rate;
+			this->cam->v.x += (target.x - this->cam->v.x) * camera_scroll_speed;
 
 		if (abs(target.y - this->cam->v.y) > this->champ_settings.threshold)
-			this->cam->v.y += (target.y - this->cam->v.y) * lerp_rate;
+			this->cam->v.y += (target.y - this->cam->v.y) * camera_scroll_speed;
 
 		// Keep this just before mempos_set(this->cam, x, y)
         if (camera_mode == NoMove)
@@ -768,18 +769,18 @@ LoLCameraState camera_main ()
 	return WAIT_FOR_NEW_GAME;
 }
 
-static void camera_compute_lerp_rate (float *lerp_rate, CameraTrackingMode camera_mode)
+static void camera_compute_camera_scroll_speed (float *camera_scroll_speed, CameraTrackingMode camera_mode)
 {
-	float local_lerp_rate = this->champ_settings.lerp_rate;
+	float local_camera_scroll_speed = this->champ_settings.camera_scroll_speed;
 
 	switch (camera_mode)
 	{
 		case Translate:
-			local_lerp_rate = local_lerp_rate * 5;
+			local_camera_scroll_speed = local_camera_scroll_speed * 5;
 		break;
 
 		case isTranlating:
-			local_lerp_rate = local_lerp_rate * 1;
+			local_camera_scroll_speed = local_camera_scroll_speed * 1;
 		break;
 
 		case RestoreCam:
@@ -787,14 +788,14 @@ static void camera_compute_lerp_rate (float *lerp_rate, CameraTrackingMode camer
 
 		case CenterCam:
 			// adjust camera smoothing rate when center camera
-			local_lerp_rate = local_lerp_rate * 5;
+			local_camera_scroll_speed = local_camera_scroll_speed * 5;
 		break;
 
 		case FollowEntity:
 		break;
 
 		case Free:
-			local_lerp_rate = local_lerp_rate * 2;
+			local_camera_scroll_speed = local_camera_scroll_speed * 2;
 		break;
 
 		case Normal:
@@ -811,7 +812,7 @@ static void camera_compute_lerp_rate (float *lerp_rate, CameraTrackingMode camer
 		break;
 	}
 
-	*lerp_rate = local_lerp_rate;
+	*camera_scroll_speed = local_camera_scroll_speed;
 }
 
 BOOL camera_is_near (MemPos *pos, float limit)
@@ -873,9 +874,6 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 
 		case Normal:
 		{
-			float distance_mouse_champ = vector2D_distance(&this->mouse->v, &this->champ->v);
-			float distance_dest_champ  = vector2D_distance(&this->dest->v, &this->champ->v);
-			float distance_mouse_dest  = vector2D_distance(&this->dest->v, &this->mouse->v);
 
 			// Always activated
 			float champ_weight = this->champ_weight;
@@ -890,6 +888,21 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 			lmb_x = this->lmb.x;
 			lmb_y = this->lmb.y;
 
+			// Fix the perspective
+            if (mouse_weight)
+            {
+            	// The camera goes farther when the camera is moving to the south
+				float distance_mouse_champ_y = this->champ->v.y - this->mouse->v.y;
+				if (distance_mouse_champ_y > 0.0) {
+					this->mouse->v.y -= distance_mouse_champ_y * 0.1; // <-- arbitrary value
+				}
+            }
+
+			// Distances
+			float distance_mouse_champ = vector2D_distance(&this->mouse->v, &this->champ->v);
+			float distance_dest_champ  = vector2D_distance(&this->dest->v, &this->champ->v);
+			float distance_mouse_dest  = vector2D_distance(&this->dest->v, &this->mouse->v);
+
 			// LMB is not set
 			if (lmb_x == 0 || lmb_y == 0)
 			{
@@ -902,10 +915,12 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 				drag_y = (this->drag_pos.y - this->mouse->v.y) * 10;
 			}
 
-			if (this->global_entities)
+			if (this->global_weight)
 			{
 				if (this->nb_nearby == 0)
+				{
 					global_weight = 0.0;
+				}
 
 				else
 				{
@@ -944,19 +959,19 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 				// weighted averages
 				// these values control how quickly the weights fall off the further you are
 				// from the falloff distance
-				float dest_falloff_rate  = 0.001;
-				float mouse_falloff_rate = 0.002;
+				float dest_falloff_rate  = 0.00001;
+				float mouse_falloff_rate = 0.00001;
 
 				// adjust weights based on distance
 				if (distance_dest_champ > this->champ_settings.dest_range_max)
-					dest_weight *= 1.0 / (((distance_dest_champ - this->champ_settings.dest_range_max) * dest_falloff_rate) + 1.0);
+					dest_weight = dest_weight / (((distance_dest_champ - this->champ_settings.dest_range_max) * dest_falloff_rate) + 1.0);
 
 				if (distance_mouse_champ > this->champ_settings.mouse_range_max)
-					mouse_weight *= 1.0 / (((distance_mouse_champ - this->champ_settings.mouse_range_max) * mouse_falloff_rate) + 1.0);
+					mouse_weight = mouse_weight / (((distance_mouse_champ - this->champ_settings.mouse_range_max) * mouse_falloff_rate) + 1.0);
 
+				// if the mouse is far from dest, reduce dest weight (mouse is more important)
 				if (distance_mouse_dest > this->champ_settings.mouse_dest_range_max)
-					// if the mouse is far from dest, reduce dest weight (mouse is more important)
-					dest_weight = dest_weight / (((distance_mouse_dest - this->champ_settings.mouse_dest_range_max) / 1500.0) + 1);
+					dest_weight = dest_weight / (((distance_mouse_dest - this->champ_settings.mouse_dest_range_max) / 1500.0) + 1.0);
 
 				weight_sum = champ_weight + mouse_weight + dest_weight + focus_weight + hint_weight + global_weight + lmb_weight;
 			}
@@ -984,11 +999,6 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
                 ) / weight_sum
 					+ drag_y
             );
-
-            // The camera goes farther when the camera is moving to the south
-            float distance_mouse_champ_y = this->champ->v.y - this->mouse->v.y;
-            if (distance_mouse_champ_y > 0)
-                target->y -= distance_mouse_champ_y / 8.0; // <-- arbitrary value
 		}
 		break;
 
@@ -1038,7 +1048,7 @@ void camera_load_settings (char *section)
 		char *value   = kv->res;
 
 		char *possible_settings[] = {
-			"lerp_rate", "threshold", "mouse_range_max", "dest_range_max", "mouse_dest_range_max"
+			"camera_scroll_speed", "threshold", "mouse_range_max", "dest_range_max", "mouse_dest_range_max"
 		};
 
 		for (int i = 0; i < sizeof(possible_settings) / sizeof(*possible_settings); i++)
@@ -1048,8 +1058,8 @@ void camera_load_settings (char *section)
 				switch (i)
 				{
 					case 0: // lerp rate
-						this->champ_settings.lerp_rate = atof (value); // this controls smoothing, smaller values mean slower camera movement
-						info("%s lerprate = %f", section, this->champ_settings.lerp_rate);
+						this->champ_settings.camera_scroll_speed = atof (value); // this controls smoothing, smaller values mean slower camera movement
+						info("%s camera_scroll_speed = %f", section, this->champ_settings.camera_scroll_speed);
 					break;
 
 					case 1: // threshold

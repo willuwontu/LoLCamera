@@ -395,7 +395,7 @@ BOOL camera_scan_campos ()
 			"xx",
 
 			"xxxx????" // <camX
-			"xxxxxxxx"
+			"xxxx????" // <camScreenBorder
 			"xxxx????" // <camY
 			"xx"
 			"xxx"
@@ -409,21 +409,33 @@ BOOL camera_scan_campos ()
 	}
 
 	Buffer *cameraX = bb_queue_pick_first(res);
+	Buffer *cameraScreenBorder = bb_queue_pick_nth(res, 1);
 	Buffer *cameraY = bb_queue_pick_last(res);
 
-	DWORD camx_addr_ptr, camy_addr_ptr;
+	DWORD camx_addr_ptr, camy_addr_ptr, camsb_addr_ptr;
 	memcpy(&camx_addr_ptr, cameraX->data, sizeof(DWORD));
 	memcpy(&camy_addr_ptr, cameraY->data, sizeof(DWORD));
+	memcpy(&camsb_addr_ptr, cameraScreenBorder->data, sizeof(DWORD));
 	bb_queue_free_all(res, buffer_free);
 
-	if (!camx_addr_ptr || !camy_addr_ptr)
+	if (!camx_addr_ptr || !camy_addr_ptr || !camsb_addr_ptr)
 	{
 		warning("Cannot find camera position");
 		return FALSE;
 	}
 
-	this->camx_addr = camx_addr_ptr - this->mp->base_addr;
-	this->camy_addr = camy_addr_ptr - this->mp->base_addr;
+	this->camx_addr  = camx_addr_ptr  - this->mp->base_addr;
+	this->camy_addr  = camy_addr_ptr  - this->mp->base_addr;
+	this->camsb_addr = camsb_addr_ptr - this->mp->base_addr;
+
+	return TRUE;
+}
+
+BOOL camera_refresh_screen_border ()
+{
+	Camera *this = camera_get_instance();
+
+	this->screen_border_reached = read_memory_as_int(this->mp->proc, this->camsb_addr);
 
 	return TRUE;
 }
