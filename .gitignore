@@ -17,7 +17,8 @@ local.properties
 .loadpath
 .cbTemp
 PatchNotes.txt
-
+LoLCamera.exe
+IOGraph/
 
 # External tool builders
 .externalToolBuilders/

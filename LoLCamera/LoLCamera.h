@@ -80,6 +80,7 @@ struct _Camera
 	char toggle_key;
 	char translate_key;
 	char center_key;
+	char global_key;
 
 	// Settings
 	CameraSettings all_settings[200]; // Champion specific settings
@@ -149,9 +150,9 @@ struct _Camera
 	BOOL drag_request;					// User requested a drag
 	BOOL active;						// Loop state
 	BOOL request_polling; 				// Force to poll data the next loop if TRUE
-	int interface_opened;
-	BOOL enabled;
-	BOOL dbg_mode;
+	int interface_opened;				// Interface state (window focus : shop, chat, etc)
+	BOOL enabled;						// LoLCamera enabled ?
+	BOOL dbg_mode;						// For unit tests
 	BOOL wait_loading_screen;			// Wait for the start of the game
 	BOOL output_cheatengine_table;		// Output the adresses in CheatEngineTable format in "out.ct"
 	BOOL interface_hovered;
@@ -161,6 +162,7 @@ struct _Camera
 	BOOL wait_for_end_of_pause;
 	BOOL dead_mode;
 	BOOL screen_border_reached;
+	BOOL global_weight_activated;
 
 	// Events
 	Event reset_after_minimap_click;
@@ -194,7 +196,10 @@ void camera_load_settings (char *section);
 BOOL exit_request (int key);
 int get_kb ();
 
-// from LoLCameraMem.c
+// -- Hotkeys
+BOOL global_key_toggle (int key);
+
+// From LoLCameraMem.c
 BOOL camera_scan_champions ();
 BOOL camera_scan_patch ();
 BOOL camera_scan_mouse_screen ();

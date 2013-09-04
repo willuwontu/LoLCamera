@@ -397,10 +397,13 @@ void camera_init (MemProc *mp)
 	if (this == NULL)
 		fatal_error("Not enough memory for starting LoLCamera.");
 
-	this->enabled = TRUE;
 	this->mp = mp;
-	this->active = FALSE;
 	this->drag_pos = vector2D_new();
+
+	// Initialize states
+	this->enabled = TRUE;
+	this->global_weight_activated = TRUE;
+	this->active = FALSE;
 
 	// TODO : get .text section offset + size properly (shouldn't be really necessarly though)
 	DWORD text_section = this->mp->base_addr + 0x1000;
@@ -425,7 +428,7 @@ void camera_init (MemProc *mp)
 	if (camera_wait_for_ingame())
 	{
 		info("Game start detected ... Initializing");
-		Sleep(2000);
+		
 		// Dumping the process again (loading screen detected)
 		memproc_clear(this->mp);
 		info("Dumping process again after loading screen...");
@@ -691,6 +694,11 @@ void camera_update_states ()
 	this->dead_mode = entity_is_dead(this->self);
 }
 
+BOOL global_key_toggle (int key)
+{
+	return (c == this->global_key);
+}
+
 LoLCameraState camera_main ()
 {
 	Vector2D target;
@@ -708,6 +716,11 @@ LoLCameraState camera_main ()
 			{
 				info("Reloading ini...");
 				camera_load_ini();
+			}
+			
+			if (global_key_toggle(key))
+			{
+				this->global_weight_activated = ! (this->global_weight_activated);
 			}
 
 			if (exit_request(key))
@@ -915,7 +928,7 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 				drag_y = (this->drag_pos.y - this->mouse->v.y) * 10;
 			}
 
-			if (this->global_weight)
+			if (this->global_weight && this->global_weight_activated)
 			{
 				if (this->nb_nearby == 0)
 				{
@@ -1112,6 +1125,9 @@ void camera_load_ini ()
 
 	if ((this->center_key = ini_parser_get_char(parser, "center_key")) == 0)
 		this->center_key  = strtol(ini_parser_get_value(parser, "center_key"), NULL, 16);
+
+	if ((this->global_key = ini_parser_get_char(parser, "global_key")) == 0)
+		this->global_key  = strtol(ini_parser_get_value(parser, "global_key"), NULL, 16);
 
 	// Settings
 	this->champ_weight = atof(ini_parser_get_value(parser, "champ_weight"));
