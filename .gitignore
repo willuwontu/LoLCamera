@@ -19,6 +19,8 @@ local.properties
 PatchNotes.txt
 LoLCamera.exe
 IOGraph/
+patches/*
+LoLCamera.lnk
 
 # External tool builders
 .externalToolBuilders/

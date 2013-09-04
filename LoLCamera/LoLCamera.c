@@ -117,7 +117,8 @@ static BOOL camera_left_click ()
 {
 	if (GetKeyState(VK_LBUTTON) < 0)
 	{
-		this->lbutton_state = 1;
+		if (this->lbutton_state == 0)
+			this->lbutton_state = 1;
 
 		// We want to move the camera only when we click on the minimap
 		if (camera_interface_is_hovered())
