@@ -464,14 +464,14 @@ void camera_init (MemProc *mp)
 	patch_list_set(this->patchlist, TRUE);
 
 	// Export to CE
-	//if (this->output_cheatengine_table)
+	if (this->output_cheatengine_table)
 		camera_export_to_cheatengine();
 
 	// Load settings associated with champ name
 	this->section_settings_name = this->self->champ_name;
 
-	//if (strlen(this->section_settings_name) != 0)
-	//	camera_load_settings(this->self->champ_name);
+	if (strlen(this->section_settings_name) > 0)
+		camera_load_settings(this->section_settings_name);
 
 	memset(this->nearby, 0, sizeof(this->nearby));
 	this->active = TRUE;
