@@ -110,7 +110,7 @@ memproc_dump_details (MemProc *mp, int start, int end, int (*boolean_function)(M
 int
 memproc_is_dumped (MemProc *mp);
 
-int
+bool
 memproc_refresh_handle (MemProc *mp);
 
 BbQueue *

@@ -67,7 +67,7 @@ static void camera_sensor_reset ()
 	this->request_polling = TRUE;
 	this->focused_entity = NULL;
 	this->hint_entity = NULL;
-	
+
 	camera_translation_reset();
 	mempos_set(this->cam, this->champ->v.x, this->champ->v.y);
 	vector2D_set_zero(&this->lmb);
@@ -161,7 +161,7 @@ static BOOL camera_left_click ()
 				if (!this->dead_mode)
 				{
 					float distance_cam_champ = vector2D_distance(&this->champ->v, &this->cam->v);
-					
+
 					if (distance_cam_champ < IN_SCREEN_DISTANCE)
 					{
 						// Wait before reseting the view
@@ -436,7 +436,7 @@ void camera_init (MemProc *mp)
 	if (camera_wait_for_ingame())
 	{
 		info("Game start detected ... Initializing");
-		
+
 		// Dumping the process again (loading screen detected)
 		memproc_clear(this->mp);
 		info("Dumping process again after loading screen...");
@@ -704,7 +704,7 @@ void camera_update_states ()
 
 BOOL global_key_toggle (int key)
 {
-	return (c == this->global_key);
+	return (key == this->global_key);
 }
 
 LoLCameraState camera_main ()
@@ -725,7 +725,7 @@ LoLCameraState camera_main ()
 				info("Reloading ini...");
 				camera_load_ini();
 			}
-			
+
 			if (global_key_toggle(key))
 			{
 				this->global_weight_activated = ! (this->global_weight_activated);

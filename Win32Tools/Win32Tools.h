@@ -63,6 +63,10 @@
 #define bool BOOL
 #endif
 
+#ifndef bool
+#define bool char
+#endif
+
 #ifdef TRUE
 #define true TRUE
 #endif

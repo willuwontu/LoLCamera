@@ -1,11 +1,11 @@
 #include "MemProc.h"
 
 MemProc *
-memproc_new (char *process_name, char *window_name) 
+memproc_new (char *process_name, char *window_name)
 {
 	MemProc *mp;
 
-	if ((mp = calloc (sizeof (MemProc), 1)) == NULL) 
+	if ((mp = calloc (sizeof (MemProc), 1)) == NULL)
 		return NULL;
 
 	mp->memchunks = NULL;
@@ -20,18 +20,18 @@ memproc_new (char *process_name, char *window_name)
 }
 
 int
-memproc_is_dumped (MemProc *mp) 
+memproc_is_dumped (MemProc *mp)
 {
 	return mp->memchunks != NULL;
 }
 
 void
-memproc_dump_details (MemProc *mp, int start, int end, int (*boolean_function) (MEMORY_BASIC_INFORMATION *, void *), void *arg) 
+memproc_dump_details (MemProc *mp, int start, int end, int (*boolean_function) (MEMORY_BASIC_INFORMATION *, void *), void *arg)
 {
 	MEMORY_BASIC_INFORMATION meminfo;
 	DWORD addr = start;
 
-	if (!mp->proc) 
+	if (!mp->proc)
 	{
 		warning ("Process pid=%d not found", mp->pid);
 		return;
@@ -39,19 +39,19 @@ memproc_dump_details (MemProc *mp, int start, int end, int (*boolean_function) (
 
 	mp->memchunks = bb_queue_new ();
 
-	while (1) 
+	while (1)
 	{
-		if (addr >= end && end != -1) 
+		if (addr >= end && end != -1)
 			break;
 
-		if (VirtualQueryEx (mp->proc, (void *) addr, &meminfo, sizeof (meminfo)) == 0) 
+		if (VirtualQueryEx (mp->proc, (void *) addr, &meminfo, sizeof (meminfo)) == 0)
 			break;
 
-		if (boolean_function (&meminfo, arg)) 
+		if (boolean_function (&meminfo, arg))
 		{
 			MemChunk *mc = memchunk_new (mp->proc, &meminfo);
 
-			switch (meminfo.Type) 
+			switch (meminfo.Type)
 			{
 				case MEM_IMAGE:		mc->type = MEM_TYPE_IMAGE;   break;
 				case MEM_MAPPED:	mc->type = MEM_TYPE_MAPPED;  break;
@@ -68,52 +68,52 @@ memproc_dump_details (MemProc *mp, int start, int end, int (*boolean_function) (
 }
 
 static int
-memproc_dump_helper (MEMORY_BASIC_INFORMATION *meminfo, void *arg) 
+memproc_dump_helper (MEMORY_BASIC_INFORMATION *meminfo, void *arg)
 {
 	return 1;
 }
 
 void
-memproc_dump (MemProc *mp, int start, int end) 
+memproc_dump (MemProc *mp, int start, int end)
 {
 	memproc_dump_details (mp, start, end, memproc_dump_helper, NULL);
 }
 
 void
-memproc_set_default_baseaddr (MemProc *mp, int default_baseaddr) 
+memproc_set_default_baseaddr (MemProc *mp, int default_baseaddr)
 {
 	mp->default_baseaddr = default_baseaddr;
 }
 
 bool
-memproc_refresh_handle (MemProc *mp) 
+memproc_refresh_handle (MemProc *mp)
 {
-	if (mp == NULL) 
+	if (mp == NULL)
 		return false;
 
 	// Get the PID
-	if ((mp->pid = get_pid_by_name (mp->process_name)) == 0) 
+	if ((mp->pid = get_pid_by_name (mp->process_name)) == 0)
 	{
 		// Process not active
 		return false;
 	}
 
 	// Get the process handle
-	if ((mp->proc = OpenProcess (PROCESS_ALL_ACCESS, FALSE, mp->pid)) == 0) 
+	if ((mp->proc = OpenProcess (PROCESS_ALL_ACCESS, FALSE, mp->pid)) == 0)
 	{
 		warning ("Process is unable to be opened with all access.");
 		return false;
 	}
-	
+
 	// Get the base address
-	if ((mp->base_addr = get_baseaddr (mp->process_name)) == 0) 
+	if ((mp->base_addr = get_baseaddr (mp->process_name)) == 0)
 	{
 		warning ("Base address of the process %s not found. Using the default value 0x%x.", mp->default_baseaddr);
 		mp->base_addr  = mp->default_baseaddr;
 	}
 
 	// Get the window handle
-	if (mp->window_name != NULL) 
+	if (mp->window_name != NULL)
 	{
 		mp->hwnd = get_hwnd_from_title (mp->window_name);
 	}
@@ -122,19 +122,19 @@ memproc_refresh_handle (MemProc *mp)
 }
 
 void
-memproc_debug (MemProc *mp) 
+memproc_debug (MemProc *mp)
 {
 	bb_queue_debug_custom_data (mp->memchunks, memchunk_debug);
 }
 
 void
-memproc_full_debug (MemProc *mp) 
+memproc_full_debug (MemProc *mp)
 {
 	bb_queue_debug_custom_data (mp->memchunks, memchunk_full_debug);
 }
 
 void
-memproc_search_float (MemProc *mp, float value, void (*pre_search) (MemChunk *, float prct)) 
+memproc_search_float (MemProc *mp, float value, void (*pre_search) (MemChunk *, float prct))
 {
 	char *mask = "xxxx";
 	unsigned char pattern[4] = {0, 0, 0, 0};
@@ -144,7 +144,7 @@ memproc_search_float (MemProc *mp, float value, void (*pre_search) (MemChunk *, 
 }
 
 void
-memproc_search_integer (MemProc *mp, int value, void (*pre_search) (MemChunk *, float prct)) 
+memproc_search_integer (MemProc *mp, int value, void (*pre_search) (MemChunk *, float prct))
 {
 	char *mask = "xxxx";
 	unsigned char pattern[4] = {0, 0, 0, 0};
@@ -154,11 +154,11 @@ memproc_search_integer (MemProc *mp, int value, void (*pre_search) (MemChunk *, 
 }
 
 void
-memproc_search_text (MemProc *mp, char *text, char *mask, void (*pre_search) (MemChunk *, float prct)) 
+memproc_search_text (MemProc *mp, char *text, char *mask, void (*pre_search) (MemChunk *, float prct))
 {
 	int len = strlen (text);
 
-	if (mask == NULL) 
+	if (mask == NULL)
 	{
 		mask = malloc (len + 1);
 		memset (mask, 'x', len);
@@ -169,11 +169,11 @@ memproc_search_text (MemProc *mp, char *text, char *mask, void (*pre_search) (Me
 }
 
 void
-memproc_update (MemProc *mp, BbQueue *memblocks) 
+memproc_update (MemProc *mp, BbQueue *memblocks)
 {
 	MemBlock *mb;
 
-	foreach_bbqueue_item (memblocks, mb) 
+	foreach_bbqueue_item (memblocks, mb)
 	{
 		memblock_read_from_memory (mp, mb);
 		// TODO : impact de l'update dans le buffer des mc
@@ -181,21 +181,21 @@ memproc_update (MemProc *mp, BbQueue *memblocks)
 }
 
 BbQueue *
-memblock_get_change (MemProc *mp, BbQueue *res) 
+memblock_get_change (MemProc *mp, BbQueue *res)
 {
 	// TODO
 	return NULL;
 }
 
 void
-memproc_search (MemProc *mp, unsigned char *pattern, char *mask, void (*pre_search) (MemChunk *, float prct), SearchType stype) 
+memproc_search (MemProc *mp, unsigned char *pattern, char *mask, void (*pre_search) (MemChunk *, float prct), SearchType stype)
 {
 	MemChunk *mc;
 	int offset;
 	int total;
 	int loop = 1;
 
-	if (mp->memchunks == NULL) 
+	if (mp->memchunks == NULL)
 	{
 		warning ("No memchunks stored, you must call %s () first", str_make_macro (memproc_dump));
 		return;
@@ -203,17 +203,17 @@ memproc_search (MemProc *mp, unsigned char *pattern, char *mask, void (*pre_sear
 
 	mp->mask_len = strlen (mask);
 
-	foreach_bbqueue_item (mp->memchunks, mc) 
+	foreach_bbqueue_item (mp->memchunks, mc)
 	{
 		offset = 0;
 		total = 0;
 
-		if (pre_search != NULL) 
+		if (pre_search != NULL)
 			pre_search (mc, (float) loop / (float) bb_queue_get_length (mp->memchunks));
 
 		do
 		{
-			if ((offset = find_pattern (mc->buffer + total, mc->size - total, pattern, mask)) != -1) 
+			if ((offset = find_pattern (mc->buffer + total, mc->size - total, pattern, mask)) != -1)
 			{
 				bb_queue_add_raw (mc->matches, total + offset);
 				total += offset + strlen (mask);
@@ -228,7 +228,7 @@ memproc_search (MemProc *mp, unsigned char *pattern, char *mask, void (*pre_sear
 }
 
 BbQueue *
-memproc_get_res (MemProc *mp) 
+memproc_get_res (MemProc *mp)
 {
 	int offset;
 	void *data = NULL;
@@ -236,13 +236,13 @@ memproc_get_res (MemProc *mp)
 	MemChunk *mc;
 	BbQueue *q = bb_queue_new ();
 
-	foreach_bbqueue_item (mp->memchunks, mc) 
+	foreach_bbqueue_item (mp->memchunks, mc)
 	{
-		while (bb_queue_get_length (mc->matches)) 
+		while (bb_queue_get_length (mc->matches))
 		{
 			offset = (int) bb_queue_pop (mc->matches);
 
-			switch (mp->stype) 
+			switch (mp->stype)
 			{
 				case SEARCH_TYPE_BYTES:
 				case SEARCH_TYPE_FLOAT:
@@ -266,11 +266,11 @@ memproc_get_res (MemProc *mp)
 }
 
 MemBlock *
-memblock_new (void *data, DWORD addr, int size, MemType type) 
+memblock_new (void *data, DWORD addr, int size, MemType type)
 {
 	MemBlock *r;
 
-	if ((r = malloc (sizeof (MemBlock)) ) == NULL) 
+	if ((r = malloc (sizeof (MemBlock)) ) == NULL)
 		return NULL;
 
 	r->data = data;
@@ -282,21 +282,21 @@ memblock_new (void *data, DWORD addr, int size, MemType type)
 }
 
 void
-memproc_set_absolute_addr (MemProc *mp, DWORD *addr) 
+memproc_set_absolute_addr (MemProc *mp, DWORD *addr)
 {
 	 (*addr) = (*addr) + mp->base_addr;
 };
 
 inline void
-memblock_read_from_memory (MemProc *mp, MemBlock *mem) 
+memblock_read_from_memory (MemProc *mp, MemBlock *mem)
 {
 	read_from_memory (mp->proc, mem->data, mem->addr, mem->size);
 }
 
 void
-memproc_free (MemProc *memproc) 
+memproc_free (MemProc *memproc)
 {
-	if (memproc != NULL) 
+	if (memproc != NULL)
 	{
 		bb_queue_free_all (memproc->memchunks, memchunk_free);
 		free (memproc);
@@ -304,18 +304,18 @@ memproc_free (MemProc *memproc)
 }
 
 void
-memproc_clear (MemProc *memproc) 
+memproc_clear (MemProc *memproc)
 {
-	if (memproc != NULL) 
+	if (memproc != NULL)
 	{
 		bb_queue_free_all (memproc->memchunks, memchunk_free);
 	}
 }
 
 void
-memblock_free (MemBlock *m) 
+memblock_free (MemBlock *m)
 {
-	if (m != NULL) 
+	if (m != NULL)
 	{
 		free (m);
 	}
