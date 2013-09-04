@@ -78,6 +78,9 @@ entity_is_dead (Entity *e)
 inline BOOL
 entity_is_alive (Entity *e)
 {
+	if (e == NULL)
+		return FALSE;
+
 	return e->hp != 0 && e->hp_max != 0;
 }
 

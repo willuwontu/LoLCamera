@@ -108,7 +108,7 @@ memproc_refresh_handle (MemProc *mp)
 	// Get the base address
 	if ((mp->base_addr = get_baseaddr (mp->process_name)) == 0)
 	{
-		warning ("Base address of the process %s not found. Using the default value 0x%x.", mp->default_baseaddr);
+		warning ("Base address of the process %s not found. Using the default value 0x%x.", mp->process_name, mp->default_baseaddr);
 		mp->base_addr  = mp->default_baseaddr;
 	}
 

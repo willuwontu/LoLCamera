@@ -283,45 +283,57 @@ BOOL camera_scan_patch ()
 
 		this->mp, "Center the camera on the champion when you are in locked camera mode",
 	   &this->locked_camera_addr,
-		/*	00A37AAC  ║·▼ 74 39                jz short League_of_Legends.00A37AE7
-			00A37AAE  ║·  F30F1040 6C          movss xmm0, [dword ds:eax+6C]                                 ; float 0.0
-			00A37AB3  ║·  F30F1105 3C71DF03    movss [dword ds:League_of_Legends.CameraX], xmm0              ; float 0.0, 0.0, 0.0, 0.0
-			00A37ABB  ║·  F30F1040 70          movss xmm0, [dword ds:eax+70]                                 ; float 0.0, 0.0, 0.0, 0.0
-			00A37AC0  ║·  F30F1105 4071DF03    movss [dword ds:League_of_Legends.3DF7140], xmm0              ; float 0.0, 0.0, 0.0, 0.0
-			00A37AC8  ║·  F30F1040 74          movss xmm0, [dword ds:eax+74]                                 ; float 0.0, 0.0, 0.0, 0.0
-			00A37ACD  ║·  F30F1105 4471DF03    movss [dword ds:League_of_Legends.CameraY], xmm0              ; float 0.0, 0.0, 0.0, 0.0
+		/*
+			00AD7A72  ║► ┌F30F1040 68              movss xmm0, [dword ds:eax+68]                                          ; float 0.0, 0.0, 0.0, 0.4484810
+			00AD7A77  ║· │F30F1105 87EEE203        movss [dword ds:League_of_Legends.3E2EE87], xmm0                       ; float 0.0, 0.0, 0.0, 0.4484810
+			00AD7A7F  ║· │F30F1040 6C              movss xmm0, [dword ds:eax+6C]                                          ; float 0.0, 0.0, 0.0, 0.4484810
+			00AD7A84  ║· │F30F1105 8BEEE203        movss [dword ds:League_of_Legends.3E2EE8B], xmm0                       ; float 0.0, 0.0, 0.0, 0.4484810
+			00AD7A8C  ║· │F30F1040 70              movss xmm0, [dword ds:eax+70]                                          ; float 0.0, 0.0, 0.0, 0.4484810
+			00AD7A91  ║· │F30F1105 8FEEE203        movss [dword ds:League_of_Legends.3E2EE8F], xmm0                       ; float 0.0, 0.0, 0.0, 0.4484810
+			00AD7A99  ║· │8B4C24 20                mov ecx, [dword ss:local.2]
+			00AD7A9D  ║· │64:890D 00000000         mov [dword fs:0], ecx
+
 		*/
 		(unsigned char []) {
-			0x74,0x39,									// xx
-			0xF3,0x0F,0x10,0x40,0x6C,					// xxxx?
-			0xF3,0x0F,0x11,0x05,0x3C,0x71,0xDF,0x03,	// xxxx????
-			0xF3,0x0F,0x10,0x40,0x70,					// xxxx?
-			0xF3,0x0F,0x11,0x05,0x40,0x71,0xDF,0x03,	// xxxx????
-			0xF3,0x0F,0x10,0x40,0x74,					// xxxx?
-			0xF3,0x0F,0x11,0x05,0x44,0x71,0xDF,0x03		// xxxx????
-		},	"xx"
+			0xF3,0x0F,0x10,0x40,0x68,
+			0xF3,0x0F,0x11,0x05,0x87,0xEE,0xE2,0x03,
+			0xF3,0x0F,0x10,0x40,0x6C,
+			0xF3,0x0F,0x11,0x05,0x8B,0xEE,0xE2,0x03,
+			0xF3,0x0F,0x10,0x40,0x70,
+			0xF3,0x0F,0x11,0x05,0x8F,0xEE,0xE2,0x03,
+			0x8B,0x4C,0x24,0x20,
+			0x64,0x89,0x0D,0x00,0x00,0x00,0x00
+		},
+
 			"xxxx?"
 			"xxxx????"
 			"xxxx?"
 			"xxxx????"
 			"xxxx?"
-			"xxxx????",
+			"xxxx????"
+			"xxxx"
+			"xxxxxxx",
 
 		(unsigned char []) {
-			0x90,0x90,								    // xx
-			0x90,0x90,0x90,0x90,0x90,					// xxxxx
-			0x90,0x90,0x90,0x90,0x90,0x90,0x90,0x90, 	// xxxxxxxx
-			0x90,0x90,0x90,0x90,0x90,					// xxxxx
-			0x90,0x90,0x90,0x90,0x90,0x90,0x90,0x90, 	// xxxxxxxx
-			0x90,0x90,0x90,0x90,0x90,				 	// xxxxx
-			0x90,0x90,0x90,0x90,0x90,0x90,0x90,0x90, 	// xxxxxxxx
-		},	"??"
-			"?????"
+			0xEB,0x25,				// jmp 00AD7A99
+			0x90,0x90,0x90,			// nop nop nop
+
+			0xF3,0x0F,0x11,0x05,0x87,0xEE,0xE2,0x03,
+			0xF3,0x0F,0x10,0x40,0x6C,
+			0xF3,0x0F,0x11,0x05,0x8B,0xEE,0xE2,0x03,
+			0xF3,0x0F,0x10,0x40,0x70,
+			0xF3,0x0F,0x11,0x05,0x8F,0xEE,0xE2,0x03,
+			0x8B,0x4C,0x24,0x20,
+			0x64,0x89,0x0D,0x00,0x00,0x00,0x00
+		},
+			"xx""xxx"
 			"xxxxxxxx"
 			"xxxxx"
 			"xxxxxxxx"
 			"xxxxx"
 			"xxxxxxxx"
+			"xxxx"
+			"xxxxxxx"
 	);
 
 /*
@@ -566,40 +578,72 @@ BOOL camera_scan_game_state ()
 
 	BbQueue *res = memscan_search (this->mp, "gameState",
 	/*
-		0047371B   ► └A1 <<98B2CB01>>   mov eax, [dword ds:League_of_Legends.1CBB298]
-		00473720   ·  8B70 04       mov esi, [dword ds:eax+4]
-		00473723   ·  3BF7          cmp esi, edi
-		00473725   ·▲ 74 07         je short League_of_Legends.0047372E
-		00473727   ·  8B40 08       mov eax, [dword ds:eax+8]
-		0047372A   ·  2BC6          sub eax, esi
+		004DA6B0  ╓$  6A FF                    push -1
+		004DA6B2  ║·  68 F29BD000              push League_of_Legends.00D09BF2
+		004DA6B7  ║·  64:A1 00000000           mov eax, [dword fs:0]
+		004DA6BD  ║·  50                       push eax
+		004DA6BE  ║·  64:8925 00000000         mov [dword fs:0], esp                                                  ; Installs SE handler 0D09BF2
+		004DA6C5  ║·  51                       push ecx
+		004DA6C6  ║·  C70424 B0D0E303          mov [dword ss:local.3], offset League_of_Legends.03E3D0B0
+		004DA6CD  ║·  68 B0D0E303              push offset League_of_Legends.03E3D0B0                                 ; ╓Arg1 = League_of_Legends.3E3D0B0
+		004DA6D2  ║·  C74424 10 00000000       mov [dword ss:local.0], 0                                              ; ║
+		004DA6DA  ║·  E8 A1D4FFFF              call League_of_Legends.004D7B80                                        ; └League_of_Legends.004D7B80
+		004DA6DF  ║·  8B4C24 04                mov ecx, [dword ss:local.2]
+		004DA6E3  ║·  64:890D 00000000         mov [dword fs:0], ecx
+		004DA6EA  ║·  83C4 10                  add esp, 10
+		004DA6ED  └·  C3                       retn
 	*/
 		(unsigned char[]) {
-			0xA1,0x98,0xB2,0xCB,0x01,
-			0x8B,0x70,0x04,
-			0x3B,0xF7,
-			0x74,0x07,
-			0x8B,0x40,0x08,
-			0x2B,0xC6
+			0x6A,0xFF,
+			0x68,0xF2,0x9B,0xD0,0x00,
+			0x64,0xA1,0x00,0x00,0x00,0x00,
+			0x50,
+			0x64,0x89,0x25,0x00,0x00,0x00,0x00,
+			0x51,
+			0xC7,0x04,0x24,0xB0,0xD0,0xE3,0x03,
+			0x68,0xB0,0xD0,0xE3,0x03,
+			0xC7,0x44,0x24,0x10,0x00,0x00,0x00,0x00,
+			0xE8,0xA1,0xD4,0xFF,0xFF,
+			0x8B,0x4C,0x24,0x04,
+			0x64,0x89,0x0D,0x00,0x00,0x00,0x00,
+			0x83,0xC4,0x10,
+			0xC3
 		},
+			"xx"
+			"x????"
+			"xxxxxx"
+			"x"
+			"xxxxxxx"
+			"x"
+			"xxx????"
+			"x????"
+			"xxxxxxxx"
+			"x????"
+			"xxxx"
+			"xxxxxxx"
+			"xx?"
+			"x",
 
-		"x????"
-		"xx?"
-		"xx"
-		"xx"
-		"xx?"
-		"xx",
-
-		"x????"
-		"xxx"
-		"xx"
-		"xx"
-		"xxx"
-		"xx"
+			"xx"
+			"xxxxx"
+			"xxxxxx"
+			"x"
+			"xxxxxxx"
+			"x"
+			"xxx????"
+			"xxxxx"
+			"xxxxxxxx"
+			"xxxxx"
+			"xxxx"
+			"xxxxxxx"
+			"xxx"
+			"x"
 	);
 
 	if (!res)
 	{
 		warning("Cannot find game state address");
+		exit(0);
 		return FALSE;
 	}
 
@@ -614,7 +658,7 @@ BOOL camera_scan_game_state ()
 		return FALSE;
 	}
 
-	read_from_memory(this->mp->proc, this->self_name, this->game_state_addr + 0x2F4, sizeof(this->self_name) - 1);
+	read_from_memory(this->mp->proc, this->self_name, this->game_state_addr + 0x84, sizeof(this->self_name) - 1);
 
 	if (strlen(this->self_name) <= 0)
 	{
@@ -1213,7 +1257,7 @@ BOOL camera_scan_mouse_screen ()
 		},
 		"xx????"
 		"xx"
-		"xxx"
+		"xx?"
 		"xxxx"
 		"x"
 		"xxxx"
@@ -2046,6 +2090,13 @@ void camera_export_to_cheatengine ()
 		"        </CheatEntry>\n"
 		"      </CheatEntries>\n"
 		"    </CheatEntry>\n"
+		"    <CheatEntry>\n"
+		"      <ID>55</ID>\n"
+		"      <Description>\"GameState\"</Description>\n"
+		"      <Color>80000008</Color>\n"
+		"      <VariableType>4 Bytes</VariableType>\n"
+		"      <Address>%.8x</Address>\n"
+		"    </CheatEntry>\n"
 		"  </CheatEntries>\n"
 		"  <UserdefinedSymbols/>\n"
 		"</CheatTable>\n",
@@ -2067,7 +2118,8 @@ void camera_export_to_cheatengine ()
 		this->entities_addr, this->entities_addr, this->entities_addr, this->entities_addr,	this->entities_addr, this->entities_addr,
 		this->entities_addr, this->entities_addr, this->entities_addr, this->entities_addr,	this->entities_addr, this->entities_addr,
 		this->entities_addr, this->entities_addr, this->entities_addr, this->entities_addr,	this->entities_addr, this->entities_addr,
-		this->entities_addr, this->entities_addr, this->entities_addr, this->entities_addr,	this->entities_addr, this->entities_addr
+		this->entities_addr, this->entities_addr, this->entities_addr, this->entities_addr,	this->entities_addr, this->entities_addr,
+		this->game_state_addr
 	);
 
 	file_put_contents("out.ct", out, NULL);
