@@ -162,7 +162,7 @@ static BOOL camera_left_click ()
 				{
 					float distance_cam_champ = vector2D_distance(&this->champ->v, &this->cam->v);
 
-					if (distance_cam_champ < IN_SCREEN_DISTANCE)
+					if (distance_cam_champ > IN_SCREEN_DISTANCE)
 					{
 						// Wait before reseting the view
 						event_start_now(&this->reset_after_minimap_click);
@@ -305,8 +305,10 @@ BOOL camera_is_freezing ()
 
 BOOL camera_reset_conditions ()
 {
+	float distance_traveled = vector2D_distance(&this->champ->v, &this->last_champpos);
+
 	return (
-		!camera_is_near(this->champ, 3000.0)
+		distance_traveled > 1000.0
 	&&  !this->dead_mode
 	&&  !this->wait_for_end_of_pause);
 }
@@ -615,7 +617,6 @@ BOOL camera_update ()
 		{.func = camera_refresh_victory,	    .arg = NULL,				.desc = "Victory State"},
 		{.func = camera_refresh_entities_nearby,.arg = NULL,				.desc = "Nearby champions"},
 		{.func = camera_refresh_hover_interface,.arg = NULL,				.desc = "Hover Interface"},
-		{.func = camera_refresh_screen_border,  .arg = NULL,                .desc = "ScreenBorder detection"}
 	};
 
 	if (frame_count++ % this->poll_data == 0 || this->request_polling)
@@ -699,14 +700,32 @@ void camera_save_last_campos (Vector2D *campos)
 	memcpy(&this->last_campos, campos, sizeof(*campos));
 }
 
+void camera_save_last_champpos (Vector2D *champpos)
+{
+	memcpy(&this->last_champpos, champpos, sizeof(*champpos));
+}
+
 void camera_update_states ()
 {
 	this->dead_mode = entity_is_dead(this->self);
 }
 
-BOOL global_key_toggle (int key)
+bool global_key_toggle ()
 {
-	return (key == this->global_key);
+	static short int last_global_key = -1;
+	short int global_key_state = GetKeyState(this->global_key);
+
+	if (last_global_key == -1)
+		last_global_key = global_key_state;
+
+	// Listen for translate toggle key
+	if (global_key_state != last_global_key && global_key_state < 0)
+	{
+		last_global_key = global_key_state;
+		return true;
+	}
+
+	return false;
 }
 
 LoLCameraState camera_main ()
@@ -720,6 +739,8 @@ LoLCameraState camera_main ()
 		int key;
 
 		// User input
+
+		// Console input
 		if ((key = get_kb()) != -1)
 		{
 			if (reload_ini_request(key))
@@ -728,13 +749,16 @@ LoLCameraState camera_main ()
 				camera_load_ini();
 			}
 
-			if (global_key_toggle(key))
-			{
-				this->global_weight_activated = ! (this->global_weight_activated);
-			}
-
 			if (exit_request(key))
 				return END_OF_LOLCAMERA;
+		}
+		// In game keys
+		{
+			if (global_key_toggle())
+			{
+				this->global_weight_activated = ! (this->global_weight_activated);
+				info("Global weight has been %s.", (this->global_weight_activated) ? "enabled" : "disabled");
+			}
 		}
 
 		Sleep(this->sleep_time);
@@ -762,6 +786,9 @@ LoLCameraState camera_main ()
 			continue;
 		}
 
+		// Save last champion position
+		camera_save_last_champpos(&this->champ->v);
+
 		if (camera_mode == NoUpdate || !camera_update())
 			continue;
 
@@ -785,7 +812,7 @@ LoLCameraState camera_main ()
         // update the ingame gamera position
 		mempos_set(this->cam, this->cam->v.x, this->cam->v.y);
 
-		// Save last camera position
+		// Save last positions
 		camera_save_last_campos(&this->cam->v);
 	}
 
@@ -1154,6 +1181,7 @@ void camera_load_ini ()
 
 	this->wait_loading_screen = strtol(ini_parser_get_value(parser, "wait_loading_screen"), NULL, 10);
 	this->ms_after_minimap_click = strtol(ini_parser_get_value(parser, "ms_after_minimap_click"), NULL, 10);
+	this->patch_border_screen_moving = strtol(ini_parser_get_value(parser, "patch_border_screen_moving"), NULL, 10);
 
 	// Champion Settings
 	camera_load_settings(this->section_settings_name);

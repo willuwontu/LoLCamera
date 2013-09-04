@@ -46,7 +46,6 @@ struct _Camera
 	DWORD players_addr;				// Address of the data : entities array start
 	DWORD players_addr_end;			// Address of the data : entities array end
 	DWORD camx_addr, camy_addr; 	// Address of the data : cameraX, cameray
-	DWORD camsb_addr;				// Address of the event : Mouse Screen Border
 	DWORD champx_addr, champy_addr;	// Address of the data : championX / championY
 	DWORD mousex_addr, mousey_addr; // Address of the data : mouseX / mouseY
 	DWORD destx_addr, desty_addr;   // Address of the data : destX / destY (right click)
@@ -139,7 +138,8 @@ struct _Camera
 	MemPos *mouse_screen;			// Mouse screen position
 	MemPos tmpcam;					// Temporary Camera state
 	Vector2D lmb;					// Last Left mouse button click position
-	Vector2D last_campos;				// Last camera position
+	Vector2D last_campos;			// Last camera position
+	Vector2D last_champpos;			// Last champion position
 
 	// Key states
 	short int last_toggle_state;
@@ -163,8 +163,8 @@ struct _Camera
 	char *section_settings_name;
 	BOOL wait_for_end_of_pause;
 	BOOL dead_mode;
-	BOOL screen_border_reached;
 	BOOL global_weight_activated;
+	BOOL patch_border_screen_moving;
 
 	// Events
 	Event reset_after_minimap_click;
@@ -187,7 +187,7 @@ typedef enum {
 void camera_init (MemProc *mp);
 
 
-// ----------- Methods ------------m
+// ----------- Methods ------------
 LoLCameraState camera_main ();
 BOOL camera_update ();
 void camera_load_ini ();
@@ -199,7 +199,7 @@ BOOL exit_request (int key);
 int get_kb ();
 
 // -- Hotkeys
-BOOL global_key_toggle (int key);
+bool global_key_toggle ();
 
 // From LoLCameraMem.c
 BOOL camera_scan_champions ();
