@@ -52,7 +52,7 @@ read_from_memory (HANDLE process, unsigned char *buffer, DWORD addr, unsigned in
 		{
 			res = GetLastError();
 			if (res != ERROR_PARTIAL_COPY)
-				warning("> GetLastError() = %d (http://msdn.microsoft.com/en-us/library/windows/desktop/ms681382%28v=vs.85%29.aspx)", res);
+				warning("GetLastError() = %d (http://msdn.microsoft.com/en-us/library/windows/desktop/ms681382%28v=vs.85%29.aspx)", res);
 		}
 
 		if (bytes_read != bytes_to_read)
@@ -240,13 +240,12 @@ error_exit (LPTSTR lpszFunction)
 
 BOOL enable_debug_privileges ()
 {
-
 	HANDLE hToken = 0;
 	TOKEN_PRIVILEGES newPrivs;
+	DWORD cb = sizeof(TOKEN_PRIVILEGES); 
 
 	if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken))
 	{
-
 		warning("Debug privilege : OpenProcessToken ERROR.");
 		return FALSE;
 	}
@@ -261,7 +260,7 @@ BOOL enable_debug_privileges ()
 	newPrivs.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
 	newPrivs.PrivilegeCount = 1;
 
-	if (!AdjustTokenPrivileges(hToken, FALSE, &newPrivs, 0, NULL, NULL))
+	if (!AdjustTokenPrivileges(hToken, FALSE, &newPrivs, cb, NULL, NULL))
 	{
 		warning("Debug privilege : AdjustTokenPrivileges ERROR.");
 		CloseHandle(hToken);
@@ -275,23 +274,22 @@ BOOL enable_debug_privileges ()
 HWND
 get_hwnd_from_title (char *title)
 {
-	return FindWindowA(NULL, title);
+	return FindWindowA (NULL, title);
 }
 
 HWND get_hwnd_from_pid (DWORD pid)
 {
 	HWND hwnd = NULL;
 
-	do
-	{
+	do {
 		hwnd = FindWindowEx (NULL, hwnd, NULL, NULL);
 		DWORD window_pid = 0;
 		GetWindowThreadProcessId (hwnd, &window_pid);
 
 		if (window_pid == pid)
 			return hwnd;
-	}
-	while (hwnd != NULL);
+	
+	} while (hwnd != NULL);
 
 	return NULL;
 }
@@ -921,7 +919,7 @@ create_mask_from_file (char *filename)
 DWORD
 get_baseaddr (char *module_name)
 {
-	MODULEENTRY32 module_entry = {0};
+	MODULEENTRY32 module_entry = {};
 	HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, get_pid_by_name(module_name));
 
 	if (!snapshot)

@@ -59,7 +59,17 @@
 	do {_info(msg, ##__VA_ARGS__);} while(0)
 
 
+#ifdef BOOL
+#define bool BOOL
+#endif
 
+#ifdef TRUE
+#define true TRUE
+#endif
+
+#ifdef FALSE
+#define false FALSE
+#endif
 
 #define PUSH_POS 	0
 #define POP_POS 	1
