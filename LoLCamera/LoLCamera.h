@@ -23,6 +23,8 @@
 #define LOLCAMERA_SHOP_OPENED_VALUE 6
 #define LOLCAMERA_CHAT_OPENED_VALUE 5
 
+#define IN_SCREEN_DISTANCE 2000.0
+
 // ------ Class declaration -------
 typedef struct _Camera Camera;
 

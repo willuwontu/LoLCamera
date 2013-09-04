@@ -65,9 +65,9 @@ static void camera_sensor_reset ()
 {
     // Polling data is requested because we want to center the camera exactly where the champion is
 	this->request_polling = TRUE;
-
 	this->focused_entity = NULL;
 	this->hint_entity = NULL;
+	
 	camera_translation_reset();
 	mempos_set(this->cam, this->champ->v.x, this->champ->v.y);
 	vector2D_set_zero(&this->lmb);
@@ -79,7 +79,7 @@ static void camera_sensor_reset ()
 
 static BOOL camera_center_requested ()
 {
-	// Disable when space / F1 is pressed
+	// Disable when center_key or F1 is pressed
 	if ((GetKeyState(this->center_key) < 0 || (GetKeyState(VK_F1) < 0))
 	 && (this->interface_opened != LOLCAMERA_CHAT_OPENED_VALUE))
     {
@@ -151,7 +151,6 @@ static BOOL camera_left_click ()
 
 			case 1:
 				// On release click anywhere :
-
 				// Save LMB position
 				save_lmb_pos();
 				this->lbutton_state = 0;
@@ -159,17 +158,28 @@ static BOOL camera_left_click ()
 
 			case 2:
 				// On release click on minimap :
-
-				// Wait before reseting the view
 				if (!this->dead_mode)
 				{
-					event_start_now(&this->reset_after_minimap_click);
-					this->lbutton_state = 3;
-					this->wait_for_end_of_pause = TRUE;
+					float distance_cam_champ = vector2D_distance(&this->champ->v, &this->cam->v);
+					
+					if (distance_cam_champ < IN_SCREEN_DISTANCE)
+					{
+						// Wait before reseting the view
+						event_start_now(&this->reset_after_minimap_click);
+						this->lbutton_state = 3;
+						this->wait_for_end_of_pause = TRUE;
+					}
+					else
+					{
+						// We actualize the camera position to the current view
+						camera_save_state(&this->cam->v);
+						this->lbutton_state = 0;
+						this->restore_tmpcam = TRUE;
+					}
 				}
 				else
 				{
-					// Dead mode : we need to refresh the camera position
+					// Dead mode : we need to actualize the camera position to the current position
 					camera_save_state(&this->cam->v);
 					this->lbutton_state = 0;
 					this->restore_tmpcam = TRUE;
@@ -537,14 +547,14 @@ static void camera_entity_manager ()
 	{
 		// When we are in "dead" spectator mode, it's not important to change camera mode.
 		if (entity_is_dead(this->focused_entity)
-		|| !camera_entity_is_near(this->focused_entity, 2000.0))
+		|| !camera_entity_is_near(this->focused_entity, IN_SCREEN_DISTANCE))
 			this->focused_entity = NULL;
 	}
 
 	if (this->hint_entity != NULL)
 	{
 		if (entity_is_dead(this->hint_entity)
-		|| !camera_entity_is_near(this->hint_entity, 2000.0))
+		|| !camera_entity_is_near(this->hint_entity, IN_SCREEN_DISTANCE))
 			this->hint_entity = NULL;
 	}
 }
@@ -833,9 +843,9 @@ BOOL camera_is_near (MemPos *pos, float limit)
 	if (pos == NULL)
 		return FALSE;
 
-	float distance_cam_champ = vector2D_distance(&pos->v, &this->cam->v);
+	float distance_cam_pos = vector2D_distance(&pos->v, &this->cam->v);
 
-	return (distance_cam_champ < limit);
+	return (distance_cam_pos < limit);
 }
 
 BOOL camera_entity_is_near (Entity *e, float limit)
