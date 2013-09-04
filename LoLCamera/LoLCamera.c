@@ -201,9 +201,7 @@ static BOOL camera_left_click ()
 				}
 			break;
 		}
-
 	}
-
 
 	return FALSE;
 }
@@ -229,7 +227,7 @@ static BOOL camera_translate ()
 {
 	short translate_state = GetKeyState(this->translate_key);
 
-	// listen for translate toggle key
+	// Listen for translate toggle key
 	if (translate_state != this->last_translate_state && translate_state < 0
 	&& this->interface_opened != LOLCAMERA_CHAT_OPENED_VALUE)
 	{

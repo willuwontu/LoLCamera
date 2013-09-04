@@ -48,6 +48,7 @@ int main()
 
 		mp = memproc_new("League of Legends.exe", "League of Legends (TM) Client");
 		memproc_set_default_baseaddr(mp, 0x00400000);
+		memproc_refresh_handle(mp);
 
 		if (!mp->proc)
 		{
