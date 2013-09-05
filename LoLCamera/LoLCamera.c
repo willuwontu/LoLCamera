@@ -800,6 +800,7 @@ LoLCameraState camera_main ()
 
 		// Compute Camera Scroll Speed
 		camera_compute_camera_scroll_speed (&camera_scroll_speed, camera_mode);
+		camera_scroll_speed *= (this->self->movement_speed / 400.0);
 
         // Smoothing
 		if (abs(target.x - this->cam->v.x) > this->champ_settings.threshold)

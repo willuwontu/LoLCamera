@@ -112,7 +112,7 @@ struct _Camera
 	Entity *focused_entity;			// The focused entity champion (NULL if none or self)
 	Entity *followed_entity;	    // The followed entity champion when you press Fx (NULL if none)
 	Entity *hint_entity;			// Keep this entity in sight *if possible* (NULL if none or self)
-	Entity *self;
+	Entity *self;					// The player champion
 	char self_name[17];
 	Entity *nearby[10];				// Array of entities nearby the champion
 	int nb_nearby;
