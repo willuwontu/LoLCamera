@@ -97,7 +97,6 @@ struct _Camera
 	// Camera system settings
 	int sleep_time;					// Sleep time at each start of main loop
 	int poll_data;					// Number of loops required for polling data
-	Vector2D drag_pos;				// Position IG where the drag started
 
 	// List of patchs
 	Patch *F1_pressed;				// Disables the behavior "Center the camera on the champion when F1 is pressed"
@@ -140,6 +139,8 @@ struct _Camera
 	Vector2D lmb;					// Last Left mouse button click position
 	Vector2D last_campos;			// Last camera position
 	Vector2D last_champpos;			// Last champion position
+	Vector2D drag_pos;				// Position IG where the drag started
+
 
 	// Key states
 	short int last_toggle_state;

@@ -936,8 +936,6 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 			float hint_weight    = 0.0;
 			float focus_weight   = 0.0;
 			float global_weight  = 0.0;
-			lmb_x = this->lmb.x;
-			lmb_y = this->lmb.y;
 
 			// Fix the perspective
             if (mouse_weight)
@@ -955,9 +953,15 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 			float distance_mouse_dest  = vector2D_distance(&this->dest->v, &this->mouse->v);
 
 			// LMB is not set
-			if (lmb_x == 0 || lmb_y == 0)
+			if (this->lmb.x == 0 || this->lmb.y == 0)
 			{
 				lmb_weight = 0.0;
+			}
+			else
+			{
+				lmb_x = this->lmb.x; // this->champ->v.x + (this->champ->v.x - this->lmb.x);
+				lmb_y = this->lmb.y; // this->champ->v.y + (this->champ->v.y - this->lmb.y);
+				// printf("x = %f - y = %f\n", lmb_x, lmb_y);
 			}
 
 			if (this->drag_request)
@@ -1036,7 +1040,7 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
                     (focus_x * focus_weight) +
 					(hint_x * hint_weight) +
                     (average_x * global_weight) +
-                    (this->lmb.x * lmb_weight)
+                    (lmb_x * lmb_weight)
                  ) / weight_sum
 					+ drag_x,
                 (
@@ -1046,7 +1050,7 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
                     (focus_y * focus_weight) +
 					(hint_y * hint_weight) +
                     (average_y * global_weight) +
-                    (this->lmb.y * lmb_weight)
+                    (lmb_y * lmb_weight)
                 ) / weight_sum
 					+ drag_y
             );

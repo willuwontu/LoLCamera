@@ -95,6 +95,7 @@ memproc_refresh_handle (MemProc *mp)
 	if ((mp->pid = get_pid_by_name (mp->process_name)) == 0)
 	{
 		// Process not active
+		mp->proc = NULL;
 		return false;
 	}
 
