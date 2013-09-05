@@ -949,11 +949,6 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 				}
             }
 
-			// Distances
-			float distance_mouse_champ = vector2D_distance(&this->mouse->v, &this->champ->v);
-			float distance_dest_champ  = vector2D_distance(&this->dest->v, &this->champ->v);
-			float distance_mouse_dest  = vector2D_distance(&this->dest->v, &this->mouse->v);
-
 			// LMB is not set
 			if (this->lmb.x == 0 || this->lmb.y == 0)
 			{
@@ -1013,11 +1008,19 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 
 			float weight_sum;
 			{
+				// Distances
+				float distance_mouse_champ = vector2D_distance(&this->mouse->v, &this->champ->v);
+				float distance_dest_champ  = vector2D_distance(&this->dest->v, &this->champ->v);
+				float distance_mouse_dest  = vector2D_distance(&this->dest->v, &this->mouse->v);
+				Vector2D lmb_translation = {.x = lmb_x, .y = lmb_y};
+				float distance_mouse_lmb_translation = vector2D_distance(&lmb_translation, &this->mouse->v);
+
 				// weighted averages
 				// these values control how quickly the weights fall off the further you are
 				// from the falloff distance
-				float dest_falloff_rate  = 0.00001;
-				float mouse_falloff_rate = 0.00001;
+				float dest_falloff_rate  = 0.0001;
+				float mouse_falloff_rate = 0.0001;
+				float lmb_falloff_rate = 0.0005;
 
 				// adjust weights based on distance
 				if (distance_dest_champ > this->champ_settings.dest_range_max)
@@ -1029,6 +1032,10 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 				// if the mouse is far from dest, reduce dest weight (mouse is more important)
 				if (distance_mouse_dest > this->champ_settings.mouse_dest_range_max)
 					dest_weight = dest_weight / (((distance_mouse_dest - this->champ_settings.mouse_dest_range_max) / 1500.0) + 1.0);
+
+				// if the mouse is far from the translation point, reduce
+				if (distance_mouse_lmb_translation > 200.0)
+					lmb_weight = lmb_weight / (((distance_mouse_lmb_translation - 200.0) * lmb_falloff_rate) + 1.0);
 
 				weight_sum = champ_weight + mouse_weight + dest_weight + focus_weight + hint_weight + global_weight + lmb_weight;
 			}
