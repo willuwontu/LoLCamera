@@ -21,6 +21,7 @@ struct _Entity
 {
 	MemPos p;
 	float hp, hp_max;
+	float movement_speed;
 	DWORD addr;
 
 	MemProc *ctxt;
