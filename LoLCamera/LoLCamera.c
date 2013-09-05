@@ -155,6 +155,8 @@ static BOOL camera_left_click ()
 				// Save LMB position
 				save_lmb_pos();
 				this->lbutton_state = 0;
+				this->translate_lmb.x = this->champ->v.x - this->lmb.x;
+				this->translate_lmb.y = this->champ->v.y - this->lmb.y;
 			break;
 
 			case 2:
@@ -959,8 +961,8 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 			}
 			else
 			{
-				lmb_x = this->lmb.x; // this->champ->v.x + (this->champ->v.x - this->lmb.x);
-				lmb_y = this->lmb.y; // this->champ->v.y + (this->champ->v.y - this->lmb.y);
+				lmb_x = this->champ->v.x - (this->translate_lmb.x);
+				lmb_y = this->champ->v.y - (this->translate_lmb.y);
 				// printf("x = %f - y = %f\n", lmb_x, lmb_y);
 			}
 

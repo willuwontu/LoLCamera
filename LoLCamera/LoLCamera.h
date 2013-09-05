@@ -140,7 +140,7 @@ struct _Camera
 	Vector2D last_campos;			// Last camera position
 	Vector2D last_champpos;			// Last champion position
 	Vector2D drag_pos;				// Position IG where the drag started
-
+	Vector2D translate_lmb;			// Translation value from lmb clicking
 
 	// Key states
 	short int last_toggle_state;
