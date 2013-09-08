@@ -61,14 +61,16 @@ static void camera_translation_reset ()
 	vector2D_set_pos(&this->distance_translation, 0.0, 0.0);
 }
 
-static void camera_sensor_reset ()
+static void camera_sensor_reset (bool reset_translation)
 {
     // Polling data is requested because we want to center the camera exactly where the champion is
 	this->request_polling = TRUE;
 	this->focused_entity = NULL;
 	this->hint_entity = NULL;
 
-	camera_translation_reset();
+	if (reset_translation)
+		camera_translation_reset();
+
 	mempos_set(this->cam, this->champ->v.x, this->champ->v.y);
 	vector2D_set_zero(&this->lmb);
 
@@ -83,7 +85,7 @@ static BOOL camera_center_requested ()
 	if ((GetKeyState(this->center_key) < 0 || (GetKeyState(VK_F1) < 0))
 	 && (this->interface_opened != LOLCAMERA_CHAT_OPENED_VALUE))
     {
-		camera_sensor_reset();
+		camera_sensor_reset(true);
         return TRUE;
     }
 
@@ -94,7 +96,7 @@ static BOOL camera_restore_requested ()
 {
 	if (this->restore_tmpcam)
 	{
-		camera_sensor_reset();
+		camera_sensor_reset(false);
 		return TRUE;
 	}
 
@@ -121,7 +123,10 @@ static BOOL camera_left_click ()
 			this->lbutton_state = 1;
 
 		// We want to move the camera only when we click on the minimap
-		if (camera_interface_is_hovered())
+		if (
+			(camera_interface_is_hovered())
+		&&  (this->interface_opened != LOLCAMERA_SHOP_OPENED_VALUE)
+		)
 		{
 			switch (this->lbutton_state)
 			{
@@ -328,6 +333,10 @@ static CameraTrackingMode camera_get_mode ()
 	if (!camera_is_enabled())
         return NoUpdate;
 
+	// If our champion is dead, set free mode
+	if (this->dead_mode)
+		return Free;
+
 	// user pressed space or F1 or anything requesting to center the camera on the champion
 	if (camera_center_requested())
 		return CenterCam;
@@ -352,10 +361,6 @@ static CameraTrackingMode camera_get_mode ()
 	// Following ally & ennemies champions
 	if (camera_follow_champion_requested ())
 		return NoMove;
-
-	// If our champion is dead, set free mode
-	if (this->dead_mode)
-		return Free;
 
 	// The champion has been teleported far, focus on the champion
 	if (camera_reset_conditions())
@@ -664,6 +669,26 @@ BOOL camera_update ()
 	}
 
 	return TRUE;
+}
+
+void camera_mode_dump (CameraTrackingMode mode)
+{
+    char * mode_str [] = {
+    	"Normal",
+		"CenterCam",
+		"RestoreCam",
+		"NoMove",
+		"NoUpdate",
+		"EndOfGame",
+		"ForeGround",
+		"Free",
+		"FocusSelf",
+		"FollowEntity",
+		"Translate",
+		"isTranlating"
+    };
+
+	printf("Mode = %s\n", mode_str[(int)mode]);
 }
 
 void camera_set_tracking_mode (CameraTrackingMode *out_mode)
