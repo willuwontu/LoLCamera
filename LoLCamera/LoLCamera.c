@@ -420,7 +420,7 @@ void camera_init (MemProc *mp)
 
 	// TODO : get .text section offset + size properly
 	DWORD text_section = this->mp->base_addr + 0x1000;
-	unsigned int text_size = 0x008B7000;
+	unsigned int text_size = 0x0097E000;
 
 	// Zeroing stuff
 	memset(this->champions, 0, sizeof(Entity *));
@@ -946,7 +946,7 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
             	// The camera goes farther when the camera is moving to the south
 				float distance_mouse_champ_y = this->champ->v.y - this->mouse->v.y;
 				if (distance_mouse_champ_y > 0.0) {
-					this->mouse->v.y -= distance_mouse_champ_y * 0.1; // <-- arbitrary value
+					this->mouse->v.y -= distance_mouse_champ_y * 0.3; // <-- arbitrary value
 				}
             }
 
@@ -1013,30 +1013,25 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 				float distance_mouse_champ = vector2D_distance(&this->mouse->v, &this->champ->v);
 				float distance_dest_champ  = vector2D_distance(&this->dest->v, &this->champ->v);
 				float distance_mouse_dest  = vector2D_distance(&this->dest->v, &this->mouse->v);
-				Vector2D lmb_translation = {.x = lmb_x, .y = lmb_y};
-				float distance_mouse_lmb_translation = vector2D_distance(&lmb_translation, &this->mouse->v);
+				// Vector2D lmb_translation = {.x = lmb_x, .y = lmb_y};
+				// float distance_mouse_lmb_translation = vector2D_distance(&lmb_translation, &this->mouse->v);
 
 				// weighted averages
 				// these values control how quickly the weights fall off the further you are
 				// from the falloff distance
 				float dest_falloff_rate  = 0.0001;
-				float mouse_falloff_rate = 0.0001;
-				float lmb_falloff_rate = 0.0005;
+				float mouse_falloff_rate = 0.0010;
 
 				// adjust weights based on distance
 				if (distance_dest_champ > this->champ_settings.dest_range_max)
 					dest_weight = dest_weight / (((distance_dest_champ - this->champ_settings.dest_range_max) * dest_falloff_rate) + 1.0);
 
 				if (distance_mouse_champ > this->champ_settings.mouse_range_max)
-					mouse_weight = mouse_weight / (((distance_mouse_champ - this->champ_settings.mouse_range_max) * mouse_falloff_rate) + 1.0);
+					champ_weight = champ_weight * (((distance_mouse_champ - this->champ_settings.mouse_range_max) * mouse_falloff_rate) + 1.0);
 
 				// if the mouse is far from dest, reduce dest weight (mouse is more important)
 				if (distance_mouse_dest > this->champ_settings.mouse_dest_range_max)
 					dest_weight = dest_weight / (((distance_mouse_dest - this->champ_settings.mouse_dest_range_max) / 1500.0) + 1.0);
-
-				// if the mouse is far from the translation point, reduce
-				if (distance_mouse_lmb_translation > 200.0)
-					lmb_weight = lmb_weight / (((distance_mouse_lmb_translation - 200.0) * lmb_falloff_rate) + 1.0);
 
 				weight_sum = champ_weight + mouse_weight + dest_weight + focus_weight + hint_weight + global_weight + lmb_weight;
 			}

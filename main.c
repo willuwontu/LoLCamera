@@ -36,7 +36,7 @@ int main()
 			while (mp->proc)
 			{
 				memproc_refresh_handle(mp);
-				Sleep(5000);
+				Sleep(2000);
 
 				if (!already_displayed_message)
 				{
