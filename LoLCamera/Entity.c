@@ -1,16 +1,15 @@
 #include "Entity.h"
 
-#define EOFF_POSX			0x68
-#define EOFF_POSY			(EOFF_POSX + 0x88)
-#define EOFF_HP 			0x120
-#define EOFF_HPM 			0x130
-#define EOFF_MS 			0x734
-#define EOFF_PLAYER_NAME 	0x2C
-#define EOFF_CHAMP_STRUCT 	0x44
+#define EOFF_POSX			0x64
+#define EOFF_POSY			(EOFF_POSX + 0x8)
+#define EOFF_HP 			0x118
+#define EOFF_HPM 			0x128
+#define EOFF_MS 			0x720
+#define EOFF_PLAYER_NAME 	0x28
+#define EOFF_CHAMP_STRUCT 	0x40
 
 // Offset in champion structure
-#define EOFF_CHAMP_NAME		0x24
-
+#define EOFF_CHAMP_NAME		0x1C
 
 
 Entity *

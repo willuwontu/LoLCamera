@@ -16,6 +16,7 @@
 #include "../Scanner/Scanner.h"
 #include "../MemBuffer/MemBuffer.h"
 #include "../Event/Event.h"
+#include "../EasySocket/EasySocket.h"
 #include "./Entity.h"
 #include "./CameraSettings.h"
 
@@ -49,13 +50,10 @@ struct _Camera
 	DWORD champx_addr, champy_addr;	// Address of the data : championX / championY
 	DWORD mousex_addr, mousey_addr; // Address of the data : mouseX / mouseY
 	DWORD destx_addr, desty_addr;   // Address of the data : destX / destY (right click)
-	DWORD mouse_screen_ptr;			// Address of the pointer to the pointer to the structure containing mouseScreenX/Y
-	DWORD mouse_screen_addr;		// Address of the pointer to the structure containing mouseScreenX/Y
 	DWORD win_is_opened_addr;		// Address of the data : address of the variable containing "isShopOpen" (different of 0 if its the case)
 
 	DWORD loading_state_addr;		// Adress of the data : loading state
-	DWORD game_struct_addr;			// Adress of the data : structure of the game
-	DWORD game_state_addr;			// Adress of the data : state of the game
+	DWORD game_info_addr;			// Adress of the data : info of the game
 	DWORD victory_state_addr;		// Adress of the data : Victory or Defeat
 
 	DWORD interface_hovered_addr;	// Address of the data : Is the interface hovered ?
@@ -134,7 +132,6 @@ struct _Camera
 	MemPos *champ;					// User champion position
 	MemPos *dest;					// Last Right mouse button click position
 	MemPos *mouse;					// Mouse position
-	MemPos *mouse_screen;			// Mouse screen position
 	MemPos tmpcam;					// Temporary Camera state
 	Vector2D lmb;					// Last Left mouse button click position
 	Vector2D last_campos;			// Last camera position
@@ -198,6 +195,7 @@ BOOL camera_is_near (MemPos *po, float limit);
 void camera_load_settings (char *section);
 BOOL exit_request (int key);
 int get_kb ();
+void camera_check_version (void);
 
 // -- Hotkeys
 bool global_key_toggle ();
@@ -205,13 +203,11 @@ bool global_key_toggle ();
 // From LoLCameraMem.c
 BOOL camera_scan_champions ();
 BOOL camera_scan_patch ();
-BOOL camera_scan_mouse_screen ();
 BOOL camera_scan_win_is_opened ();
 BOOL camera_scan_variables ();
 BOOL camera_scan_loading ();
-BOOL camera_scan_game_struct ();
+BOOL camera_scan_cursor_champ ();
 BOOL camera_scan_hovered_champ ();
-BOOL camera_scan_game_struct_offsets ();
 BOOL camera_scan_champ_offsets ();
 BOOL camera_scan_dest_offsets ();
 BOOL camera_scan_victory ();

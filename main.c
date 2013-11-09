@@ -6,6 +6,63 @@
 #include "./LoLCamera/LoLCamera.h"
 #include <signal.h>
 
+#define LOLCAMERA_VERSION 0.11
+
+float check_version (void)
+{
+	es_init();
+	info("Checking for updates ...");
+
+	EasySocket *socket = es_client_new_from_host("lolcamera.alwaysdata.net", 80);
+	char *version = es_get_http_file(socket, "/version.txt");
+	es_free(socket);
+
+	if (version != NULL)
+	{
+		if (atof(version) != LOLCAMERA_VERSION)
+			return atof(version);
+	}
+
+	return 0.0;
+}
+
+int main_light ()
+{
+	LoLCameraState state = PLAY;
+	MemProc *mp = NULL;
+
+	mp = memproc_new("League of Legends.exe", "League of Legends (TM) Client");
+	memproc_set_default_baseaddr(mp, 0x00400000);
+	memproc_refresh_handle(mp);
+
+	info("Dumping process...");
+	DWORD text_section = mp->base_addr + 0x1000;
+	unsigned int text_size = 0x00B1A000;
+	memproc_dump(mp, text_section, text_section + text_size);
+
+	//
+	camera_init_light(mp);
+
+	//
+	camera_scan_campos();
+	camera_scan_cursor_champ();
+	camera_scan_dest ();
+	camera_scan_hover_interface();
+	camera_scan_game_info();
+	camera_scan_win_is_opened();
+	camera_scan_hovered_champ();
+	camera_refresh_entity_hovered();
+	camera_scan_champions();
+	camera_scan_loading();
+
+	//
+	camera_run_light();
+	camera_scan_patch();
+
+
+	return 0;
+}
+
 int main()
 {
 	LoLCameraState state = PLAY;
@@ -17,6 +74,15 @@ int main()
 	important("------------------------------------------------------------------");
 	important("Keep pressing X in this console to exit safely (strongly recommanded)");
 	important("------------------------------------------------------------------");
+
+	// Check online version
+	float new_version = 0.0;
+	if ((new_version = check_version()) != 0.0)
+	{
+		important("A NEW UPDATE IS AVAILABLE (New = %f, current = %f)! https://sourceforge.net/projects/lolcamera/files",
+					new_version, LOLCAMERA_VERSION);
+		important("----------------------------------------------------------------------------");
+	}
 
 	if (!enable_debug_privileges())
 	{
@@ -72,6 +138,7 @@ int main()
 		info("Game detected, main loop started (press 'x' to quit)");
 
 		camera_init(mp);
+		camera_export_to_cheatengine();
 
 		state = camera_main();
 		camera_unload();

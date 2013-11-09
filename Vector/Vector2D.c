@@ -80,6 +80,13 @@ vector2D_sdiv (Vector2D *v1, Vector2D *v2)
 	v1->y = v1->y / v2->y;
 }
 
+inline int
+vector2D_equal (Vector2D *v1, Vector2D *v2)
+{
+	return (v1->x == v2->x
+		&&  v1->y == v2->y);
+}
+
 // --- Accessors
 inline void
 vector2D_set_pos (Vector2D *v, float x, float y)

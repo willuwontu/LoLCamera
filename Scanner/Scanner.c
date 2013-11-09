@@ -1,6 +1,6 @@
 #include "Scanner.h"
 
-BbQueue *memscan_search (MemProc *mp, char *desc, unsigned char *pattern, unsigned char *search_mask, unsigned char *res_mask)
+BbQueue *memscan_search (MemProc *mp, unsigned char *desc, unsigned char *pattern, unsigned char *search_mask, unsigned char *res_mask)
 {
 	memproc_search(mp, pattern, search_mask, NULL, SEARCH_TYPE_BYTES);
 	BbQueue *results = memproc_get_res(mp);
@@ -10,7 +10,7 @@ BbQueue *memscan_search (MemProc *mp, char *desc, unsigned char *pattern, unsign
 
 	if (bb_queue_get_length(results) > 1)
 	{
-		debugb("%s : (%d) occurences found : ", __FUNCTION__, bb_queue_get_length(results));
+		debugb("%s : (%d) occurences found : ", desc, bb_queue_get_length(results));
 		foreach_bbqueue_item (results, MemBlock *block)
 			debugb("0x%.8x ", (int) block->addr);
 		debugb("\n");
@@ -18,9 +18,7 @@ BbQueue *memscan_search (MemProc *mp, char *desc, unsigned char *pattern, unsign
 
 	if (bb_queue_get_length(results) == 0)
 	{
-		error("\"%s\" : Nothing found", desc);
-		str_debug_len(pattern, strlen(search_mask));
-		debugb("search_mask = %s\n", search_mask);
+		important("\"%s\" : Nothing found", desc);
 		return NULL;
 	}
 
@@ -51,6 +49,7 @@ BbQueue *memscan_search (MemProc *mp, char *desc, unsigned char *pattern, unsign
 
 		char buffer[4] = {[0 ... 3] = 0};
 		read_from_memory(mp->proc, buffer, ptr, 4);
+
 		int ibuffer = 0;
 		float fbuffer = 0;
 		memcpy(&ibuffer, buffer, sizeof(buffer));

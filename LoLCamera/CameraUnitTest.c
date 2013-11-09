@@ -55,20 +55,6 @@ BOOL camera_ut_is_win_opened ()
 	&& 		this->interface_opened <  7);
 }
 
-BOOL camera_ut_screen_mouse ()
-{
-	RECT w;
-	GetWindowRect(GetDesktopWindow(), &w);
-
-	Camera *this = camera_get_instance();
-	float x, y;
-
-	mempos_get(this->mouse_screen, &x, &y);
-
-	return (x >= 0.0 && x <= w.right
-	&&		y >= 0.0 && y <= w.bottom);
-}
-
 BOOL camera_ut_loading_state ()
 {
 	Camera *this = camera_get_instance();

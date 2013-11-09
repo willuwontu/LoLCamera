@@ -382,9 +382,9 @@ strn_cpy (char *dest, const char *str, int size)
 int
 str_substring (const char *str, int start, int end, char *res)
 {
-	if (start != end && start < end)
+	if (start < end)
 	{
-		int len = end + 1 - start;
+		int len = end - start;
 		res[len] = '\0';
 		memcpy(res, str + start, len);
 
@@ -925,7 +925,7 @@ str_bet (const char *str, const char *start, const char *end)
 	(
 		str,
 		pos_start + start_len,
-		pos_end - 1,
+		pos_end,
 		ret
 	);
 
@@ -955,7 +955,7 @@ str_bet_buffer (const char *str, const char *start, const char *end, char *buffe
 	(
 		str,
 		pos_start + start_len,
-		pos_end - 1,
+		pos_end,
 		buffer
 	);
 }

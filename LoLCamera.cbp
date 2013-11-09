@@ -35,10 +35,17 @@
 			<Add option="-masm=intel" />
 			<Add option="-Wno-pointer-sign" />
 		</Compiler>
+		<Linker>
+			<Add library="wsock32" />
+		</Linker>
 		<Unit filename="BbQueue\BbQueue.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="BbQueue\BbQueue.h" />
+		<Unit filename="EasySocket\EasySocket.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="EasySocket\EasySocket.h" />
 		<Unit filename="Event\Event.c">
 			<Option compilerVar="CC" />
 		</Unit>

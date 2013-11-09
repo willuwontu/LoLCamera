@@ -143,6 +143,9 @@ vector2D_div 		(Vector2D *v1, Vector2D *v2);
 void
 vector2D_sdiv 		(Vector2D *v1, Vector2D *v2);
 
+int
+vector2D_equal 		(Vector2D *v1, Vector2D *v2);
+
 // --- Accessors
 
 void

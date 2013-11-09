@@ -71,7 +71,7 @@ static void camera_sensor_reset (bool reset_translation)
 	if (reset_translation)
 		camera_translation_reset();
 
-	mempos_set(this->cam, this->champ->v.x, this->champ->v.y);
+	mempos_set(this->cam, this->champ->v.x, this->champ->v.y - 1000.0);
 	vector2D_set_zero(&this->lmb);
 
 	// Events reset
@@ -277,7 +277,6 @@ static void camera_debug_mode ()
 				{"Mouse position",    camera_ut_mousepos},
 				{"Dest position",     camera_ut_destpos},
 				{"Window opened", 	  camera_ut_is_win_opened},
-				{"Screen mouse",      camera_ut_screen_mouse},
 				{"Loading state",     camera_ut_loading_state}
 			};
 
@@ -406,6 +405,20 @@ static BOOL camera_follow_champion_requested ()
 	return fx_pressed;
 }
 
+void camera_init_light (MemProc *mp)
+{
+	this = calloc(sizeof(Camera), 1);
+	this->mp = mp;
+}
+
+void camera_run_light ()
+{
+	this->cam   	   = mempos_new (this->mp, this->camx_addr,     this->camy_addr);
+	this->champ 	   = mempos_new (this->mp, this->champx_addr,   this->champy_addr);
+	this->mouse 	   = mempos_new (this->mp, this->mousex_addr,   this->mousey_addr);
+	this->dest  	   = mempos_new (this->mp, this->destx_addr,    this->desty_addr);
+}
+
 void camera_init (MemProc *mp)
 {
 	if (this == NULL)
@@ -465,13 +478,7 @@ void camera_init (MemProc *mp)
 	this->mouse 	   = mempos_new (this->mp, this->mousex_addr,   this->mousey_addr);
 	this->dest  	   = mempos_new (this->mp, this->destx_addr,    this->desty_addr);
 
-	this->mouse_screen = mempos_int_new (
-		this->mp,
-		this->mouse_screen_addr + 0x4C - mp->base_addr,
-		this->mouse_screen_addr + 0x50 - mp->base_addr
-	);
-
-	patch_list_set(this->patchlist, TRUE);
+	patch_list_set (this->patchlist, TRUE);
 
 	// Export to CE
 	if (this->output_cheatengine_table)
@@ -617,12 +624,11 @@ BOOL camera_update ()
 		{.func = mempos_refresh, 				.arg = this->champ,			.desc = "this->champ MemPos"},
 		{.func = mempos_refresh,				.arg = this->dest, 			.desc = "this->dest MemPos"},
 		{.func = mempos_refresh,				.arg = this->mouse, 		.desc = "this->mouse MemPos"},
-		{.func = mempos_int_refresh,			.arg = this->mouse_screen,	.desc = "this->mouse_screen MemPos"},
 		{.func = camera_refresh_champions,		.arg = NULL,				.desc = "Entities array"},
 		{.func = camera_refresh_win_is_opened,	.arg = NULL,				.desc = "Window opened"},
 		{.func = camera_refresh_entity_hovered,	.arg = NULL,				.desc = "Entity hovered"},
 		{.func = camera_refresh_self,	        .arg = NULL,				.desc = "Self champion detection"},
-		{.func = camera_refresh_victory,	    .arg = NULL,				.desc = "Victory State"},
+		//{.func = camera_refresh_victory,	    .arg = NULL,				.desc = "Victory State"},
 		{.func = camera_refresh_entities_nearby,.arg = NULL,				.desc = "Nearby champions"},
 		{.func = camera_refresh_hover_interface,.arg = NULL,				.desc = "Hover Interface"},
 	};
@@ -649,7 +655,6 @@ BOOL camera_update ()
 
 				// Resynchronize with the process
 				if (!camera_scan_variables()
-				||	!camera_scan_mouse_screen()
 				||	!camera_scan_champions())
 				{
 					warning("Synchronization with the client isn't possible - Retrying in 3s.");
@@ -821,6 +826,7 @@ LoLCameraState camera_main ()
 			continue;
 
 		// Compute target
+		this->cam->v.y += 1000.0;
 		camera_compute_target(&target, camera_mode);
 
 		// Compute Camera Scroll Speed
@@ -839,6 +845,7 @@ LoLCameraState camera_main ()
             continue;
 
         // update the ingame gamera position
+		this->cam->v.y -= 1000.0;
 		mempos_set(this->cam, this->cam->v.x, this->cam->v.y);
 
 		// Save last positions
@@ -953,7 +960,6 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 
 		case Normal:
 		{
-
 			// Always activated
 			float champ_weight = this->champ_weight;
 			float mouse_weight = this->mouse_weight;

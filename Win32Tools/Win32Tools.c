@@ -242,7 +242,7 @@ BOOL enable_debug_privileges ()
 {
 	HANDLE hToken = 0;
 	TOKEN_PRIVILEGES newPrivs;
-	DWORD cb = sizeof(TOKEN_PRIVILEGES); 
+	DWORD cb = sizeof(TOKEN_PRIVILEGES);
 
 	if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken))
 	{
@@ -288,7 +288,7 @@ HWND get_hwnd_from_pid (DWORD pid)
 
 		if (window_pid == pid)
 			return hwnd;
-	
+
 	} while (hwnd != NULL);
 
 	return NULL;

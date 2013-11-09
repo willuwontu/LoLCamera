@@ -32,7 +32,7 @@
 	(pNTHdr->OptionalHeader.DataDirectory[IDE].VirtualAddress)
 
 #define warning(msg, ...) \
-	do {_warning("[?] (%s) " msg "\n", __FUNCTION__, ##__VA_ARGS__);} while(0)
+	do {_warning("[?] " msg "\n", ##__VA_ARGS__);} while(0)
 
 #define error(msg, ...) \
 	do {_error("[!] (%s) " msg "\n", __FUNCTION__, ##__VA_ARGS__); system("pause");} while(0)
@@ -80,7 +80,7 @@
 
 #define COMPILE_GDI 0
 
-#define DEBUG_ACTIVATED 0
+#define DEBUG_ACTIVATED 1
 
 // ----------- Methods ------------
 

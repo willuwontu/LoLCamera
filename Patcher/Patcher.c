@@ -67,16 +67,17 @@ patch_set_activated (Patch *p, BOOL activated)
 		}
 
 		PatchItem *pi;
+		int success = 1;
 
 		foreach_bbqueue_item (p->patch_items, pi)
 		{
 			char *str = ztring_get_text(pi->z);
 
-			if (write_to_memory(p->ctxt->proc, str, p->addr + pi->offset, ztring_get_len(pi->z)))
-				debug("Patch \"%s\" : success (0x%.8x)", p->description, p->addr);
-
-			else
+			if (!write_to_memory(p->ctxt->proc,
+				str, p->addr + pi->offset, ztring_get_len(pi->z))
+			)
 			{
+				success = 0;
 				warning("Patch \"%s\" : failure (0x%.8x)", p->description, p->addr);
 				patch_item_debug(pi);
 			}
@@ -84,6 +85,9 @@ patch_set_activated (Patch *p, BOOL activated)
 			// Cleaning
 			free(str);
 		}
+
+		if (success)
+			debug("Patch \"%s\" : success (0x%.8x)", p->description, p->addr);
 	}
 
 	else
