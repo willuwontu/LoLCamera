@@ -270,13 +270,13 @@ es_send(EasySocket *es, char *msg, int len)
 }
 
 char *
-es_get_http_file (EasySocket *es, char *path)
+es_get_http_file (EasySocket *es, char *path, char *host)
 {
 	char *full_msg = str_dup_printf(
 		"GET %s HTTP/1.1\r\n"
-		"Host: lolcamera.alwaysdata.net\r\n"
+		"Host: %s\r\n"
 		"User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:24.0) Gecko/20100101 Firefox/24.0\r\n\r\n\r\n",
-		path
+		path, host
     );
 
     es_send(es, full_msg, -1);

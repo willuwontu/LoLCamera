@@ -11,10 +11,10 @@
 float check_version (void)
 {
 	es_init();
-	info("Checking for updates ...");
+	info("Checking for updates (current version : %.2f) ...", LOLCAMERA_VERSION);
 
 	EasySocket *socket = es_client_new_from_host("lolcamera.alwaysdata.net", 80);
-	char *version = es_get_http_file(socket, "/version.txt");
+	char *version = es_get_http_file(socket, "/version.txt", "lolcamera.alwaysdata.net");
 	es_free(socket);
 
 	if (version != NULL)
@@ -28,7 +28,6 @@ float check_version (void)
 
 int main_light ()
 {
-	LoLCameraState state = PLAY;
 	MemProc *mp = NULL;
 
 	mp = memproc_new("League of Legends.exe", "League of Legends (TM) Client");
@@ -40,6 +39,7 @@ int main_light ()
 	unsigned int text_size = 0x00B1A000;
 	memproc_dump(mp, text_section, text_section + text_size);
 
+	/*
 	//
 	camera_init_light(mp);
 
@@ -58,7 +58,7 @@ int main_light ()
 	//
 	camera_run_light();
 	camera_scan_patch();
-
+	*/
 
 	return 0;
 }

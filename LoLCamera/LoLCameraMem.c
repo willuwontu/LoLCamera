@@ -213,7 +213,6 @@ BOOL camera_scan_loading ()
 			007ED30C   ►  A1 <<0CB92401>>         mov eax, [dword ds:League_of_Legends.124B90C]
 			007ED311   ·  3B05 20B92401           cmp eax, [dword ds:League_of_Legends.124B920]
 			007ED317   ·▼ 75 26                   jne short League_of_Legends.007ED33F
-
 	*/
 		(unsigned char[]) {
 			0x99,

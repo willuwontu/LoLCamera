@@ -63,7 +63,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <windows.h>
-#include <pthread.h>
 #include <assert.h>
 
 #include "../Ztring/Ztring.h"
@@ -173,7 +172,7 @@ void
 es_send_http_request(EasySocket *es, char *msg);
 
 char *
-es_get_http_file (EasySocket *es, char *path);
+es_get_http_file (EasySocket *es, char *path, char *host);
 
 	/**=================
 		@Destructors
