@@ -6,7 +6,7 @@
 #include "./LoLCamera/LoLCamera.h"
 #include <signal.h>
 
-#define LOLCAMERA_VERSION 0.11
+#define LOLCAMERA_VERSION 0.12
 
 float check_version (void)
 {
@@ -79,9 +79,13 @@ int main()
 	float new_version = 0.0;
 	if ((new_version = check_version()) != 0.0)
 	{
-		important("A NEW UPDATE IS AVAILABLE (New = %f, current = %f)! https://sourceforge.net/projects/lolcamera/files",
+		important("\n"
+				  "    +---------------------------------------------------------------------------+\n"
+				  "    |                       A NEW UPDATE IS AVAILABLE                           |\n"
+				  "    |                 New version = %.2f, current version = %.2f                |\n"
+				  "    |        Download : https://sourceforge.net/projects/lolcamera/files        |\n"
+				  "    +---------------------------------------------------------------------------+",
 					new_version, LOLCAMERA_VERSION);
-		important("----------------------------------------------------------------------------");
 	}
 
 	if (!enable_debug_privileges())
