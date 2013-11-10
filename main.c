@@ -39,7 +39,7 @@ int main_light ()
 	unsigned int text_size = 0x00B1A000;
 	memproc_dump(mp, text_section, text_section + text_size);
 
-	/*
+	/* These calls produce warnings, keep it commented
 	//
 	camera_init_light(mp);
 
@@ -86,6 +86,7 @@ int main()
 				  "    |        Download : https://sourceforge.net/projects/lolcamera/files        |\n"
 				  "    +---------------------------------------------------------------------------+",
 					new_version, LOLCAMERA_VERSION);
+		system("pause");
 	}
 
 	if (!enable_debug_privileges())
@@ -142,7 +143,6 @@ int main()
 		info("Game detected, main loop started (press 'x' to quit)");
 
 		camera_init(mp);
-		camera_export_to_cheatengine();
 
 		state = camera_main();
 		camera_unload();
@@ -151,5 +151,6 @@ int main()
 			memproc_free(mp);
 	}
 
+	// Force atexit event
 	exit(0);
 }
