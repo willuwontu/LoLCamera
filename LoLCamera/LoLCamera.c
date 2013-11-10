@@ -71,7 +71,7 @@ static void camera_sensor_reset (bool reset_translation)
 	if (reset_translation)
 		camera_translation_reset();
 
-	mempos_set(this->cam, this->champ->v.x, this->champ->v.y - 1000.0);
+	mempos_set(this->cam, this->champ->v.x, this->champ->v.y);
 	vector2D_set_zero(&this->lmb);
 
 	// Events reset
@@ -136,9 +136,13 @@ static BOOL camera_left_click ()
 				case 1:
 					this->lbutton_state = 2;
 					camera_save_state(&this->champ->v);
+					save_lmb_pos();
+					camera_set_pos(this->lmb.x, this->lmb.y);
 				break;
 
 				case 2:
+					save_lmb_pos();
+					camera_set_pos(this->lmb.x, this->lmb.y);
 				break;
 			}
 
@@ -413,10 +417,11 @@ void camera_init_light (MemProc *mp)
 
 void camera_run_light ()
 {
-	this->cam   	   = mempos_new (this->mp, this->camx_addr,     this->camy_addr);
-	this->champ 	   = mempos_new (this->mp, this->champx_addr,   this->champy_addr);
-	this->mouse 	   = mempos_new (this->mp, this->mousex_addr,   this->mousey_addr);
-	this->dest  	   = mempos_new (this->mp, this->destx_addr,    this->desty_addr);
+	this->cam    = mempos_new (this->mp, this->camx_val,      this->camy_val);
+	this->camPos = mempos_new (this->mp, this->camx_addr,     this->camy_addr);
+	this->champ  = mempos_new (this->mp, this->champx_addr,   this->champy_addr);
+	this->mouse  = mempos_new (this->mp, this->mousex_addr,   this->mousey_addr);
+	this->dest   = mempos_new (this->mp, this->destx_addr,    this->desty_addr);
 }
 
 void camera_init (MemProc *mp)
@@ -473,7 +478,8 @@ void camera_init (MemProc *mp)
 	camera_scan_patch();
 
 	// Init data from the client
-	this->cam   	   = mempos_new (this->mp, this->camx_addr,     this->camy_addr);
+	this->cam   	   = mempos_new (this->mp, this->camx_val,      this->camy_val);
+	this->camPos   	   = mempos_new (this->mp, this->camx_addr,     this->camy_addr);
 	this->champ 	   = mempos_new (this->mp, this->champx_addr,   this->champy_addr);
 	this->mouse 	   = mempos_new (this->mp, this->mousex_addr,   this->mousey_addr);
 	this->dest  	   = mempos_new (this->mp, this->destx_addr,    this->desty_addr);
@@ -826,7 +832,6 @@ LoLCameraState camera_main ()
 			continue;
 
 		// Compute target
-		this->cam->v.y += 1000.0;
 		camera_compute_target(&target, camera_mode);
 
 		// Compute Camera Scroll Speed
@@ -845,14 +850,19 @@ LoLCameraState camera_main ()
             continue;
 
         // update the ingame gamera position
-		this->cam->v.y -= 1000.0;
-		mempos_set(this->cam, this->cam->v.x, this->cam->v.y);
+		camera_set_pos(this->cam->v.x, this->cam->v.y);
 
 		// Save last positions
 		camera_save_last_campos(&this->cam->v);
 	}
 
 	return WAIT_FOR_NEW_GAME;
+}
+
+void camera_set_pos (float x, float y)
+{
+	mempos_set(this->camPos, x, y - 1000.0);
+	mempos_set(this->cam, x, y);
 }
 
 static void camera_compute_camera_scroll_speed (float *camera_scroll_speed, CameraTrackingMode camera_mode)

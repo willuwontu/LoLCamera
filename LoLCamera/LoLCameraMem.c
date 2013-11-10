@@ -14,9 +14,9 @@ BOOL camera_scan_patch ()
 	info("------------------------------------------------------------------");
 	info("Looking for patch addresses ...");
 
-	camera_get_patch (
-		this->mp, "Modify camera position",
-		&this->border_screen_addr,
+	this->camera_movement = camera_get_patch (
+		this->mp, "Modify camera position (memory)",
+		&this->camera_movement_addr,
 
 		(unsigned char[]) {
 		/*
@@ -63,7 +63,154 @@ BOOL camera_scan_patch ()
 			"????"
 	);
 
+
+	camera_get_patch (
+		this->mp, "Move the camera (value) on border",
+		&this->border_screen_addr,
+
+		(unsigned char[]) {
+		/*
+			007A05EC        ·  F30F111D 2B99BA02       movss [dword ds:League_of_Legends.2BA992B], xmm3       ; float 0.0, 0.0, 0.0, 0.0
+			007A05F4        ·  F30F110D 2799BA02       movss [dword ds:League_of_Legends.2BA9927], xmm1       ; float 0.0, 0.0, 0.0, 0.0
+			007A05FC        ·  F30F1125 2F99BA02       movss [dword ds:League_of_Legends.2BA992F], xmm4       ; float 0.0, 0.0, 0.0, 0.0
+			007A0604        ·  83F9 02                 cmp ecx, 2
+			007A0607        ·▼ 74 17                   je short League_of_Legends.007A0620
+			007A0609        ·  83F9 04                 cmp ecx, 4
+			007A060C        ·▼ 74 12                   je short League_of_Legends.007A0620
+		*/
+			0xF3,0x0F,0x11,0x1D,0x2B,0x99,0xBA,0x02,
+			0xF3,0x0F,0x11,0x0D,0x27,0x99,0xBA,0x02,
+			0xF3,0x0F,0x11,0x25,0x2F,0x99,0xBA,0x02,
+			0x83,0xF9,0x02,
+			0x74,0x17,
+			0x83,0xF9,0x04,
+			0x74,0x12
+		},
+
+			"xxxx????"
+			"xxxx????"
+			"xxxx????"
+			"xxx"
+			"xx"
+			"xxx"
+			"xx",
+
+		(unsigned char[]) {
+			0x90,0x90,0x90,0x90,0x90,0x90,0x90,0x90,
+			0x90,0x90,0x90,0x90,0x90,0x90,0x90,0x90,
+			0x90,0x90,0x90,0x90,0x90,0x90,0x90,0x90,
+			0x83,0xF9,0x02,
+			0x74,0x17,
+			0x83,0xF9,0x04,
+			0x74,0x12
+		},
+			"xxxxxxxx"
+			"xxxxxxxx"
+			"xxxxxxxx"
+			"???"
+			"??"
+			"???"
+			"??"
+	);
+
+
 	this->patchlist = patch_list_get();
+
+	return TRUE;
+}
+
+BOOL camera_scan_camval ()
+{
+	Camera *this = camera_get_instance();
+	unsigned char *description = "CameraX_Value/CameraY_Value";
+
+	BbQueue *res = memscan_search(this->mp, description,
+		(unsigned char []) {
+		/*
+			014636B3       ¦·  84C0                    test al, al
+			014636B5       ¦·? 74 34                   jz short League_of_Legends.014636EB
+			014636B7       ¦·  F30F1045 00             movss xmm0, [dword ss:ebp]
+			014636BC       ¦·  F30F1105 27999503       movss [dword ds:League_of_Legends.3959927], xmm0       ; float 11754.59 <- cameraX
+			014636C4       ¦·  F30F1045 04             movss xmm0, [dword ss:ebp+4]
+			014636C9       ¦·  F30F1105 2B999503       movss [dword ds:League_of_Legends.395992B], xmm0       ; float 0.0
+			014636D1       ¦·  F30F1045 08             movss xmm0, [dword ss:ebp+8]
+			014636D6       ¦·  8BCB                    mov ecx, ebx
+			014636D8       ¦·  F30F1105 2F999503       movss [dword ds:League_of_Legends.395992F], xmm0       ; float 9593.056  <- cameraY
+			014636E0       ¦·  E8 DBF8FFFF             call League_of_Legends.01462FC0                        ; [League_of_Legends.01462FC0
+			014636E5       ¦·  5F                      pop edi
+			014636E6       ¦·  5D                      pop ebp
+			014636E7       ¦·  5B                      pop ebx
+			014636E8       ¦·  C2 1000                 retn 10
+		*/
+			0x84,0xC0,
+			0x74,0x34,
+			0xF3,0x0F,0x10,0x45,0x00,
+			0xF3,0x0F,0x11,0x05,0x27,0x99,0x95,0x03,
+			0xF3,0x0F,0x10,0x45,0x04,
+			0xF3,0x0F,0x11,0x05,0x2B,0x99,0x95,0x03,
+			0xF3,0x0F,0x10,0x45,0x08,
+			0x8B,0xCB,
+			0xF3,0x0F,0x11,0x05,0x2F,0x99,0x95,0x03,
+			0xE8,0xDB,0xF8,0xFF,0xFF,
+			0x5F,
+			0x5D,
+			0x5B,
+			0xC2,0x10,0x00
+		},
+
+			"xx"
+			"x?"
+			"xxxxx"
+			"xxxx????"
+			"xxxxx"
+			"xxxx????"
+			"xxxxx"
+			"xx"
+			"xxxx????"
+			"x????"
+			"x"
+			"x"
+			"x"
+			"xxx",
+
+			"xx"
+			"xx"
+			"xxxxx"
+			"xxxx????"
+			"xxxxx"
+			"xxxxxxxx"
+			"xxxxx"
+			"xx"
+			"xxxx????"
+			"xxxxx"
+			"x"
+			"x"
+			"x"
+			"xxx"
+	);
+
+	if (!res)
+	{
+		warning("Cannot find CameraX/CameraY address");
+		return FALSE;
+	}
+
+	DWORD camx_addr_ptr, camy_addr_ptr;
+	Buffer *cameraX = bb_queue_pick_first(res);
+	Buffer *cameraY = bb_queue_pick_last(res);
+	memcpy(&camx_addr_ptr, cameraX->data, sizeof(DWORD));
+	memcpy(&camy_addr_ptr, cameraY->data, sizeof(DWORD));
+
+	bb_queue_free_all(res, buffer_free);
+
+	if (!camx_addr_ptr || !camy_addr_ptr)
+	{
+		warning("Cannot find camera position");
+		return FALSE;
+	}
+
+	this->camx_val = camx_addr_ptr - this->mp->base_addr;
+	this->camy_val = camy_addr_ptr - this->mp->base_addr;
 
 	return TRUE;
 }
@@ -72,17 +219,25 @@ BOOL camera_scan_campos ()
 /// FIXED
 {
 	Camera *this = camera_get_instance();
-	unsigned char *description = "CameraX/CameraY";
+	unsigned char *description = "CameraX_Memory/CameraY_Memory";
 
 	BbQueue *res = memscan_search(this->mp, description,
 		(unsigned char []) {
 		/*
-			0068D390  ║·  85C9                    test ecx, ecx
-			0068D392  ║·▼ 74 24                   jz short League_of_Legends.0068D3B8
-			0068D394  ║·  8B01                    mov eax, [dword ds:ecx]
-			0068D396  ║·  68 00010000             push 100
-			0068D39B  ║·  68 78CEE400             push offset League_of_Legends.00E4CE78
-			0068D3A0  ║·  FF50 1C                 call [dword ds:eax+1C]
+			014636B3       ║·  84C0                    test al, al
+			014636B5       ║·▼ 74 34                   jz short League_of_Legends.014636EB
+			014636B7       ║·  F30F1045 00             movss xmm0, [dword ss:ebp]
+			014636BC       ║·  F30F1105 27999503       movss [dword ds:League_of_Legends.3959927], xmm0       ; float 11754.59 <- cameraX
+			014636C4       ║·  F30F1045 04             movss xmm0, [dword ss:ebp+4]
+			014636C9       ║·  F30F1105 2B999503       movss [dword ds:League_of_Legends.395992B], xmm0       ; float 0.0
+			014636D1       ║·  F30F1045 08             movss xmm0, [dword ss:ebp+8]
+			014636D6       ║·  8BCB                    mov ecx, ebx
+			014636D8       ║·  F30F1105 2F999503       movss [dword ds:League_of_Legends.395992F], xmm0       ; float 9593.056  <- cameraY
+			014636E0       ║·  E8 DBF8FFFF             call League_of_Legends.01462FC0                        ; [League_of_Legends.01462FC0
+			014636E5       ║·  5F                      pop edi
+			014636E6       ║·  5D                      pop ebp
+			014636E7       ║·  5B                      pop ebx
+			014636E8       ║·  C2 1000                 retn 10
 		*/
 			0x85,0xC9,
 			0x74,0x24,
@@ -143,7 +298,7 @@ BOOL camera_scan_hover_interface ()
 		0107EF97  ║·  C705 DC9A4803 00000000           mov [dword ds:League_of_Legends.3489ADC], 0                      ; ║
 		0107EFA1  ║·  C705 E09A4803 FFFF7FFF           mov [dword ds:League_of_Legends.3489AE0], FF7FFFFF               ; ║
 		0107EFAB  ║·  C705 E49A4803 00000000           mov [dword ds:League_of_Legends.3489AE4], 0                      ; ║
-		0107EFB5  ║·  C605 <E89A4803> 00                 mov [byte ds:League_of_Legends.3489AE8], 0                       ; ║
+		0107EFB5  ║·  C605 <E89A4803> 00                 mov [byte ds:League_of_Legends.3489AE8], 0                     ; ║
 		0107EFBC  ║·  C705 EC9A4803 00000000           mov [dword ds:League_of_Legends.3489AEC], 0                      ; ║
 		0107EFC6  ║·  C705 F09A4803 FFFFFFFF           mov [dword ds:League_of_Legends.3489AF0], -1                     ; ║
 		0107EFD0  ║·  C705 F49A4803 FFFFFFFF           mov [dword ds:League_of_Legends.3489AF4], -1                     ; ║
@@ -481,6 +636,7 @@ BOOL camera_scan_variables ()
 
 	BOOL (*scan_funcs[])(void) = {
 		camera_scan_campos,
+		camera_scan_camval,
 		camera_scan_loading,
 		camera_scan_dest,
 		camera_scan_cursor_champ,
@@ -978,7 +1134,7 @@ BOOL camera_refresh_entities_nearby ()
 }
 
 BOOL camera_refresh_win_is_opened ()
-/// SEMI FIXED
+/// SEMI FIXED : todo interface_opened
 {
 	Camera *this = camera_get_instance();
 
@@ -1255,14 +1411,28 @@ void camera_export_to_cheatengine ()
 		"  <CheatEntries>\n"
 		"    <CheatEntry>\n"
 		"      <ID>0</ID>\n"
-		"      <Description>\"CameraX\"</Description>\n"
+		"      <Description>\"CameraX_Memory\"</Description>\n"
 		"      <Color>80000008</Color>\n"
 		"      <VariableType>Float</VariableType>\n"
 		"      <Address>%.8x</Address>\n"
 		"    </CheatEntry>\n"
 		"    <CheatEntry>\n"
 		"      <ID>60</ID>\n"
-		"      <Description>\"CameraY\"</Description>\n"
+		"      <Description>\"CameraY_Memory\"</Description>\n"
+		"      <Color>80000008</Color>\n"
+		"      <VariableType>Float</VariableType>\n"
+		"      <Address>%.8x</Address>\n"
+		"    </CheatEntry>\n"
+		"    <CheatEntry>\n"
+		"      <ID>666</ID>\n"
+		"      <Description>\"CameraX_Value\"</Description>\n"
+		"      <Color>80000008</Color>\n"
+		"      <VariableType>Float</VariableType>\n"
+		"      <Address>%.8x</Address>\n"
+		"    </CheatEntry>\n"
+		"    <CheatEntry>\n"
+		"      <ID>667</ID>\n"
+		"      <Description>\"CameraY_Value\"</Description>\n"
 		"      <Color>80000008</Color>\n"
 		"      <VariableType>Float</VariableType>\n"
 		"      <Address>%.8x</Address>\n"
@@ -1638,8 +1808,10 @@ void camera_export_to_cheatengine ()
 		"  <UserdefinedSymbols/>\n"
 		"</CheatTable>\n",
 
+		this->camPos->addrX,
+		this->camPos->addrY,
 		this->cam->addrX,
-		this->cam->addrY,
+		this->cam ->addrY,
 		this->champ->addrX,
 		this->champ->addrY,
 		this->mouse->addrX,
