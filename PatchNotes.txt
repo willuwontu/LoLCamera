@@ -2,6 +2,7 @@
 - [FIX] Camera position has been improved
 - [FIX] The camera doesn't move weirdly anymore after hovering the interface
 - [FIX] No more camera movement in shop
+- [FIX] When the chat is opened, the hotkeys for LoLCamera doesn't work anymore (Thanks Danteleet)
 
 === 09 / 11 / 13 ===
 - [FIX] LoLCamera is working again

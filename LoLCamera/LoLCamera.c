@@ -43,7 +43,7 @@ static void camera_toggle (BOOL enable)
 
 static BOOL camera_is_enabled ()
 {
-	short toggle_state = GetKeyState(this->toggle_key);
+	short toggle_state = camera_getkey(this->toggle_key);
 
 	// listen for toggle key
 	if (toggle_state != this->last_toggle_state && toggle_state < 0)
@@ -82,7 +82,7 @@ static void camera_sensor_reset (bool reset_translation)
 static BOOL camera_center_requested ()
 {
 	// Disable when center_key or F1 is pressed
-	if ((GetKeyState(this->center_key) < 0 || (GetKeyState(VK_F1) < 0))
+	if ((camera_getkey(this->center_key) < 0 || (camera_getkey(VK_F1) < 0))
 	 && (this->interface_opened != LOLCAMERA_CHAT_OPENED_VALUE))
     {
 		camera_sensor_reset(true);
@@ -117,7 +117,7 @@ static void save_lmb_pos ()
 
 static BOOL camera_left_click ()
 {
-	if (GetKeyState(VK_LBUTTON) < 0)
+	if (camera_getkey(VK_LBUTTON) < 0)
 	{
 		if (this->lbutton_state == 0)
 			this->lbutton_state = 1;
@@ -237,7 +237,7 @@ static void camera_translate_toggle (int state)
 
 static BOOL camera_translate ()
 {
-	short translate_state = GetKeyState(this->translate_key);
+	short translate_state = camera_getkey(this->translate_key);
 
 	// Listen for translate toggle key
 	if (translate_state != this->last_translate_state && translate_state < 0
@@ -259,8 +259,8 @@ static BOOL camera_is_translated ()
 
 static void camera_debug_mode ()
 {
-	if (GetKeyState('G') < 0
-	&&  GetKeyState('H') < 0)
+	if (camera_getkey('G') < 0
+	&&  camera_getkey('H') < 0)
 	{
 		if (!this->dbg_mode)
 		{
@@ -383,7 +383,7 @@ static BOOL camera_follow_champion_requested ()
 
 	for (int i = 1; i < 10; i++)
 	{
-		if (GetKeyState(keys[i]) < 0 && this->team_size > i)
+		if (camera_getkey(keys[i]) < 0 && this->team_size > i)
 		{
 			//this->followed_entity = this->champions[i];
 			//this->fxstate = (this->fxstate) ? this->fxstate : 1;
@@ -562,7 +562,7 @@ static void camera_entity_manager ()
 		this->hint_entity = this->entity_hovered;
 
 		// Left click on the entity : focus it
-		if (GetKeyState(VK_LBUTTON) < 0)
+		if (camera_getkey(VK_LBUTTON) < 0)
 			this->focused_entity = this->entity_hovered;
 	}
 
@@ -584,7 +584,7 @@ static void camera_entity_manager ()
 
 static void camera_middle_click ()
 {
-	if (GetKeyState(VK_MBUTTON) < 0)
+	if (camera_getkey(VK_MBUTTON) < 0)
 	{
 		// Drag
 		switch (this->mbutton_state)
@@ -749,10 +749,22 @@ void camera_update_states ()
 	this->dead_mode = entity_is_dead(this->self);
 }
 
+short int camera_getkey (int key)
+{
+	if ((this->interface_opened == LOLCAMERA_CHAT_OPENED_VALUE)
+	&&  (key >= 0x33 && key <= 0x126))
+	{
+		// Chat opened, printable character pressed : nothing happens
+		return 1;
+	}
+
+	return GetKeyState(key);
+}
+
 bool global_key_toggle ()
 {
 	static short int last_global_key = -1;
-	short int global_key_state = GetKeyState(this->global_key);
+	short int global_key_state = camera_getkey(this->global_key);
 
 	if (last_global_key == -1)
 		last_global_key = global_key_state;
