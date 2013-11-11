@@ -706,47 +706,48 @@ BOOL camera_scan_win_is_opened ()
 
 	BbQueue *res = memscan_search (this->mp, "winIsOpened",
 	/*
-		0098C777  ║·  50                                push eax                                                  ; ║Arg1 = 26E928
-		0098C778  ║·  B9 549BD902                       mov ecx, offset League_of_Legends.02D99B54                ; ║
-		0098C77D  ║·  C78424 D0000000 04000000          mov [dword ss:esp+0D0], 4                                 ; ║
-		0098C788  ║·  E8 23A0A7FF                       call League_of_Legends.004067B0                           ; └League_of_Legends.004067B0
-		0098C78D  ║·  C78424 C8000000 FFFFFFFF          mov [dword ss:esp+0C8], -1
-		0098C798  ║·  837C24 24 10                      cmp [dword ss:esp+24], 10
-		0098C79D  ║·▼ 72 09                             jb short League_of_Legends.0098C7A8
-		0098C79F  ║·  FF7424 10                         push [dword ss:esp+10]
-		0098C7A3  ║·  FFD6                              call esi
+		0145D640  ╓·  56                      push esi
+		0145D641  ║·  8BF1                    mov esi, ecx
+		0145D643  ║·  8B0D 4063E203           mov ecx, [dword ds:League_of_Legends.3E26340]
+		0145D649  ║·  8B01                    mov eax, [dword ds:ecx]
+		0145D64B  ║·  FF50 04                 call [dword ds:eax+4]
+		0145D64E  ║·  8B10                    mov edx, [dword ds:eax]
+		0145D650  ║·  6A 01                   push 1
+		0145D652  ║·  8BC8                    mov ecx, eax
+		0145D654  ║·  FF52 2C                 call [dword ds:edx+2C]
 	*/
 		(unsigned char[]) {
-			0x50,
-			0xB9,0x54,0x9B,0xD9,0x02,
-			0xC7,0x84,0x24,0xD0,0x00,0x00,0x00,0x04,0x00,0x00,0x00,
-			0xE8,0x23,0xA0,0xA7,0xFF,
-			0xC7,0x84,0x24,0xC8,0x00,0x00,0x00,0xFF,0xFF,0xFF,0xFF,
-			0x83,0x7C,0x24,0x24,0x10,
-			0x72,0x09,
-			0xFF,0x74,0x24,0x10,
-			0xFF,0xD6
+			0x56,
+			0x8B,0xF1,
+			0x8B,0x0D,0x40,0x63,0xE2,0x03,
+			0x8B,0x01,
+			0xFF,0x50,0x04,
+			0x8B,0x10,
+			0x6A,0x01,
+			0x8B,0xC8,
+			0xFF,0x52,0x2C
 		},
 
-		"x"
-		"x????"
-		"xxx????xxxx"
-		"xxxxx"
-		"xxx????xxxx"
-		"xxxxx"
-		"xx"
-		"xxxx"
-		"xx",
+			"x"
+			"xx"
+			"xx????"
+			"xx"
+			"xxx"
+			"xx"
+			"xx"
+			"xx"
+			"xxx",
 
-		"x"
-		"x????"
-		"xxxxxxxxxxx"
-		"xxxxx"
-		"xxxxxxxxxxx"
-		"xxxxx"
-		"xx"
-		"xxxx"
-		"xx"
+			"x"
+			"xx"
+			"xx????"
+			"xx"
+			"xxx"
+			"xx"
+			"xx"
+			"xx"
+			"xxx"
+
 	);
 
 	if (!res)
@@ -772,7 +773,7 @@ BOOL camera_scan_win_is_opened ()
 	if (!win_is_opened_addr)
 		return FALSE;
 
-	this->win_is_opened_addr = win_is_opened_addr + 0x2C;
+	this->win_is_opened_addr = win_is_opened_addr + 0x2A8;
 
 	return TRUE;
 }
@@ -1156,14 +1157,13 @@ BOOL camera_refresh_win_is_opened ()
 {
 	Camera *this = camera_get_instance();
 
-	int win_is_opened = read_memory_as_int(this->mp->proc, this->win_is_opened_addr);
+	this->interface_opened = read_memory_as_int(this->mp->proc, this->win_is_opened_addr);
 
-	// 0x144 : normal
-	// 0x146 : chat
-	// 0x14d : shop
-	// 0x14f : score tab
+	// Shop opened : 4
+	// Chat opened : 2
+	// Nothing     : 1
 
-	return win_is_opened != 0x144;
+	return this->interface_opened != 0;
 }
 
 BOOL camera_refresh_hover_interface ()

@@ -21,8 +21,8 @@
 #include "./CameraSettings.h"
 
 // ---------- Defines -------------
-#define LOLCAMERA_SHOP_OPENED_VALUE 6
-#define LOLCAMERA_CHAT_OPENED_VALUE 5
+#define LOLCAMERA_SHOP_OPENED_VALUE 4
+#define LOLCAMERA_CHAT_OPENED_VALUE 2
 
 #define IN_SCREEN_DISTANCE 2000.0
 
