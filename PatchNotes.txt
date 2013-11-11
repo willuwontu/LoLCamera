@@ -1,0 +1,68 @@
+=== 10 / 11 / 13 ===
+- [FIX] Camera position has been improved
+- [FIX] The camera doesn't move weirdly anymore after hovering the interface
+- [FIX] No more camera movement in shop
+
+=== 09 / 11 / 13 ===
+- [FIX] LoLCamera is working again
+- [NEW] An alert is displayed if a new LC version is available on SourceForge
+
+
+=== 01 / 10 / 13 ===
+- [FIX] Garen patch broke LoLCamera
+
+
+=== 08 / 09 / 13 ===
+- [FIX] Translation mode (M) doesn't reset anymore (except if you press center key) (Thanks beloh & beffl)
+- [FIX] Moving the camera downwards is now more easy (Thanks suckafoola)
+
+
+=== 06 / 09 / 13 ===
+- [NEW] Camera scroll speed value is according to the champion movement speed (Thanks suckafoola !)
+- [NEW] LMB now translates the camera and keeps the translation distance, except if you try to move your mouse in the opposite direction
+- [FIX] End of Game is now correctly detected (Thanks SockofBadKarma & Ceemot !)
+- [FIX] The default camera scroll has been decreased (Thanks SockofBadKarma !)
+- [FIX] Fix the frozen camera when you left click right after a minimap click before it resets
+- [NEW] The camera reset has been improved : It doesn't reset when the camera is too far, it does only when the champion teleports (using B or summoner spell)
+
+
+=== 04 / 09 / 13 ===
+- [FIX] Patch for version 3.11.0.304 (LoLCamera stopped working)
+- [NEW] Add a new hotkey for enabling / disabling global_weight (L by default, configurable in LoLCamera.ini) (thanks Quincyness !)
+- [FIX] No more camera reset after clicking on the minimap if the camera is near the champion (thanks zacharywrighttt !)
+- [FIX] Minimap hovering in death mode
+
+
+=== 21 / 08 / 13 ===
+
+- From now on, reloading ini with 'R' is possible (press R in console, not in game)
+- The camera doesn't reset immediatly after a minimap click : a short delay before it resets has been introduced (configurable in .ini with "ms_after_minimap_click")
+- Fix some annoyance with minimap clicking
+- LMB_weight is disabled by default
+
+
+=== 08 / 08 / 13 ===
+
+- global_weight is enabled in .ini file : the camera moves according to your allies and ennemies position with that sensor
+- lmb_weight added : left click on the ground and move the camera according to where you clicked
+
+
+=== 01 / 08 / 13 ===
+
+LoLCamera is released !
+We hope you will enjoy it.
+
+Here are the default hotkeys :
+
+Keyboard
+
+    F11 : enable / disable LoLCamera
+    Space / F1 : Center the camera on the champion
+    F2, F3, F4,...F10 : Focus the camera on allies / ennemies
+    M : Activate translation mode. Press M again to keep the current translation distance.
+
+Mouse
+
+    Middle button drag : translate the camera
+    Hover the mouse on an ally / ennemy : Try to keep this champion in sight
+    Left click on an ally / ennemy : Follow the champion in sight even more

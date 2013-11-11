@@ -16,7 +16,6 @@ local.properties
 .settings/
 .loadpath
 .cbTemp
-PatchNotes.txt
 LoLCamera.exe
 IOGraph/
 patches/*
