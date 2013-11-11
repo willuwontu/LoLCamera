@@ -361,39 +361,57 @@ BOOL camera_scan_loading ()
 
 	BbQueue *res = memscan_search (this->mp, "loadingState",
 	/*
-			007ED302   ·  99                      cdq
-			007ED303   ·  B9 07000000             mov ecx, 7
-			007ED308   ·  F7F9                    idiv ecx
-			007ED30A   ·  8BF2                    mov esi, edx
-			007ED30C   ►  A1 <<0CB92401>>         mov eax, [dword ds:League_of_Legends.124B90C]
-			007ED311   ·  3B05 20B92401           cmp eax, [dword ds:League_of_Legends.124B920]
-			007ED317   ·▼ 75 26                   jne short League_of_Legends.007ED33F
+			000CE371  ║·  8B35 40D1B002           mov esi, [dword ds:League_of_Legends.2B0D140]
+			000CE377  ║·  85F6                    test esi, esi
+			000CE379  ║·▼ 74 38                   jz short League_of_Legends.000CE3B3
+			000CE37B  ║·  8B06                    mov eax, [dword ds:esi]
+			000CE37D  ║·  85C0                    test eax, eax
+			000CE37F  ║·▼ 74 28                   jz short League_of_Legends.000CE3A9
+			000CE381  ║·  FF76 04                 push [dword ds:esi+4]                                  ; ╓Arg2
+			000CE384  ║·  50                      push eax                                               ; ║Arg1 = ASCII "themewnd"
+			000CE385  ║·  E8 36F2FAFF             call League_of_Legends.0007D5C0                        ; └League_of_Legends.0007D5C0
+			000CE38A  ║·  FF36                    push [dword ds:esi]
+			000CE38C  ║·  FF15 5CB6B800           call [dword ds:<&MSVCR110.operator delete>]
 	*/
 		(unsigned char[]) {
-			0x99,
-			0xB9,0x07,0x00,0x00,0x00,
-			0xF7,0xF9,
-			0x8B,0xF2,
-			0xA1,0x0C,0xB9,0x24,0x01,
-			0x3B,0x05,0x20,0xB9,0x24,0x01,
-			0x75,0x26
+			0x8B,0x35,0x40,0xD1,0xB0,0x02,
+			0x85,0xF6,
+			0x74,0x38,
+			0x8B,0x06,
+			0x85,0xC0,
+			0x74,0x28,
+			0xFF,0x76,0x04,
+			0x50,
+			0xE8,0x36,0xF2,0xFA,0xFF,
+			0xFF,0x36,
+			0xFF,0x15,0x5C,0xB6,0xB8,0x00
 		},
 
-		"x"
-		"x????"
-		"xx"
-		"xx"
-		"x????"
-		"xx????"
-		"xx",
+			"xx????"
+			"xx"
+			"xx"
+			"xx"
+			"xx"
+			"xx"
+			"xxx"
+			"x"
+			"x????"
+			"xx"
+			"xx????",
 
-		"x"
-		"xxxxx"
-		"xx"
-		"xx"
-		"x????"
-		"xxxxxx"
-		"xx"
+			"xx????"
+			"xx"
+			"xx"
+			"xx"
+			"xx"
+			"xx"
+			"xxx"
+			"x"
+			"xxxxx"
+			"xx"
+			"xxxxxx"
+
+
 	);
 
 	if (!res)
