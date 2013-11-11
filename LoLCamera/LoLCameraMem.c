@@ -1153,7 +1153,7 @@ BOOL camera_refresh_entities_nearby ()
 }
 
 BOOL camera_refresh_win_is_opened ()
-/// SEMI FIXED : todo interface_opened
+/// FIXED
 {
 	Camera *this = camera_get_instance();
 

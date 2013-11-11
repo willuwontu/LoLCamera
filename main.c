@@ -6,7 +6,7 @@
 #include "./LoLCamera/LoLCamera.h"
 #include <signal.h>
 
-#define LOLCAMERA_VERSION 0.13
+#define LOLCAMERA_VERSION 0.14
 
 float check_version (void)
 {
