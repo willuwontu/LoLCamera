@@ -35,6 +35,7 @@ struct _Camera
 
 	// From .ini
 	DWORD border_screen_addr;		// Address of the instructions moving the camera
+	DWORD locked_camera_addr;		// Address of the instructions moving the camera on locked camera
 	DWORD camera_movement_addr;		// Address of the instructions moving the camera when the mouse reaches the border of the screen
 
 	DWORD win_is_opened_ptr;		// Address of the data : address of the pointer to the variable containing "isShopOpen" (different of 0 if its the case)

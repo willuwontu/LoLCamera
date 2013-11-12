@@ -6,7 +6,7 @@
 #include "./LoLCamera/LoLCamera.h"
 #include <signal.h>
 
-#define LOLCAMERA_VERSION 0.14
+#define LOLCAMERA_VERSION 0.15
 
 float check_version (void)
 {
@@ -68,7 +68,6 @@ int main()
 	LoLCameraState state = PLAY;
 	MemProc *mp = NULL;
 
-	console_set_size(1200, 600);
 	important("Sources & Hotkeys : https://github.com/Spl3en/LoLCamera");
 	important("Last .exe version : https://sourceforge.net/projects/lolcamera/files");
 	important("------------------------------------------------------------------");
@@ -80,11 +79,11 @@ int main()
 	if ((new_version = check_version()) != 0.0)
 	{
 		important("\n"
-				  "    +---------------------------------------------------------------------------+\n"
-				  "    |                       A NEW UPDATE IS AVAILABLE                           |\n"
-				  "    |                 New version = %.2f, current version = %.2f                |\n"
-				  "    |        Download : https://sourceforge.net/projects/lolcamera/files        |\n"
-				  "    +---------------------------------------------------------------------------+",
+				  "    +-------------------------------------------------------------------+\n"
+				  "    |                   A NEW UPDATE IS AVAILABLE                       |\n"
+				  "    |             New version = %.2f, current version = %.2f            |\n"
+				  "    |    Download : https://sourceforge.net/projects/lolcamera/files    |\n"
+				  "    +-------------------------------------------------------------------+",
 					new_version, LOLCAMERA_VERSION);
 		system("pause");
 	}
@@ -143,6 +142,8 @@ int main()
 		info("Game detected, main loop started (press 'x' to quit)");
 
 		camera_init(mp);
+
+		camera_export_to_cheatengine();
 
 		state = camera_main();
 		camera_unload();
