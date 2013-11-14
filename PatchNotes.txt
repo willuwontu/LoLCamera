@@ -1,7 +1,7 @@
 === 14 / 11 / 13 ===
-- [NEW] "camera_scroll_speed_bottom" has been added and will control the camera speed when it goes to the bottom of the screen
+- [NEW] "camera_scroll_speed_bottom" has been added and will control the camera speed when it goes to the bottom of the screen (Thanks Bziur & Penteano)
 - [FIX] Global weight hotkey (L by default) has been fixed (it was activated even when the LoLClient was in foreground)
-- [NEW] "global_weight_allies" and "global_weight_ennemies" has been added in LoLCamera.ini. Those parameters replace "global_weight", they do the same thing except it differentiate ennemies from allies now.
+- [NEW] "global_weight_allies" and "global_weight_ennemies" have been added in LoLCamera.ini. Those parameters replace "global_weight", they do the same thing except it differentiate ennemies from allies now (Thanks Cobrand & Bziur)
 
 === 11 / 11 / 13 ===
 - [FIX] Camera doesn't move weirdly anymore when locked camera is activated while LoLCamera is ON (thanks SomeAsianDude)

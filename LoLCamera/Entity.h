@@ -33,6 +33,8 @@ struct _Entity
 	char champ_name[17];
 	int team;
 
+	bool isVisible;
+
 }	Entity;
 
 

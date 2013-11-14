@@ -8,9 +8,13 @@
 #define EOFF_TEAM			0x1C
 #define EOFF_PLAYER_NAME 	0x28
 #define EOFF_CHAMP_STRUCT 	0x40
+#define EOFF_CTXT			0x154
 
 // Offset in champion structure
 #define EOFF_CHAMP_NAME		0x1C
+
+// Offset in champion context
+#define EOFF_IS_VISIBLE		0x24
 
 
 Entity *
@@ -68,6 +72,9 @@ entity_refresh (Entity *e)
 	e->hp_max			= read_memory_as_float(e->ctxt->proc, e->entity_data + EOFF_HPM);
 	e->movement_speed	= read_memory_as_float(e->ctxt->proc, e->entity_data + EOFF_MS);
 	e->team				= read_memory_as_int  (e->ctxt->proc, e->entity_data + EOFF_TEAM);
+
+	DWORD entityCtxt    = read_memory_as_int  (e->ctxt->proc, e->entity_data + EOFF_CTXT);
+	e->isVisible        = read_memory_as_int  (e->ctxt->proc, entityCtxt     + EOFF_IS_VISIBLE);
 
 	return (!(e->hp == 0.0 && e->hp_max == 0.0));
 }
