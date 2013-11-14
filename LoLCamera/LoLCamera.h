@@ -107,7 +107,10 @@ struct _Camera
 	Entity *self;					// The player champion
 	char self_name[17];
 	Entity *nearby[10];				// Array of entities nearby the champion
-	int nb_nearby;
+	Entity *nearby_allies[5];		// Array of allies entities nearby the champion
+	Entity *nearby_ennemies[5];		// Array of ennemies entities nearby the champion
+	int nb_allies_nearby;
+	int nb_ennemies_nearby;
 
 	// Weights : Configurable in ini
 	float focus_weight;
@@ -115,7 +118,8 @@ struct _Camera
 	float champ_weight;
 	float dest_weight;
 	float mouse_weight;
-	float global_weight;
+	float global_weight_allies;
+	float global_weight_ennemies;
 	float lmb_weight;
 
 	// Players information

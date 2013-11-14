@@ -944,7 +944,8 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 	float focus_x = 0.0, focus_y = 0.0;
 	float drag_x = 0.0, drag_y = 0.0;
 	float hint_x = 0.0, hint_y = 0.0;
-	float average_x = 0.0, average_y = 0.0;
+	float average_allies_x = 0.0, average_allies_y = 0.0;
+	float average_ennemies_x = 0.0, average_ennemies_y = 0.0;
 	float lmb_x = 0.0, lmb_y = 0.0;
 
 	switch (camera_mode)
@@ -992,7 +993,8 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 			// Optional weights
 			float hint_weight    = 0.0;
 			float focus_weight   = 0.0;
-			float global_weight  = 0.0;
+			float global_weight_allies = 0.0;
+			float global_weight_ennemies = 0.0;
 
 			// Fix the perspective
             if (mouse_weight)
@@ -1013,7 +1015,6 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 			{
 				lmb_x = this->champ->v.x - (this->translate_lmb.x);
 				lmb_y = this->champ->v.y - (this->translate_lmb.y);
-				// printf("x = %f - y = %f\n", lmb_x, lmb_y);
 			}
 
 			if (this->drag_request)
@@ -1022,27 +1023,51 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 				drag_y = (this->drag_pos.y - this->mouse->v.y) * 10;
 			}
 
-			if (this->global_weight && this->global_weight_activated)
+			if (this->global_weight_allies && this->global_weight_activated)
 			{
-				if (this->nb_nearby == 0)
+				if (this->nb_allies_nearby == 0)
 				{
-					global_weight = 0.0;
+					global_weight_allies = 0.0;
 				}
 
 				else
 				{
-					global_weight = this->global_weight;
+					global_weight_allies = this->global_weight_allies;
 
 					float sum_x = 0, sum_y = 0;
 
-					for (int i = 0; i < this->nb_nearby; i++)
+					for (int i = 0; i < this->nb_allies_nearby; i++)
 					{
-						sum_x += this->nearby[i]->p.v.x;
-						sum_y += this->nearby[i]->p.v.y;
+						sum_x += this->nearby_allies[i]->p.v.x;
+						sum_y += this->nearby_allies[i]->p.v.y;
 					}
 
-					average_x = sum_x / (float) this->nb_nearby;
-					average_y = sum_y / (float) this->nb_nearby;
+					average_allies_x = sum_x / (float) this->nb_allies_nearby;
+					average_allies_y = sum_y / (float) this->nb_allies_nearby;
+				}
+			}
+
+			if (this->global_weight_ennemies && this->global_weight_activated)
+			{
+				if (this->nb_ennemies_nearby == 0)
+				{
+					global_weight_ennemies = 0.0;
+				}
+
+				else
+				{
+					global_weight_ennemies = this->global_weight_ennemies;
+
+					float sum_x = 0, sum_y = 0;
+
+					for (int i = 0; i < this->nb_ennemies_nearby; i++)
+					{
+						sum_x += this->nearby_ennemies[i]->p.v.x;
+						sum_y += this->nearby_ennemies[i]->p.v.y;
+					}
+
+					average_ennemies_x = sum_x / (float) this->nb_ennemies_nearby;
+					average_ennemies_y = sum_y / (float) this->nb_ennemies_nearby;
 				}
 			}
 
@@ -1085,7 +1110,7 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 				if (distance_mouse_dest > this->champ_settings.mouse_dest_range_max)
 					dest_weight = dest_weight / (((distance_mouse_dest - this->champ_settings.mouse_dest_range_max) / 1500.0) + 1.0);
 
-				weight_sum = champ_weight + mouse_weight + dest_weight + focus_weight + hint_weight + global_weight + lmb_weight;
+				weight_sum = champ_weight + mouse_weight + dest_weight + focus_weight + hint_weight + global_weight_allies + global_weight_ennemies + lmb_weight;
 			}
 
             // Compute the target (weighted averages)
@@ -1096,7 +1121,8 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
                     (this->dest->v.x * dest_weight) +
                     (focus_x * focus_weight) +
 					(hint_x * hint_weight) +
-                    (average_x * global_weight) +
+                    (average_allies_x * global_weight_allies) +
+                    (average_ennemies_x * global_weight_ennemies) +
                     (lmb_x * lmb_weight)
                  ) / weight_sum
 					+ drag_x,
@@ -1106,7 +1132,8 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
                     (this->dest->v.y * dest_weight) +
                     (focus_y * focus_weight) +
 					(hint_y * hint_weight) +
-                    (average_y * global_weight) +
+                    (average_allies_y * global_weight_allies) +
+                    (average_ennemies_y * global_weight_ennemies) +
                     (lmb_y * lmb_weight)
                 ) / weight_sum
 					+ drag_y
@@ -1243,10 +1270,10 @@ void camera_load_ini ()
 	this->mouse_weight = atof(ini_parser_get_value(parser, "mouse_weight"));
 	this->dest_weight  = atof(ini_parser_get_value(parser, "dest_weight"));
 	this->lmb_weight   = atof(ini_parser_get_value(parser, "lmb_weight"));
-
 	this->focus_weight = atof(ini_parser_get_value(parser, "focus_weight"));
 	this->hint_weight  = atof(ini_parser_get_value(parser, "hint_weight"));
-	this->global_weight  = atof(ini_parser_get_value(parser, "global_weight"));
+	this->global_weight_allies = atof(ini_parser_get_value(parser, "global_weight_allies"));
+	this->global_weight_ennemies = atof(ini_parser_get_value(parser, "global_weight_ennemies"));
 
 	this->sleep_time  = strtol(ini_parser_get_value(parser, "sleep_time"), NULL, 10); // Time slept between two camera updates (in ms)
 	this->poll_data	  = strtol(ini_parser_get_value(parser, "poll_data"), NULL, 10); // Retrieve data from client every X loops

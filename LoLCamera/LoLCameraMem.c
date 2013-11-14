@@ -1210,13 +1210,18 @@ BOOL camera_refresh_entities_nearby ()
 
 	float distance;
 	int index = 0;
+	int index_allies = 0;
+	int index_ennemies = 0;
 
 	memset(this->nearby, 0, sizeof(this->nearby));
+	memset(this->nearby_allies, 0, sizeof(this->nearby_allies));
+	memset(this->nearby_ennemies, 0, sizeof(this->nearby_ennemies));
 
 	DWORD cur = this->entity_ptr;
 	DWORD end = this->entity_ptr_end;
 
-	this->nb_nearby = 0;
+	this->nb_allies_nearby = 0;
+	this->nb_ennemies_nearby = 0;
 
 	for (int i = 0; cur != end && i < 10; cur += 4, i++)
 	{
@@ -1226,7 +1231,17 @@ BOOL camera_refresh_entities_nearby ()
 		if (distance < in_screen)
 		{
 			this->nearby[index++] = e;
-			this->nb_nearby = index;
+
+			if (e->team == this->self->team)
+			{
+				this->nb_allies_nearby = index_allies;
+				this->nearby_allies[index_allies++] = e;
+			}
+			else
+			{
+				this->nb_ennemies_nearby = index_ennemies;
+				this->nearby_ennemies[index_ennemies++] = e;
+			}
 		}
 	}
 
