@@ -94,6 +94,15 @@ entity_is_alive (Entity *e)
 	return e->hp != 0 && e->hp_max != 0;
 }
 
+int
+entity_is_visible (Entity *e)
+{
+	if (e == NULL)
+		return FALSE;
+
+	return e->isVisible != 0;
+}
+
 void
 entity_debug (Entity *e)
 {

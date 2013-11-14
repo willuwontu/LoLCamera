@@ -570,15 +570,23 @@ static void camera_entity_manager ()
 	{
 		// When we are in "dead" spectator mode, it's not important to change camera mode.
 		if (entity_is_dead(this->focused_entity)
-		|| !camera_entity_is_near(this->focused_entity, IN_SCREEN_DISTANCE))
+		|| !camera_entity_is_near(this->focused_entity, IN_SCREEN_DISTANCE)
+		|| !entity_is_visible(this->focused_entity)
+		)
+		{
 			this->focused_entity = NULL;
+		}
 	}
 
 	if (this->hint_entity != NULL)
 	{
 		if (entity_is_dead(this->hint_entity)
-		|| !camera_entity_is_near(this->hint_entity, IN_SCREEN_DISTANCE))
+		|| !camera_entity_is_near(this->hint_entity, IN_SCREEN_DISTANCE)
+		|| !entity_is_visible(this->hint_entity)
+		)
+		{
 			this->hint_entity = NULL;
+		}
 	}
 }
 

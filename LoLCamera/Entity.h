@@ -56,6 +56,9 @@ BOOL
 entity_is_alive (Entity *e);
 
 int
+entity_is_visible (Entity *e);
+
+int
 entity_refresh (Entity *e);
 
 void
