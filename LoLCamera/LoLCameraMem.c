@@ -1228,19 +1228,23 @@ BOOL camera_refresh_entities_nearby ()
 		Entity *e = this->champions[i];
 		distance = vector2D_distance(&e->p.v, &this->cam->v);
 
-		if (distance < in_screen)
+		if (
+			(distance < in_screen)
+		&&  (entity_is_visible(e))
+		&&  (e != this->self)
+		)
 		{
 			this->nearby[index++] = e;
 
 			if (e->team == this->self->team)
 			{
-				this->nb_allies_nearby = index_allies;
 				this->nearby_allies[index_allies++] = e;
+				this->nb_allies_nearby = index_allies;
 			}
 			else
 			{
-				this->nb_ennemies_nearby = index_ennemies;
 				this->nearby_ennemies[index_ennemies++] = e;
+				this->nb_ennemies_nearby = index_ennemies;
 			}
 		}
 	}
