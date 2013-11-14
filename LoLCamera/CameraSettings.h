@@ -16,6 +16,7 @@ struct _CameraSettings
 	float mouse_range_max;
 	float dest_range_max;
 	float mouse_dest_range_max;
+	float camera_scroll_speed_bottom; // speed for going to the south
 
 }	CameraSettings;
 

@@ -999,7 +999,7 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
             	// The camera goes farther when the camera is moving to the south
 				float distance_mouse_champ_y = this->champ->v.y - this->mouse->v.y;
 				if (distance_mouse_champ_y > 0.0) {
-					this->mouse->v.y -= distance_mouse_champ_y * 0.3; // <-- arbitrary value
+					this->mouse->v.y -= distance_mouse_champ_y * this->champ_settings.camera_scroll_speed_bottom; // <-- arbitrary value
 				}
             }
 
@@ -1066,8 +1066,6 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 				float distance_mouse_champ = vector2D_distance(&this->mouse->v, &this->champ->v);
 				float distance_dest_champ  = vector2D_distance(&this->dest->v, &this->champ->v);
 				float distance_mouse_dest  = vector2D_distance(&this->dest->v, &this->mouse->v);
-				// Vector2D lmb_translation = {.x = lmb_x, .y = lmb_y};
-				// float distance_mouse_lmb_translation = vector2D_distance(&lmb_translation, &this->mouse->v);
 
 				// weighted averages
 				// these values control how quickly the weights fall off the further you are
@@ -1161,7 +1159,12 @@ void camera_load_settings (char *section)
 		char *value   = kv->res;
 
 		char *possible_settings[] = {
-			"camera_scroll_speed", "threshold", "mouse_range_max", "dest_range_max", "mouse_dest_range_max"
+			[0] = "camera_scroll_speed",
+			[1] = "threshold",
+			[2] = "mouse_range_max",
+			[3] = "dest_range_max",
+			[4] = "mouse_dest_range_max",
+			[5] = "camera_scroll_speed_bottom"
 		};
 
 		for (int i = 0; i < sizeof(possible_settings) / sizeof(*possible_settings); i++)
@@ -1193,6 +1196,11 @@ void camera_load_settings (char *section)
 					case 4: // mouse_dest_range_max
 						this->champ_settings.mouse_dest_range_max = atof(value);
 						info("%s mouse_dest_range_max = %f", section, this->champ_settings.mouse_dest_range_max);
+					break;
+
+					case 5: // camera_scroll_speed_bottom
+						this->champ_settings.camera_scroll_speed_bottom = atof(value);
+						info("%s camera_scroll_speed_bottom = %f", section, this->champ_settings.camera_scroll_speed_bottom);
 					break;
 				}
 			}
