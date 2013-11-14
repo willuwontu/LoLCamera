@@ -804,6 +804,7 @@ LoLCameraState camera_main ()
 				return END_OF_LOLCAMERA;
 		}
 		// In game keys
+		if (camera_mode != ForeGround)
 		{
 			if (global_key_toggle())
 			{
