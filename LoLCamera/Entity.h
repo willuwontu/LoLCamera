@@ -13,6 +13,8 @@
 #include "../MemPos/MemPos.h"
 
 // ---------- Defines -------------
+#define ENTITY_TEAM_BLUE	0x64
+#define ENTITY_TEAM_PURPLE	0xC8
 
 
 // ------ Class declaration -------
@@ -29,6 +31,7 @@ struct _Entity
 
 	char player_name[17]; // max name length = 16
 	char champ_name[17];
+	int team;
 
 }	Entity;
 

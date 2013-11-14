@@ -5,6 +5,7 @@
 #define EOFF_HP 			0x118
 #define EOFF_HPM 			0x128
 #define EOFF_MS 			0x720
+#define EOFF_TEAM			0x1C
 #define EOFF_PLAYER_NAME 	0x28
 #define EOFF_CHAMP_STRUCT 	0x40
 
@@ -66,6 +67,7 @@ entity_refresh (Entity *e)
 	e->hp				= read_memory_as_float(e->ctxt->proc, e->entity_data + EOFF_HP);
 	e->hp_max			= read_memory_as_float(e->ctxt->proc, e->entity_data + EOFF_HPM);
 	e->movement_speed	= read_memory_as_float(e->ctxt->proc, e->entity_data + EOFF_MS);
+	e->team				= read_memory_as_int  (e->ctxt->proc, e->entity_data + EOFF_TEAM);
 
 	return (!(e->hp == 0.0 && e->hp_max == 0.0));
 }

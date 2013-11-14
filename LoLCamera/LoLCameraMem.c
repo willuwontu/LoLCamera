@@ -1112,10 +1112,10 @@ BOOL camera_scan_champions ()
 		if (e == NULL)
 			debug("  --> Ally %d not found", i);
 		else
-			debug("  --> Entity %d found "
-				  "(pos: x=%.0f y=%.0f hp=%.0f hpmax=%.0f "
+			debug(" - Entity %d found -> "
+				  "pos:{%.0f,%.0f} hp:{%.0f/%.0f} team=%s "
 				  "pname=\"%s\" cname=\"%s\" - 0x%.8x)",
-				  i, e->p.v.x, e->p.v.y, e->hp, e->hp_max,
+				  i, e->p.v.x, e->p.v.y, e->hp, e->hp_max, (e->team == ENTITY_TEAM_BLUE) ? "blue" : "purple",
 				  e->player_name, e->champ_name, cur
 			);
 	}
