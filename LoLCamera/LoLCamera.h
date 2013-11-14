@@ -78,6 +78,7 @@ struct _Camera
 	char translate_key;
 	char center_key;
 	char global_key;
+	char drag_key;
 
 	// Settings
 	CameraSettings all_settings[200]; // Champion specific settings

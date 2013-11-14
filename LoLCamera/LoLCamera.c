@@ -592,7 +592,7 @@ static void camera_entity_manager ()
 
 static void camera_middle_click ()
 {
-	if (camera_getkey(VK_MBUTTON) < 0)
+	if (camera_getkey(this->drag_key) < 0)
 	{
 		// Drag
 		switch (this->mbutton_state)
@@ -1272,6 +1272,9 @@ void camera_load_ini ()
 
 	if ((this->global_key = ini_parser_get_char(parser, "global_key")) == 0)
 		this->global_key  = strtol(ini_parser_get_value(parser, "global_key"), NULL, 16);
+
+	if ((this->drag_key = ini_parser_get_char(parser, "drag_key")) == 0)
+		this->drag_key  = strtol(ini_parser_get_value(parser, "drag_key"), NULL, 16);
 
 	// Settings
 	this->champ_weight = atof(ini_parser_get_value(parser, "champ_weight"));
