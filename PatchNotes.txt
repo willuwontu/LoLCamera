@@ -1,3 +1,8 @@
+=== 14 / 11 / 13 (bis) ===
+- [NEW] Focus/Hint weight are now disabled when the focused entity goes in Fog of War
+- [NEW] Add a configurable hotkey "drag_key" for dragging the camera (middle mouse button by default) (Thanks Bziur)
+- [FIX] Global weights weren't working correctly
+
 === 14 / 11 / 13 ===
 - [NEW] "camera_scroll_speed_bottom" has been added and will control the camera speed when it goes to the bottom of the screen (Thanks Bziur & Penteano)
 - [FIX] Global weight hotkey (L by default) has been fixed (it was activated even when the LoLClient was in foreground)

@@ -294,7 +294,6 @@ ini_parser_read (IniParser *ip)
 			}
 
 			tmp_pos = 0;
-			printf("tmp = %s\n", tmp);
 
 			if (strcmp(tmp, "end") == 0)
 			{

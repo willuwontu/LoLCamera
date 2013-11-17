@@ -829,21 +829,24 @@ LoLCameraState camera_main ()
 		// Check if enabled.
 		camera_set_tracking_mode(&camera_mode);
 
-		// End of game = End of LoLCamera
-		if (camera_mode == EndOfGame)
-			return WAIT_FOR_END_OF_GAME;
-
-		// Client has been alt-tabbed
-		if (camera_mode == ForeGround)
+		switch (camera_mode)
 		{
-			//  Detect if client is disconnected
-			if (!memproc_refresh_handle(this->mp))
-			{
-				info("Client not detected anymore.");
-				this->active = FALSE;
-			}
+			default:
+			break;
 
-			continue;
+			case EndOfGame:
+				return WAIT_FOR_END_OF_GAME;
+			break;
+
+			case ForeGround:
+				//  Detect if client is disconnected
+				if (!memproc_refresh_handle(this->mp))
+				{
+					info("Client not detected anymore.");
+					this->active = FALSE;
+				}
+				continue;
+			break;
 		}
 
 		// Save last champion position
@@ -866,7 +869,7 @@ LoLCameraState camera_main ()
 		if (abs(target.y - this->cam->v.y) > this->champ_settings.threshold)
 			this->cam->v.y += (target.y - this->cam->v.y) * camera_scroll_speed;
 
-		// Keep this just before mempos_set(this->cam, x, y)
+		// Keep this just before camera_set_pos(this->cam->v.x, this->cam->v.y);
         if (camera_mode == NoMove)
             continue;
 

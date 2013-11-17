@@ -565,7 +565,6 @@ BOOL camera_scan_game_info ()
 	{
 		warning("Cannot find game state address");
 		exit(0);
-		return FALSE;
 	}
 
 	Buffer *game_info_addr = bb_queue_pick_nth(res, 1);
