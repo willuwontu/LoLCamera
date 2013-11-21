@@ -1,3 +1,6 @@
+=== 21 / 11 / 13 ===
+- [FIX] Quick fix, 3.14 patch broke LoLCamera, this patch fixes it (the loading screen isn't detected yet)
+
 === 14 / 11 / 13 (bis) ===
 - [NEW] Focus/Hint weight are now disabled when the focused entity goes in Fog of War
 - [NEW] Add a configurable hotkey "drag_key" for dragging the camera (middle mouse button by default) (Thanks Bziur)

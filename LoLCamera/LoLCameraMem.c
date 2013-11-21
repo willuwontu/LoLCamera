@@ -25,7 +25,7 @@ BOOL camera_scan_patch ()
 			01011E14   ·  F30F1116                movss [dword ds:esi], xmm2
 			01011E18   ·  F30F1166 04             movss [dword ds:esi+4], xmm4
 			01011E1D   ·  F30F115E 08             movss [dword ds:esi+8], xmm3
-			01011E22   ·  F30F114C24 0C           movss [dword ss:esp+0C], xmm1
+			016A6A15      F30F114D D0        	  movss [dword ss:ebp-30], xmm1
 			01011E28   ·  F30F5CF3                subss xmm6, xmm3
 		*/
 			0xF3,0x0F,0x10,0x05,0x18,0x9C,0x41,0x03,
@@ -33,16 +33,16 @@ BOOL camera_scan_patch ()
 			0xF3,0x0F,0x11,0x16,
 			0xF3,0x0F,0x11,0x66,0x04,
 			0xF3,0x0F,0x11,0x5E,0x08,
-			0xF3,0x0F,0x11,0x4C,0x24,0x0C,
+			0xF3,0x0F,0x11,0x4D,0xD0,
 			0xF3,0x0F,0x5C,0xF3
 		},
 
 			"xxxx????"
 			"xxxxx"
-			"xxxx" // << nop
+			"xxx?" // << nop
+			"xxx?x"
+			"xxx?x" // << nop
 			"xxxxx"
-			"xxxxx" // << nop
-			"xxxxxx"
 			"xxxx",
 
 		(unsigned char[]) {
@@ -51,7 +51,7 @@ BOOL camera_scan_patch ()
 			0x90,0x90,0x90,0x90,
 			0xF3,0x0F,0x11,0x66,0x04,
 			0x90,0x90,0x90,0x90,0x90,
-			0xF3,0x0F,0x11,0x4C,0x24,0x0C,
+			0xF3,0x0F,0x11,0x4D,0xD0,
 			0xF3,0x0F,0x5C,0xF3
 		},
 			"????????"
@@ -59,7 +59,7 @@ BOOL camera_scan_patch ()
 			"xxxx"
 			"?????"
 			"xxxxx"
-			"??????"
+			"?????"
 			"????"
 	);
 
@@ -208,66 +208,71 @@ BOOL camera_scan_camval ()
 	BbQueue *res = memscan_search(this->mp, description,
 		(unsigned char []) {
 		/*
-			014636B3       ¦·  84C0                    test al, al
-			014636B5       ¦·? 74 34                   jz short League_of_Legends.014636EB
-			014636B7       ¦·  F30F1045 00             movss xmm0, [dword ss:ebp]
-			014636BC       ¦·  F30F1105 27999503       movss [dword ds:League_of_Legends.3959927], xmm0       ; float 11754.59 <- cameraX
-			014636C4       ¦·  F30F1045 04             movss xmm0, [dword ss:ebp+4]
-			014636C9       ¦·  F30F1105 2B999503       movss [dword ds:League_of_Legends.395992B], xmm0       ; float 0.0
-			014636D1       ¦·  F30F1045 08             movss xmm0, [dword ss:ebp+8]
-			014636D6       ¦·  8BCB                    mov ecx, ebx
-			014636D8       ¦·  F30F1105 2F999503       movss [dword ds:League_of_Legends.395992F], xmm0       ; float 9593.056  <- cameraY
-			014636E0       ¦·  E8 DBF8FFFF             call League_of_Legends.01462FC0                        ; [League_of_Legends.01462FC0
-			014636E5       ¦·  5F                      pop edi
-			014636E6       ¦·  5D                      pop ebp
-			014636E7       ¦·  5B                      pop ebx
-			014636E8       ¦·  C2 1000                 retn 10
+			Find Camera_value :
+
+			1:
+				68E6D24A    ║·   [1] lea edi, [ecx+5254]
+				[...]
+				68E6D254    ║·   movs [dword es:edi], [dword ds:esi]
+
+			2:
+				68E90A89    ║·   [2] mov ecx, [dword ss:local.1] <-----------------------
+				68E90A8C    ║·   push [dword ss:arg5]                                       ; ║Arg4 => [Arg5]
+				68E90A8F    ║·   push [dword ss:arg4]                                       ; ║Arg3 => [Arg4]
+				68E90A92    ║·   push [dword ss:arg3]                                       ; ║Arg2 => [Arg3]
+				68E90A95    ║·   push [dword ss:arg2]                                       ; ║Arg1 => [Arg2]
+				68E90A98    ║·   call fmodex.68E6D0FF                                       ; └fmodex.68E6D0FF <- FMOD::System::set3DListenerAttributesArg1,Arg2,Arg3,Arg4,Arg5,Arg6)
+
+			2:
+				69731A36    ║·  [3] push [dword ds:esi+14]                                 ; ║Arg1
+				69731A39    ║·  call <jmp.&fmodex.FMOD::System::set3DListenerAttributes>   ; └fmodex.FMOD::System::set3DListenerAttributes
+
+
+			01519D65       ║► └F30F1005 57BBD303       movss xmm0, [dword ds:League_of_Legends.3D3BB57]            ; float 739.0000 <--- cameraX
+			01519D6D       ║·  8B0D 38CB4702           mov ecx, [dword ds:League_of_Legends.247CB38]
+			01519D73       ║·  F30F1145 D8             movss [dword ss:local.10], xmm0
+			01519D78       ║·  F30F1005 5BBBD303       movss xmm0, [dword ds:League_of_Legends.3D3BB5B]            ; float 0.0
+			01519D80       ║·  F30F1145 DC             movss [dword ss:local.9], xmm0
+			01519D85       ║·  F30F1005 5FBBD303       [9] movss xmm0, [dword ds:League_of_Legends.3D3BB5F]        ; float 300.0000 <--- cameraY
+			01519D8D       ║·  F30F1145 E0             movss [dword ss:local.8], xmm0
+			01519D92       ║·  8B01                    mov eax, [dword ds:ecx]
+			01519D94       ║·  8B80 88000000           mov eax, [dword ds:eax+88]
+			01519D9A       ║·  FFD0                    call eax
 		*/
-			0x84,0xC0,
-			0x74,0x34,
-			0xF3,0x0F,0x10,0x45,0x00,
-			0xF3,0x0F,0x11,0x05,0x27,0x99,0x95,0x03,
-			0xF3,0x0F,0x10,0x45,0x04,
-			0xF3,0x0F,0x11,0x05,0x2B,0x99,0x95,0x03,
-			0xF3,0x0F,0x10,0x45,0x08,
-			0x8B,0xCB,
-			0xF3,0x0F,0x11,0x05,0x2F,0x99,0x95,0x03,
-			0xE8,0xDB,0xF8,0xFF,0xFF,
-			0x5F,
-			0x5D,
-			0x5B,
-			0xC2,0x10,0x00
+			0xF3,0x0F,0x10,0x05,0x57,0xBB,0xD3,0x03,
+			0x8B,0x0D,0x38,0xCB,0x47,0x02,
+			0xF3,0x0F,0x11,0x45,0xD8,
+			0xF3,0x0F,0x10,0x05,0x5B,0xBB,0xD3,0x03,
+			0xF3,0x0F,0x11,0x45,0xDC,
+			0xF3,0x0F,0x10,0x05,0x5F,0xBB,0xD3,0x03,
+			0xF3,0x0F,0x11,0x45,0xE0,
+			0x8B,0x01,
+			0x8B,0x80,0x88,0x00,0x00,0x00,
+			0xFF,0xD0
 		},
 
+			"xxxx????"
+			"xx????"
+			"xxxx?"
+			"xxxx????"
+			"xxxx?"
+			"xxxx????"
+			"xxxx?"
 			"xx"
-			"x?"
-			"xxxxx"
-			"xxxx????"
-			"xxxxx"
-			"xxxx????"
-			"xxxxx"
-			"xx"
-			"xxxx????"
-			"x????"
-			"x"
-			"x"
-			"x"
-			"xxx",
+			"xx?xxx"
+			"xx",
 
-			"xx"
-			"xx"
-			"xxxxx"
 			"xxxx????"
+			"xxxxxx"
 			"xxxxx"
 			"xxxxxxxx"
 			"xxxxx"
-			"xx"
 			"xxxx????"
 			"xxxxx"
-			"x"
-			"x"
-			"x"
-			"xxx"
+			"xx"
+			"xxxxxx"
+			"xx"
+
 	);
 
 	if (!res)
@@ -470,34 +475,20 @@ BOOL camera_scan_loading ()
 
 			"xx????"
 			"xx"
-			"xx"
-			"xx"
-			"xx"
-			"xx"
-			"xxx"
-			"x"
-			"x????"
-			"xx"
-			"xx????",
+			"x?"
+			"xx",
 
 			"xx????"
 			"xx"
 			"xx"
 			"xx"
-			"xx"
-			"xx"
-			"xxx"
-			"x"
-			"xxxxx"
-			"xx"
-			"xxxxxx"
 
 
 	);
 
 	if (!res)
 	{
-		warning("Cannot find loading state address\n");
+		warning("Cannot find loading state address");
 		return FALSE;
 	}
 
@@ -522,49 +513,53 @@ BOOL camera_scan_game_info ()
 
 	BbQueue *res = memscan_search (this->mp, "gameState",
 	/*
-		00B93B10   $  833D <5CD75203> 00               cmp [dword ds:League_of_Legends.352D75C], 0       ; ASCII "\xC8\xFC\x8D"
-		00B93B17   ·▲ 75 5B                            jne short League_of_Legends.00B93B74
-		00B93B19   ·  803D 60D75203 00                 cmp [byte ds:League_of_Legends.352D760], 0
-		00B93B20   ·▲ 74 0C                            je short League_of_Legends.00B93B2E
-		00B93B22   ·  C605 60D75203 00                 mov [byte ds:League_of_Legends.352D760], 0
-		00B93B29   ·◄ E9 520CF0FF                      jmp League_of_Legends.00A94780
-		00B93B2E   ►  6A 10                            push 10
-		00B93B30   ·  FF15 60B65A01                    call [dword ds:<&MSVCR110.operator new>]
+CPU Disasm
+Address    Hex dump               Command                                           Comments
+017F9295   ║·  57                 push edi                                          ; ╓hDC = 005B1F20
+017F9296   ║·  8945 CC            mov [dword ss:local.13], eax                      ; ║
+017F9299   ║·  FF15 88D0ED01      call [dword ds:<&GDI32.DeleteDC>]                 ; └GDI32.DeleteDC
+017F929F   ║·  8B75 C4            mov esi, [dword ss:local.15]
+017F92A2   ║·  8B7D CC            mov edi, [dword ss:local.13]                      ; ASCII "SUSU"
+017F92A5   ║►  8B0D 64E0D603      mov ecx, [dword ds:League_of_Legends.3D6E064]
+017F92AB   ║·  85C9               test ecx, ecx
+017F92AD   ║·▼ 75 0B              jnz short League_of_Legends.017F92BA
+
+
+
 	*/
 		(unsigned char[]) {
-			0x83,0x3D,0x5C,0xD7,0x52,0x03,0x00,
-			0x75,0x5B,
-			0x80,0x3D,0x60,0xD7,0x52,0x03,0x00,
-			0x74,0x0C,
-			0xC6,0x05,0x60,0xD7,0x52,0x03,0x00,
-			0xE9,0x52,0x0C,0xF0,0xFF,
-			0x6A,0x10,
-			0xFF,0x15,0x60,0xB6,0x5A,0x01
+			0x57,
+			0x89,0x45,0xCC,
+			0xFF,0x15,0x88,0xD0,0xED,0x01,
+			0x8B,0x75,0xC4,
+			0x8B,0x7D,0xCC,
+			0x8B,0x0D,0x64,0xE0,0xD6,0x03,
+			0x85,0xC9,
+			0x75,0x0B
 		},
+			"x"
+			"xx?"
+			"xx????"
+			"xx?"
+			"xx?"
+			"xx????"
+			"xx"
+			"xx",
 
-		"xx????x"
-		"xx"
-		"xx????x"
-		"xx"
-		"xx????x"
-		"x????"
-		"xx"
-		"xx????",
-
-		"xx????x"
-		"xx"
-		"xxxxxxx"
-		"xx"
-		"xxxxxxx"
-		"xxxxx"
-		"xx"
-		"xxxxxx"
+			"x"
+			"xxx"
+			"xxxxxx"
+			"xxx"
+			"xxx"
+			"xx????"
+			"xx"
+			"xx"
 	);
 
 	if (!res)
 	{
 		warning("Cannot find game state address");
-		exit(0);
+		return 0;
 	}
 
 	Buffer *game_info_addr = bb_queue_pick_nth(res, 1);
@@ -599,40 +594,39 @@ BOOL camera_scan_cursor_champ ()
 
 	BbQueue *res = memscan_search (this->mp, "Cursor/Champ",
 	/*
-		0107ED5C  ║·  C74424 1C 449A4803      mov [dword ss:arg.7], offset League_of_Legends.03489A44
-		0107ED64  ║·  C74424 20 04634803      mov [dword ss:arg.8], offset League_of_Legends.03486304
-		0107ED6C  ║·  C74424 24 389A4803      mov [dword ss:arg.9], offset League_of_Legends.03489A38
-		0107ED74  ║·  895C24 28               mov [dword ss:arg.10], ebx
-		0107ED78  ║·  895424 34               mov [dword ss:arg.13], edx
-		0107ED7C  ║·  894424 38               mov [dword ss:arg.14], eax
-		0107ED80  ║·  C64424 3C 01            mov [byte ss:arg.15], 1
+		00F59C35  ║·  C745 D8 74BC5E03        mov [dword ss:local.10], offset League_of_Legends.035EBC74
+		00F59C3C  ║·  C745 DC 64855E03        mov [dword ss:local.9], offset League_of_Legends.035E8564
+		00F59C43  ║·  C745 E0 68BC5E03        mov [dword ss:local.8], offset League_of_Legends.035EBC68
+		00F59C4A  ║·  895D E4                 mov [dword ss:local.7], ebx
+		00F59C4D  ║·  8955 F0                 mov [dword ss:local.4], edx
+		00F59C50  ║·  8945 F4                 mov [dword ss:local.3], eax
+		00F59C53  ║·  C645 F8 01              mov [byte ss:local.2], 1
 	*/
 
 		(unsigned char[]) {
-			0xC7,0x44,0x24,0x1C,0x44,0x9A,0x48,0x03,
-			0xC7,0x44,0x24,0x20,0x04,0x63,0x48,0x03,
-			0xC7,0x44,0x24,0x24,0x38,0x9A,0x48,0x03,
-			0x89,0x5C,0x24,0x28,
-			0x89,0x54,0x24,0x34,
-			0x89,0x44,0x24,0x38,
-			0xC6,0x44,0x24,0x3C,0x01
+			0xC7,0x45,0xD8,0x74,0xBC,0x5E,0x03,
+			0xC7,0x45,0xDC,0x64,0x85,0x5E,0x03,
+			0xC7,0x45,0xE0,0x68,0xBC,0x5E,0x03,
+			0x89,0x5D,0xE4,
+			0x89,0x55,0xF0,
+			0x89,0x45,0xF4,
+			0xC6,0x45,0xF8,0x01
 		},
+			"xxx????"
+			"xxx????"
+			"xxx????"
+			"xxx"
+			"xxx"
+			"xxx"
+			"xxxx",
 
-		"xxxx????"
-		"xxxx????"
-		"xxxx????"
-		"xxxx"
-		"xxxx"
-		"xxxx"
-		"xxxxx",
-
-		"xxxx????"
-		"xxxxxxxx"
-		"xxxx????"
-		"xxxx"
-		"xxxx"
-		"xxxx"
-		"xxxxx"
+			"xxx????"
+			"xxxxxxx"
+			"xxx????"
+			"xxx"
+			"xxx"
+			"xxx"
+			"xxxx"
 	);
 
 	if (!res)
@@ -900,7 +894,7 @@ BOOL camera_scan_hovered_champ ()
 			"xx????xxxx"
 			"xx????"
 			"xx"
-			"xx"
+			"x?"
 			"x????"
 			"x????",
 
@@ -1025,46 +1019,31 @@ BOOL camera_scan_champions ()
 
 	BbQueue *res = memscan_search (this->mp, "entityArrayStart/entityArrayEnd",
 	/*
-		0118A350  ╓$  51                      push ecx
-		0118A351  ║·  53                      push ebx
-		0118A352  ║·  55                      push ebp
-		0118A353  ║·  56                      push esi
-		0118A354  ║·  8B35 2C6FAD02           mov esi, [dword ds:League_of_Legends.2AD6F2C] << start
-		0118A35A  ║·  57                      push edi
-		0118A35B  ║·  895424 10               mov [dword ss:local.16], edx
-		0118A35F  ║·  8BE9                    mov ebp, ecx
-		0118A361  ║·  3B35 306FAD02           cmp esi, [dword ds:League_of_Legends.2AD6F30] << end
+		013EE469   ║► ┌8B35 9C9CD203      ╓mov esi, [dword ds:League_of_Legends.3D29C9C]
+		013EE46F   ║· │8B3D A09CD203      ║mov edi, [dword ds:League_of_Legends.3D29CA0]
+		013EE475   ║· │3BF7               ║cmp esi, edi
+		013EE477   ║·▼│74 31              ║je short League_of_Legends.013EE4AA
+		013EE479   ║► │8B0E               ║╓mov ecx, [dword ds:esi]
 	*/
 		(unsigned char[]) {
-			0x51,
-			0x53,
-			0x55,
-			0x56,
-			0x8B,0x35,0x2C,0x6F,0xAD,0x02,
-			0x57,
-			0x89,0x54,0x24,0x10,
-			0x8B,0xE9,
-			0x3B,0x35,0x30,0x6F,0xAD,0x02
+			0x8B,0x35,0x9C,0x9C,0xD2,0x03,
+			0x8B,0x3D,0xA0,0x9C,0xD2,0x03,
+			0x3B,0xF7,
+			0x74,0x31,
+			0x8B,0x0E
 		},
-		"x"
-		"x"
-		"x"
-		"x"
-		"xx????"
-		"x"
-		"xxxx"
-		"xx"
-		"xx????",
 
-		"x"
-		"x"
-		"x"
-		"x"
-		"xx????"
-		"x"
-		"xxxx"
-		"xx"
-		"xx????"
+			"xx????"
+			"xx????"
+			"xx"
+			"xx"
+			"xx",
+
+			"xx????"
+			"xx????"
+			"xx"
+			"xx"
+			"xx"
 	);
 
 	if (!res)

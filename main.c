@@ -6,12 +6,12 @@
 #include "./LoLCamera/LoLCamera.h"
 #include <signal.h>
 
-#define LOLCAMERA_VERSION 0.162
+#define LOLCAMERA_VERSION 0.163
 
 float check_version (void)
 {
 	es_init();
-	info("Checking for updates (current version : %.2f) ...", LOLCAMERA_VERSION);
+	info("Checking for updates (current version : %.3f) ...", LOLCAMERA_VERSION);
 
 	EasySocket *socket = es_client_new_from_host("lolcamera.alwaysdata.net", 80);
 	char *version = es_get_http_file(socket, "/version.txt", "lolcamera.alwaysdata.net");
@@ -39,25 +39,30 @@ int main_light ()
 	unsigned int text_size = 0x00B1A000;
 	memproc_dump(mp, text_section, text_section + text_size);
 
-	/* These calls produce warnings, keep it commented
+	// These calls produce warnings, keep it commented
+	/*
 	//
 	camera_init_light(mp);
 
 	//
 	camera_scan_campos();
+	camera_scan_camval();
+	camera_scan_loading();
+	camera_scan_dest();
 	camera_scan_cursor_champ();
-	camera_scan_dest ();
-	camera_scan_hover_interface();
 	camera_scan_game_info();
 	camera_scan_win_is_opened();
+	camera_scan_hover_interface();
 	camera_scan_hovered_champ();
+	camera_scan_victory();
 	camera_refresh_entity_hovered();
 	camera_scan_champions();
-	camera_scan_loading();
 
 	//
 	camera_run_light();
 	camera_scan_patch();
+
+	camera_export_to_cheatengine();
 	*/
 
 	return 0;
@@ -65,6 +70,7 @@ int main_light ()
 
 int main()
 {
+	//return main_light();
 	LoLCameraState state = PLAY;
 	MemProc *mp = NULL;
 

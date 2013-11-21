@@ -475,37 +475,6 @@ _debug (char *msg, ...)
 	#endif
 }
 
-LPVOID
-file_to_mem (char *filename)
-{
-	HANDLE handle;
-	DWORD bytes_read;
-	DWORD file_size;
-	LPVOID buffer = NULL;
-
-	handle = CreateFileA(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
-
-	if (handle)
-	{
-		file_size = GetFileSize(handle, NULL);
-
-		if (file_size > 0)
-		{
-			buffer = VirtualAlloc(NULL, file_size, MEM_COMMIT, PAGE_READWRITE);
-
-			if (buffer)
-			{
-				SetFilePointer(handle, 0, NULL, FILE_BEGIN);
-				ReadFile(handle, buffer, file_size, &bytes_read, NULL);
-			}
-		}
-
-		CloseHandle(handle);
-	}
-
-	return buffer;
-}
-
 DWORD
 find_pattern_process (HANDLE process, DWORD start, DWORD end, unsigned char *pattern, char* mask)
 /*
