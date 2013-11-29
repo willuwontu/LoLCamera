@@ -407,7 +407,7 @@ static CameraTrackingMode camera_get_mode ()
 
 	// Following ally & ennemies champions
 	if (camera_follow_champion_requested ())
-		return NoMove;
+		return FollowEntity;
 
 	// The champion has been teleported far, focus on the champion
 	if (camera_reset_conditions())
@@ -429,26 +429,25 @@ static BOOL camera_follow_champion_requested ()
 	{
 		if (camera_getkey(keys[i]) < 0 && this->team_size > i)
 		{
-			//this->followed_entity = this->champions[i];
-			//this->fxstate = (this->fxstate) ? this->fxstate : 1;
-			//fx_pressed = TRUE;
-			return TRUE;
+			this->followed_entity = this->champions[i];
+			this->fxstate = (this->fxstate) ? this->fxstate : 1;
+			fx_pressed = TRUE;
 		}
 	}
 
 	if (!fx_pressed)
 	{
 		if (this->fxstate == 2)
+		{
+			camera_save_state(&this->champ->v);
 			this->restore_tmpcam = TRUE;
+		}
 
 		this->fxstate = 0;
 	}
 
 	if (this->fxstate == 1)
-	{
-		camera_save_state(&this->champ->v);
 		this->fxstate = 2;
-	}
 
 	return fx_pressed;
 }

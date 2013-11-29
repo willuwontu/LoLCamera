@@ -54,7 +54,7 @@ BbQueue *memscan_search (MemProc *mp, unsigned char *desc, unsigned char *patter
 		float fbuffer = 0;
 		memcpy(&ibuffer, buffer, sizeof(buffer));
 		memcpy(&fbuffer, buffer, sizeof(buffer));
-		debug("%.*s -> 0x%.8x (%.2d - 0x%.8x - %.2f)", len, str-len, ptr, ibuffer, ibuffer, fbuffer);
+		debug("\t%.*s -> 0x%.8x (%.2d - 0x%.8x - %.2f)", len, str-len, ptr, ibuffer, ibuffer, fbuffer);
 		str++;
 	}
 

@@ -80,7 +80,9 @@
 
 #define COMPILE_GDI 0
 
-#define DEBUG_ACTIVATED 0
+#ifdef DEBUG
+#define DEBUG_ACTIVATED 1
+#endif
 
 // ----------- Methods ------------
 

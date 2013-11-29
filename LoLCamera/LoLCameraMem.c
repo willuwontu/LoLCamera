@@ -844,7 +844,7 @@ BOOL camera_scan_win_is_opened ()
 	if (!win_is_opened_addr)
 		return FALSE;
 
-	this->win_is_opened_addr = win_is_opened_addr + 0x2A8;
+	this->win_is_opened_addr = win_is_opened_addr + 0x54;
 
 	return TRUE;
 }
@@ -1091,10 +1091,10 @@ BOOL camera_scan_champions (BOOL display_error)
 			debug("  --> Ally %d not found", i);
 		else
 			debug(" - Entity %d found -> "
-				  "pos:{%.0f,%.0f} hp:{%.0f/%.0f} team=%s "
-				  "pname=\"%s\" cname=\"%s\" - 0x%.8x)",
-				  i, e->p.v.x, e->p.v.y, e->hp, e->hp_max, (e->team == ENTITY_TEAM_BLUE) ? "blue" : "purple",
-				  e->player_name, e->champ_name, cur
+				  "%16s : pos={%5.0f,%5.0f} hp={%4.0f/%4.0f} team=%6s "
+				  "pname=\"%16s\" - 0x%.8x)",
+				  i, e->champ_name, e->p.v.x, e->p.v.y, e->hp, e->hp_max, (e->team == ENTITY_TEAM_BLUE) ? "blue" : "purple",
+				  e->player_name, cur
 			);
 	}
 
@@ -1235,13 +1235,12 @@ BOOL camera_refresh_win_is_opened ()
 {
 	Camera *this = camera_get_instance();
 
-	this->interface_opened = read_memory_as_int(this->mp->proc, this->win_is_opened_addr);
-
+	this->interface_opened = read_memory_as_int(this->mp->proc, this->win_is_opened_addr + 0x244);
 	// Shop opened : 4
 	// Chat opened : 2
 	// Nothing     : 1
 
-	return 1;
+	return this->interface_opened != 0;
 }
 
 BOOL camera_refresh_hover_interface ()
@@ -1404,7 +1403,7 @@ void camera_get_patches (Patch **patches, int size, MemProc *mp, char *descripti
 static BOOL camera_search_signature (unsigned char *pattern, DWORD *addr, unsigned char **code_ptr, char *mask, char *name)
 {
 	Camera *this = camera_get_instance();
-	debugb("Looking for \"%s\" ...", name);
+	debug("Looking for \"%s\" ...", name);
 
 	memproc_search(this->mp, pattern, mask, NULL, SEARCH_TYPE_BYTES);
 	BbQueue *results = memproc_get_res(this->mp);
