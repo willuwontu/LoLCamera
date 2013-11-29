@@ -205,7 +205,7 @@ short int camera_getkey (int key);
 bool global_key_toggle ();
 
 // From LoLCameraMem.c
-BOOL camera_scan_champions ();
+BOOL camera_scan_champions (BOOL display_error);
 BOOL camera_scan_patch ();
 BOOL camera_scan_win_is_opened ();
 BOOL camera_scan_variables ();

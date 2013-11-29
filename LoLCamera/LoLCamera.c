@@ -505,6 +505,29 @@ BOOL bypass_login_screen_request (int key)
 	return (key == 'p' || key == 'P');
 }
 
+BOOL camera_ingame_conditions ()
+{
+	if (!camera_scan_champions(FALSE))
+		return FALSE;
+
+	DWORD cur = this->entity_ptr;
+	DWORD end = this->entity_ptr_end;
+
+	BOOL valid = TRUE;
+
+	for (int i = 0; cur != end && i < 10; cur += 4, i++)
+	{
+		Entity *e = this->champions[i];
+
+		if (
+			(e->p.v.x <= 0 || e->p.v.y <= 0)
+		||  (e->entity_data == 0))
+			valid = FALSE;
+	}
+
+	return valid;
+}
+
 BOOL camera_wait_for_ingame ()
 {
 	BOOL waited = FALSE;
@@ -514,7 +537,7 @@ BOOL camera_wait_for_ingame ()
 
 	// Wait here
 	int already_displayed_message = FALSE;
-	while (!read_memory_as_int(this->mp->proc, this->loading_state_addr))
+	while (!camera_ingame_conditions())
 	{
 		int key;
 
@@ -669,7 +692,7 @@ BOOL camera_update ()
 
 				// Resynchronize with the process
 				if (!camera_scan_variables()
-				||	!camera_scan_champions())
+				||	!camera_scan_champions(TRUE))
 				{
 					warning("Synchronization with the client isn't possible - Retrying in 3s.");
 					Sleep(3000);
@@ -1335,7 +1358,8 @@ void camera_unload ()
 	// Process still active, unpatch
 	if (memproc_refresh_handle(this->mp))
 	{
-		patch_list_set(this->patchlist, FALSE);
+		if (this->patchlist != NULL)
+			patch_list_set(this->patchlist, FALSE);
 
 		this->mp = NULL;
 		this = NULL;

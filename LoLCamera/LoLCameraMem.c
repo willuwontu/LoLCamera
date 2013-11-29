@@ -736,7 +736,7 @@ BOOL camera_scan_variables ()
 		camera_scan_win_is_opened,
 		camera_scan_hovered_champ,
 		camera_scan_victory,
-		camera_scan_hover_interface,
+		camera_scan_hover_interface
 	};
 
 	for (int i = 0; i < (sizeof(scan_funcs) / sizeof(BOOL (*)())); i++)
@@ -747,7 +747,7 @@ BOOL camera_scan_variables ()
 
 	info("------------------------------------------------------------------");
 	info("Reading the content of pointers...");
-	camera_scan_champions();
+	camera_scan_champions(TRUE);
 	camera_refresh_self();
 
 	return res;
@@ -1012,7 +1012,7 @@ BOOL camera_scan_victory ()
 	return (victory_state != 0);
 }
 
-BOOL camera_scan_champions ()
+BOOL camera_scan_champions (BOOL display_error)
 /// FIXED :)
 {
 	Camera *this = camera_get_instance();
@@ -1048,7 +1048,8 @@ BOOL camera_scan_champions ()
 
 	if (!res)
 	{
-		warning("Cannot find entities array address");
+		if (display_error)
+			warning("Cannot find entities array address");
 		return FALSE;
 	}
 
@@ -1062,7 +1063,8 @@ BOOL camera_scan_champions ()
 
 	if (!this->entities_addr || !this->entities_addr_end)
 	{
-		warning("Cannot scan entities");
+		if (display_error)
+			warning("Cannot scan entities");
 		return FALSE;
 	}
 
@@ -1071,7 +1073,8 @@ BOOL camera_scan_champions ()
 
 	if (!this->entity_ptr || !this->entity_ptr_end)
 	{
-		warning("Cannot read entity array boundaries");
+		if (display_error)
+			warning("Cannot read entity array boundaries");
 		return FALSE;
 	}
 
