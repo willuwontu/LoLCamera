@@ -140,6 +140,9 @@ static BOOL camera_left_click ()
 					camera_set_pos(this->lmb.x, this->lmb.y);
 				break;
 
+				case 3:
+					event_stop(&this->reset_after_minimap_click);
+					this->lbutton_state = 2;
 				case 2:
 					save_lmb_pos();
 					camera_set_pos(this->lmb.x, this->lmb.y);
@@ -180,6 +183,7 @@ static BOOL camera_left_click ()
 						event_start_now(&this->reset_after_minimap_click);
 						this->lbutton_state = 3;
 						this->wait_for_end_of_pause = TRUE;
+						this->request_polling = TRUE;
 					}
 					else
 					{
@@ -206,6 +210,7 @@ static BOOL camera_left_click ()
 					this->restore_tmpcam = TRUE;
 					this->wait_for_end_of_pause = FALSE;
 					this->lbutton_state  = 0;
+					this->request_polling = TRUE;
 				}
 				else
 				{
@@ -519,10 +524,11 @@ BOOL camera_ingame_conditions ()
 	{
 		Entity *e = this->champions[i];
 
-		if (
-			(e->p.v.x <= 0 || e->p.v.y <= 0)
-		||  (e->entity_data == 0))
+		if ((e->entity_data == 0))
+		{
+			entity_debug(e);
 			valid = FALSE;
+		}
 	}
 
 	return valid;
