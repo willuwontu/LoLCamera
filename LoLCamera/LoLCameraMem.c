@@ -1241,7 +1241,7 @@ BOOL camera_refresh_win_is_opened ()
 	// Chat opened : 2
 	// Nothing     : 1
 
-	return this->interface_opened != 0;
+	return 1;
 }
 
 BOOL camera_refresh_hover_interface ()

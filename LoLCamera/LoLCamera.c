@@ -115,6 +115,45 @@ static void save_lmb_pos ()
 	vector2D_set_pos(&this->lmb, x, y);
 }
 
+void camera_reset ()
+{
+	if (this == NULL)
+		return;
+
+	this->entity_hovered = NULL;
+	vector2D_set_zero(&this->distance_translation);
+	this->translate_request = 0;
+	this->last_translate_state = 0;
+
+	this->camera_movement = NULL;
+	this->border_screen = NULL;
+	this->patchlist = NULL;
+
+	// Entities
+	for (int i = 0; i < 10; i++)
+	{
+		this->champions[i] = NULL;
+		this->nearby[i] = NULL;
+	}
+
+	this->focused_entity = NULL;
+	this->followed_entity = NULL;
+	this->hint_entity = NULL;
+	this->self = NULL;
+	strcpy(this->self_name, "");
+
+	for (int i = 0; i < 5; i++)
+	{
+		this->nearby_allies[i] = NULL;
+		this->nearby_ennemies[i] = NULL;
+	}
+
+	this->nb_allies_nearby = 0;
+	this->nb_ennemies_nearby = 0;
+
+	this->section_settings_name = "Default";
+}
+
 static BOOL camera_left_click ()
 {
 	if (camera_getkey(VK_LBUTTON) < 0)
@@ -700,8 +739,8 @@ BOOL camera_update ()
 				if (!camera_scan_variables()
 				||	!camera_scan_champions(TRUE))
 				{
-					warning("Synchronization with the client isn't possible - Retrying in 3s.");
-					Sleep(3000);
+					warning("Synchronization with the client isn't possible - Retrying in 0.5s.");
+					Sleep(500);
 				}
 				else
 				{
@@ -1031,10 +1070,12 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 			float lmb_weight   = this->lmb_weight;
 
 			// Optional weights
-			float hint_weight    = 0.0;
-			float focus_weight   = 0.0;
+			float hint_weight = 0.0;
+			float focus_weight = 0.0;
 			float global_weight_allies = 0.0;
 			float global_weight_ennemies = 0.0;
+
+			float scrollbottom_offset = 0.0;
 
 			// Fix the perspective
             if (mouse_weight)
@@ -1042,7 +1083,7 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
             	// The camera goes farther when the camera is moving to the south
 				float distance_mouse_champ_y = this->champ->v.y - this->mouse->v.y;
 				if (distance_mouse_champ_y > 0.0) {
-					this->mouse->v.y -= distance_mouse_champ_y * this->champ_settings.camera_scroll_speed_bottom; // <-- arbitrary value
+					scrollbottom_offset = (distance_mouse_champ_y * this->champ_settings.camera_scroll_speed_bottom); // <-- arbitrary value
 				}
             }
 
@@ -1168,7 +1209,7 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 					+ drag_x,
                 (
                     (this->champ->v.y * champ_weight) +
-                    (this->mouse->v.y * mouse_weight) +
+                    ((this->mouse->v.y - scrollbottom_offset) * mouse_weight) +
                     (this->dest->v.y * dest_weight) +
                     (focus_y * focus_weight) +
 					(hint_y * hint_weight) +

@@ -6,7 +6,7 @@
 #include "./LoLCamera/LoLCamera.h"
 #include <signal.h>
 
-#define LOLCAMERA_VERSION 0.163
+#define LOLCAMERA_VERSION 0.17
 
 float check_version (void)
 {
@@ -129,6 +129,7 @@ int main()
 		if (!mp->proc)
 		{
 			// Client is not detected
+			camera_reset();
 			info("Waiting for a new game ...");
 
 			while (!memproc_refresh_handle(mp))

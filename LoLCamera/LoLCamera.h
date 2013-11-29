@@ -200,6 +200,7 @@ int get_kb ();
 void camera_check_version (void);
 void camera_set_pos (float x, float y);
 short int camera_getkey (int key);
+void camera_reset ();
 
 // -- Hotkeys
 bool global_key_toggle ();
