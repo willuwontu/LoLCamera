@@ -116,6 +116,9 @@ patch_list_get ()
 void
 patch_list_set (BbQueue *patchlist, BOOL enabled)
 {
+	if (patchlist == NULL)
+		return;
+
 	foreach_bbqueue_item (patchlist, Patch *p)
 	{
 		patch_set_activated(p, enabled);

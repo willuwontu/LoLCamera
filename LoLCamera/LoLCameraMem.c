@@ -113,8 +113,6 @@ BOOL camera_scan_patch ()
 			"??"
 	);
 
-
-
 	camera_get_patch (
 		this->mp, "Lock the camera (value) on camera locked",
 		&this->locked_camera_addr,
@@ -132,7 +130,7 @@ BOOL camera_scan_patch ()
 				0107FE73  ║· │F30F1105 2B994803       movss [dword ds:League_of_Legends.348992B], xmm0     ; float 0.0, 0.0, 0.0, 3036.157
 				0107FE7B  ║· │F30F1047 6C             movss xmm0, [dword ds:edi+6C]                        ; float 0.0004054068
 				0107FE80  ║· │F30F1105 2F994803       movss [dword ds:League_of_Legends.348992F], xmm0     ; float 0.0, 0.0, 0.0, 3036.157
-				0107FE88  ║· │8B4C24 28               mov ecx, [dword ss:esp+28]
+				01698515  ║· │8B4D F4                 mov ecx, [dword ss:ebp-0C]
 				0107FE8C  ║· │64:890D 00000000        mov [dword fs:0], ecx                                ; ASCII "H\xF4+"
 		*/
 			0x74,0x49,
@@ -146,7 +144,7 @@ BOOL camera_scan_patch ()
 			0xF3,0x0F,0x11,0x05,0x2B,0x99,0x48,0x03,
 			0xF3,0x0F,0x10,0x47,0x6C,
 			0xF3,0x0F,0x11,0x05,0x2F,0x99,0x48,0x03,
-			0x8B,0x4C,0x24,0x28,
+			0x8B,0x4D,0xF4,
 			0x64,0x89,0x0D,0x00,0x00,0x00,0x00
 		},
 			"xx"
@@ -160,7 +158,7 @@ BOOL camera_scan_patch ()
 			"xxxx????"
 			"xxxx?"
 			"xxxx????"
-			"xxxx"
+			"xx?"
 			"xxxxxxx",
 
 		(unsigned char[]) {
@@ -175,7 +173,7 @@ BOOL camera_scan_patch ()
 			0x90,0x90,0x90,0x90,0x90,0x90,0x90,0x90,
 			0xF3,0x0F,0x10,0x47,0x6C,
 			0x90,0x90,0x90,0x90,0x90,0x90,0x90,0x90,
-			0x8B,0x4C,0x24,0x28,
+			0x8B,0x4D,0xF4,
 			0x64,0x89,0x0D,0x00,0x00,0x00,0x00
 		},
 			"??"
@@ -189,11 +187,10 @@ BOOL camera_scan_patch ()
 			"xxxxxxxx"
 			"?????"
 			"xxxxxxxx"
-			"????"
+			"???"
 			"???????"
 
 	);
-
 
 	this->patchlist = patch_list_get();
 
