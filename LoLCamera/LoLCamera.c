@@ -486,7 +486,7 @@ void camera_init (MemProc *mp)
 
 	// TODO : get .text section offset + size properly
 	DWORD text_section = this->mp->base_addr + 0x1000;
-	unsigned int text_size = 0x0097E000;
+	unsigned int text_size = 0x00AFC000;
 
 	// Zeroing stuff
 	memset(this->champions, 0, sizeof(Entity *));

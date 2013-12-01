@@ -34,7 +34,6 @@
 			<Add option="-fgnu89-inline" />
 			<Add option="-std=gnu99" />
 			<Add option="-masm=intel" />
-			<Add option="-Wno-pointer-sign" />
 		</Compiler>
 		<Linker>
 			<Add library="wsock32" />

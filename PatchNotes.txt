@@ -1,9 +1,9 @@
 === 29 / 11 / 13 ===
 - [FIX] Threshold value was too much sensitive when the mouse was going to the bottom of the screen (Thank Penteano)
+- [FIX] Hotkeys when chat is opened (Thanks Penteano)
 - [FIX] The loading screen detection has been fixed.
 - [FIX] If you clicked on the minimap a second time, the camera refused to moved ; it is now fixed.
 - [FIX] The locked camera was in conflict with LoLCamra when both were actived.
-- [FIX] Hotkeys when chat is opened
 - [FIX] F2 / F3 / F4 etc... is now able to follow allies / ennemies
 
 === 21 / 11 / 13 ===

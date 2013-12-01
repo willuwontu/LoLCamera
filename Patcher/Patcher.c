@@ -73,9 +73,7 @@ patch_set_activated (Patch *p, BOOL activated)
 		{
 			char *str = ztring_get_text(pi->z);
 
-			if (!write_to_memory(p->ctxt->proc,
-				str, p->addr + pi->offset, ztring_get_len(pi->z))
-			)
+			if (!write_to_memory(p->ctxt->proc, str, p->addr + pi->offset, ztring_get_len(pi->z)))
 			{
 				success = 0;
 				warning("Patch \"%s\" : failure (0x%.8x)", p->description, p->addr);
