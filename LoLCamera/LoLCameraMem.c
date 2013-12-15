@@ -274,7 +274,7 @@ BOOL camera_scan_camval ()
 
 	if (!res)
 	{
-		warning("Cannot find CameraX/CameraY address");
+		warning("Cannot find %s address", description);
 		return FALSE;
 	}
 
@@ -307,47 +307,45 @@ BOOL camera_scan_campos ()
 	BbQueue *res = memscan_search(this->mp, description,
 		(unsigned char []) {
 		/*
-			014636B3       ║·  84C0                    test al, al
-			014636B5       ║·▼ 74 34                   jz short League_of_Legends.014636EB
-			014636B7       ║·  F30F1045 00             movss xmm0, [dword ss:ebp]
-			014636BC       ║·  F30F1105 27999503       movss [dword ds:League_of_Legends.3959927], xmm0       ; float 11754.59 <- cameraX
-			014636C4       ║·  F30F1045 04             movss xmm0, [dword ss:ebp+4]
-			014636C9       ║·  F30F1105 2B999503       movss [dword ds:League_of_Legends.395992B], xmm0       ; float 0.0
-			014636D1       ║·  F30F1045 08             movss xmm0, [dword ss:ebp+8]
-			014636D6       ║·  8BCB                    mov ecx, ebx
-			014636D8       ║·  F30F1105 2F999503       movss [dword ds:League_of_Legends.395992F], xmm0       ; float 9593.056  <- cameraY
-			014636E0       ║·  E8 DBF8FFFF             call League_of_Legends.01462FC0                        ; [League_of_Legends.01462FC0
-			014636E5       ║·  5F                      pop edi
-			014636E6       ║·  5D                      pop ebp
-			014636E7       ║·  5B                      pop ebx
-			014636E8       ║·  C2 1000                 retn 10
+			00C87EC9  ║►  F30F1015 44A89701       movss xmm2, [dword ds:League_of_Legends.197A844]                      ; float 0.0
+			00C87ED1  ║·  F30F101D 605D8301       movss xmm3, [dword ds:League_of_Legends.1835D60]                      ; float 2000.000
+			00C87ED9  ║·  F30F100D 4CA89701       movss xmm1, [dword ds:League_of_Legends.197A84C]                      ; float 0.5591928
+			00C87EE1  ║·  F30F1000                movss xmm0, [dword ds:eax]                                            ; float 3.704317
+			00C87EE5  ║·  F30F59D3                mulss xmm2, xmm3                                                      ; float 0.0, 0.0, 0.0, 0.0
+			00C87EE9  ║·  F30F59CB                mulss xmm1, xmm3                                                      ; float 0.0, 0.0, 0.0, 0.0
+			00C87EED  ║·  F30F5815 30A89701       addss xmm2, [dword ds:League_of_Legends.197A830]                      ; float 5000.000
+
 		*/
-			0x85,0xC9,
-			0x74,0x24,
-			0x8B,0x01,
-			0x68,0x00,0x01,0x00,0x00,
-			0x68,0x78,0xCE,0xE4,0x00,
-			0xFF,0x50,0x1C
+			0xF3,0x0F,0x10,0x15,0x44,0xA8,0x97,0x01,
+			0xF3,0x0F,0x10,0x1D,0x60,0x5D,0x83,0x01,
+			0xF3,0x0F,0x10,0x0D,0x4C,0xA8,0x97,0x01,
+			0xF3,0x0F,0x10,0x00,
+			0xF3,0x0F,0x59,0xD3,
+			0xF3,0x0F,0x59,0xCB,
+			0xF3,0x0F,0x58,0x15,0x30,0xA8,0x97,0x01
 		},
+			"xxxx????"
+			"xxxx????"
+			"xxxx????"
+			"xxxx"
+			"xxxx"
+			"xxxx"
+			"xxxx????",
 
-		"xx"
-		"xx"
-		"xx"
-		"xxxxx"
-		"x????"
-		"xxx",
+			"xxxxxxxx"
+			"xxxxxxxx"
+			"xxxxxxxx"
+			"xxxx"
+			"xxxx"
+			"xxxx"
+			"xxxx????"
 
-		"xx"
-		"xx"
-		"xx"
-		"xxxxx"
-		"x????"
-		"xxx"
+
 	);
 
 	if (!res)
 	{
-		warning("Cannot find CameraX/CameraY address");
+		warning("Cannot find %s address", description);
 		return FALSE;
 	}
 
@@ -504,25 +502,19 @@ BOOL camera_scan_loading ()
 }
 
 BOOL camera_scan_game_info ()
-/// SEMI FIXED
 {
 	Camera *this = camera_get_instance();
 
 	BbQueue *res = memscan_search (this->mp, "gameState",
 	/*
-CPU Disasm
-Address    Hex dump               Command                                           Comments
-017F9295   ║·  57                 push edi                                          ; ╓hDC = 005B1F20
-017F9296   ║·  8945 CC            mov [dword ss:local.13], eax                      ; ║
-017F9299   ║·  FF15 88D0ED01      call [dword ds:<&GDI32.DeleteDC>]                 ; └GDI32.DeleteDC
-017F929F   ║·  8B75 C4            mov esi, [dword ss:local.15]
-017F92A2   ║·  8B7D CC            mov edi, [dword ss:local.13]                      ; ASCII "SUSU"
-017F92A5   ║►  8B0D 64E0D603      mov ecx, [dword ds:League_of_Legends.3D6E064]
-017F92AB   ║·  85C9               test ecx, ecx
-017F92AD   ║·▼ 75 0B              jnz short League_of_Legends.017F92BA
-
-
-
+		017F9295   ║·  57                 push edi                                          ; ╓hDC = 005B1F20
+		017F9296   ║·  8945 CC            mov [dword ss:local.13], eax                      ; ║
+		017F9299   ║·  FF15 88D0ED01      call [dword ds:<&GDI32.DeleteDC>]                 ; └GDI32.DeleteDC
+		017F929F   ║·  8B75 C4            mov esi, [dword ss:local.15]
+		017F92A2   ║·  8B7D CC            mov edi, [dword ss:local.13]                      ; ASCII "SUSU"
+		017F92A5   ║►  8B0D 64E0D603      mov ecx, [dword ds:League_of_Legends.3D6E064]
+		017F92AB   ║·  85C9               test ecx, ecx
+		017F92AD   ║·▼ 75 0B              jnz short League_of_Legends.017F92BA
 	*/
 		(unsigned char[]) {
 			0x57,
@@ -570,7 +562,7 @@ Address    Hex dump               Command                                       
 		return FALSE;
 	}
 
-	read_from_memory(this->mp->proc, this->self_name, this->game_info_addr + 0x84, sizeof(this->self_name) - 1);
+	read_from_memory(this->mp->proc, this->self_name, this->game_info_addr + 0xE4, sizeof(this->self_name) - 1);
 
 	if (strlen(this->self_name) <= 0)
 	{
@@ -732,7 +724,7 @@ BOOL camera_scan_variables ()
 		camera_scan_game_info,
 		camera_scan_win_is_opened,
 		camera_scan_hovered_champ,
-		camera_scan_victory,
+		// camera_scan_victory,
 		camera_scan_hover_interface
 	};
 

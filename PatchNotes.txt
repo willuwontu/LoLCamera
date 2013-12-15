@@ -1,3 +1,6 @@
+=== 15 / 12 / 13 ===
+- [FIX] Yasuo patch fix
+
 === 29 / 11 / 13 ===
 - [FIX] Threshold value was too much sensitive when the mouse was going to the bottom of the screen (Thank Penteano)
 - [FIX] Hotkeys when chat is opened (Thanks Penteano)

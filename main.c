@@ -6,7 +6,7 @@
 #include "./LoLCamera/LoLCamera.h"
 #include <signal.h>
 
-#define LOLCAMERA_VERSION 0.171
+#define LOLCAMERA_VERSION 0.18
 
 float check_version (void)
 {
@@ -56,7 +56,7 @@ int main_light ()
 	camera_scan_hovered_champ();
 	camera_scan_victory();
 	camera_refresh_entity_hovered();
-	camera_scan_champions();
+	camera_scan_champions(TRUE);
 
 	//
 	camera_run_light();
