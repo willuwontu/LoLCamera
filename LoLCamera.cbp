@@ -42,6 +42,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="BbQueue\BbQueue.h" />
+		<Unit filename="Crypto\md5.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Crypto\md5.h" />
 		<Unit filename="EasySocket\EasySocket.c">
 			<Option compilerVar="CC" />
 		</Unit>
