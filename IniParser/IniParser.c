@@ -431,7 +431,7 @@ ini_parser_get_value (IniParser *ip, char *field)
 /**
 *   Retourne la valeur de la clef associée
 *   @param  char *field	 : clef dont on veut la valeur
-*   @return void *		  : pointeur générique sur la valeur retournée
+*   @return void *		 : pointeur générique sur la valeur retournée
 */
 {
 	int index;

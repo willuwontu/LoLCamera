@@ -4,11 +4,12 @@
 */
 
 #include "./LoLCamera/LoLCamera.h"
+#include "./Crypto/md5.h"
 #include <signal.h>
 
-#define LOLCAMERA_VERSION 0.18
+#define LOLCAMERA_VERSION 0.190
 
-float check_version (void)
+float get_version ()
 {
 	es_init();
 	info("Checking for updates (current version : %.3f) ...", LOLCAMERA_VERSION);
@@ -24,6 +25,22 @@ float check_version (void)
 	}
 
 	return 0.0;
+}
+
+char * get_last_md5 ()
+{
+	EasySocket *socket = es_client_new_from_host("lolcamera.alwaysdata.net", 80);
+	char *md5 = es_get_http_file(socket, str_dup_printf("/md5/%.3f.txt", LOLCAMERA_VERSION), "lolcamera.alwaysdata.net");
+	es_free(socket);
+
+	return md5;
+}
+
+char * get_own_md5 (char *filename)
+{
+	FILE *file = file_open(filename, "rb");
+	char *md5 = MD5_file(file);
+	return md5;
 }
 
 int main_light ()
@@ -68,7 +85,8 @@ int main_light ()
 	return 0;
 }
 
-int main()
+
+int main (int argc, char **argv)
 {
 	//return main_light();
 	LoLCameraState state = PLAY;
@@ -81,19 +99,31 @@ int main()
 	important("------------------------------------------------------------------");
 
 	// Check online version
+	const char *download_link = "https://sourceforge.net/projects/lolcamera/files";
 	float new_version = 0.0;
-	if ((new_version = check_version()) != 0.0)
+	if ((new_version = get_version()) != 0.0)
 	{
 		important("\n"
 				  "    +-------------------------------------------------------------------+\n"
 				  "    |                   A NEW UPDATE IS AVAILABLE                       |\n"
 				  "    |             New version = %.3f, current version = %.3f          |\n"
-				  "    |    Download : https://sourceforge.net/projects/lolcamera/files    |\n"
+				  "    |    Download : %s    |\n"
 				  "    +-------------------------------------------------------------------+",
-					new_version, LOLCAMERA_VERSION);
+					new_version, LOLCAMERA_VERSION, download_link);
 		system("pause");
 	}
 
+	// Check integrity
+	#ifndef DEBUG
+	if (strcmp(get_own_md5(argv[0]), get_last_md5()) != 0)
+	{
+		fatal_error("Integrity error : Please download the last verion here :");
+	}
+	#else
+		printf("self md5 = %s\n", get_own_md5(argv[0]));
+	#endif
+
+	// Debug privileges
 	if (!enable_debug_privileges())
 	{
 		warning("Debug privileges aren't active");
