@@ -117,10 +117,10 @@ int main (int argc, char **argv)
 	#ifndef DEBUG
 	if (strcmp(get_own_md5(argv[0]), get_last_md5()) != 0)
 	{
-		fatal_error("Integrity error : Please download the last verion here :");
+		error("Integrity error : Please download the last version here : \n\t%s", download_link);
+		system("pause");
+		exit(EXIT_FAILURE);
 	}
-	#else
-		printf("self md5 = %s\n", get_own_md5(argv[0]));
 	#endif
 
 	// Debug privileges
@@ -180,7 +180,9 @@ int main (int argc, char **argv)
 
 		camera_init(mp);
 
-		camera_export_to_cheatengine();
+		#ifdef DEBUG
+			camera_export_to_cheatengine();
+		#endif
 
 		state = camera_main();
 		camera_unload();

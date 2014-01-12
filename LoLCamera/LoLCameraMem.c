@@ -1140,10 +1140,11 @@ BOOL camera_refresh_entity_hovered ()
 
 	if (entity_hovered != 0)
 	{
-		char name[16] = {[0 ... 15] = '\0'};
+		char name[32] = {};
+
 		entity_hovered = read_memory_as_int(this->mp->proc, entity_hovered);
 
-		read_from_memory(this->mp->proc, name, entity_hovered + 0x28, sizeof(name));
+		read_from_memory(this->mp->proc, name, entity_hovered + 0x28, 16);
 
 		DWORD cur = this->entity_ptr;
 		DWORD end = this->entity_ptr_end;

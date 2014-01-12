@@ -19,6 +19,7 @@ local.properties
 LoLCamera.exe
 IOGraph/
 patches/*
+LoLRipotLogs/*
 LoLCamera.lnk
 
 # External tool builders
