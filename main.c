@@ -20,8 +20,12 @@ float get_version ()
 
 	if (version != NULL)
 	{
-		if (atof(version) != LOLCAMERA_VERSION)
-			return atof(version);
+	    char v[10];
+	    char vbin[10];
+	    sprintf(v,    "%.3f", atof(version));
+	    sprintf(vbin, "%.3f", LOLCAMERA_VERSION);
+	    if (strcmp(v, vbin) != 0)
+            return atof(version);
 	}
 
 	return 0.0;
@@ -39,6 +43,10 @@ char * get_last_md5 ()
 char * get_own_md5 (char *filename)
 {
 	FILE *file = file_open(filename, "rb");
+
+	if (!file)
+        return NULL;
+
 	char *md5 = MD5_file(file);
 	return md5;
 }
@@ -88,7 +96,7 @@ int main_light ()
 
 int main (int argc, char **argv)
 {
-	//return main_light();
+	// return main_light();
 	LoLCameraState state = PLAY;
 	MemProc *mp = NULL;
 

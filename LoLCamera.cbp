@@ -7,22 +7,26 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
-				<Option output="bin\Debug\LoLCamera" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj\Debug\" />
+				<Option output="bin/Debug/LoLCamera" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-g" />
+					<Add option="-Wno-pointer-sign" />
+					<Add option="-Wno-strict-aliasing" />
 					<Add option="-DDEBUG" />
 				</Compiler>
 			</Target>
 			<Target title="Release">
-				<Option output="bin\Release\LoLCamera" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj\Release\" />
+				<Option output="bin/Release/LoLCamera" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-O2" />
+					<Add option="-Wno-pointer-sign" />
+					<Add option="-Wno-strict-aliasing" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -38,82 +42,82 @@
 		<Linker>
 			<Add library="wsock32" />
 		</Linker>
-		<Unit filename="BbQueue\BbQueue.c">
+		<Unit filename="BbQueue/BbQueue.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="BbQueue\BbQueue.h" />
-		<Unit filename="Crypto\md5.c">
+		<Unit filename="BbQueue/BbQueue.h" />
+		<Unit filename="Crypto/md5.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="Crypto\md5.h" />
-		<Unit filename="EasySocket\EasySocket.c">
+		<Unit filename="Crypto/md5.h" />
+		<Unit filename="EasySocket/EasySocket.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="EasySocket\EasySocket.h" />
-		<Unit filename="Event\Event.c">
+		<Unit filename="EasySocket/EasySocket.h" />
+		<Unit filename="Event/Event.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="Event\Event.h" />
-		<Unit filename="IniParser\IniParser.c">
+		<Unit filename="Event/Event.h" />
+		<Unit filename="IniParser/IniParser.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="IniParser\IniParser.h" />
+		<Unit filename="IniParser/IniParser.h" />
 		<Unit filename="LoLCamera.ini" />
-		<Unit filename="LoLCamera\CameraSettings.c">
+		<Unit filename="LoLCamera/CameraSettings.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="LoLCamera\CameraSettings.h" />
-		<Unit filename="LoLCamera\CameraUnitTest.c">
+		<Unit filename="LoLCamera/CameraSettings.h" />
+		<Unit filename="LoLCamera/CameraUnitTest.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="LoLCamera\CameraUnitTest.h" />
-		<Unit filename="LoLCamera\Entity.c">
+		<Unit filename="LoLCamera/CameraUnitTest.h" />
+		<Unit filename="LoLCamera/Entity.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="LoLCamera\Entity.h" />
-		<Unit filename="LoLCamera\LoLCamera.c">
+		<Unit filename="LoLCamera/Entity.h" />
+		<Unit filename="LoLCamera/LoLCamera.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="LoLCamera\LoLCamera.h" />
-		<Unit filename="LoLCamera\LoLCameraMem.c">
+		<Unit filename="LoLCamera/LoLCamera.h" />
+		<Unit filename="LoLCamera/LoLCameraMem.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="MemBuffer\MemBuffer.c">
+		<Unit filename="MemBuffer/MemBuffer.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="MemBuffer\MemBuffer.h" />
-		<Unit filename="MemPos\MemPos.c">
+		<Unit filename="MemBuffer/MemBuffer.h" />
+		<Unit filename="MemPos/MemPos.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="MemPos\MemPos.h" />
-		<Unit filename="MemProc\MemChunk.c">
+		<Unit filename="MemPos/MemPos.h" />
+		<Unit filename="MemProc/MemChunk.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="MemProc\MemChunk.h" />
-		<Unit filename="MemProc\MemProc.c">
+		<Unit filename="MemProc/MemChunk.h" />
+		<Unit filename="MemProc/MemProc.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="MemProc\MemProc.h" />
-		<Unit filename="Patcher\Patcher.c">
+		<Unit filename="MemProc/MemProc.h" />
+		<Unit filename="Patcher/Patcher.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="Patcher\Patcher.h" />
-		<Unit filename="Scanner\Scanner.c">
+		<Unit filename="Patcher/Patcher.h" />
+		<Unit filename="Scanner/Scanner.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="Scanner\Scanner.h" />
-		<Unit filename="Vector\Vector2D.c">
+		<Unit filename="Scanner/Scanner.h" />
+		<Unit filename="Vector/Vector2D.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="Vector\Vector2D.h" />
-		<Unit filename="Win32Tools\Win32Tools.c">
+		<Unit filename="Vector/Vector2D.h" />
+		<Unit filename="Win32Tools/Win32Tools.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="Win32Tools\Win32Tools.h" />
-		<Unit filename="Ztring\Ztring.c">
+		<Unit filename="Win32Tools/Win32Tools.h" />
+		<Unit filename="Ztring/Ztring.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="Ztring\Ztring.h" />
+		<Unit filename="Ztring/Ztring.h" />
 		<Unit filename="icon.rc">
 			<Option compilerVar="WINDRES" />
 		</Unit>
@@ -124,6 +128,7 @@
 		<Extensions>
 			<code_completion />
 			<debugger />
+			<envvars />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

@@ -935,7 +935,6 @@ str_bet (const char *str, const char *start, const char *end)
 void
 str_bet_buffer (const char *str, const char *start, const char *end, char *buffer)
 {
-	int len;
 	int start_len = strlen(start);
 
 	int pos_end;
@@ -948,8 +947,6 @@ str_bet_buffer (const char *str, const char *start, const char *end, char *buffe
 
 	if (pos_end == -1)
 		return;
-
-	len = (pos_end) - (pos_start + start_len);
 
 	str_substring
 	(

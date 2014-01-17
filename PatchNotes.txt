@@ -1,3 +1,6 @@
+=== 17 / 01 / 14 ===
+- [FIX] Season 4 patch fix
+
 === 05 / 01 / 14 ===
 - [ADD] Security integrity check
 

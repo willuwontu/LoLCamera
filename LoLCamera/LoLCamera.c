@@ -140,7 +140,7 @@ void camera_reset ()
 	this->followed_entity = NULL;
 	this->hint_entity = NULL;
 	this->self = NULL;
-	strcpy(this->self_name, "");
+	memset(this->self_name, '\0', sizeof(this->self_name));
 
 	for (int i = 0; i < 5; i++)
 	{
@@ -486,10 +486,11 @@ void camera_init (MemProc *mp)
 
 	// TODO : get .text section offset + size properly
 	DWORD text_section = this->mp->base_addr + 0x1000;
-	unsigned int text_size = 0x00AFC000;
+	unsigned int text_size = 0x00B0C000;
 
 	// Zeroing stuff
 	memset(this->champions, 0, sizeof(Entity *));
+	memset(this->nearby, 0, sizeof(this->nearby));
 
 	// Read static vars from .ini
 	this->section_settings_name = "Default";
@@ -518,7 +519,7 @@ void camera_init (MemProc *mp)
 	camera_scan_variables();
 
 	// Signature scanning for patches
-	camera_scan_patch();
+    camera_scan_patch();
 
 	// Init data from the client
 	this->cam   	   = mempos_new (this->mp, this->camx_val,      this->camy_val);
@@ -534,12 +535,11 @@ void camera_init (MemProc *mp)
 		camera_export_to_cheatengine();
 
 	// Load settings associated with champ name
-	this->section_settings_name = this->self->champ_name;
+    this->section_settings_name = this->self->champ_name;
 
 	if (strlen(this->section_settings_name) > 0)
 		camera_load_settings(this->section_settings_name);
 
-	memset(this->nearby, 0, sizeof(this->nearby));
 	this->active = TRUE;
 }
 
@@ -612,6 +612,8 @@ BOOL camera_wait_for_ingame ()
 
 	if (already_displayed_message)
 		printf("\n");
+
+    Sleep(1000);
 
 	return waited;
 }
@@ -779,13 +781,7 @@ void camera_mode_dump (CameraTrackingMode mode)
 
 void camera_set_tracking_mode (CameraTrackingMode *out_mode)
 {
-	CameraTrackingMode mode;
-	static CameraTrackingMode last_mode = Normal;
-
-	mode = camera_get_mode();
-
-	last_mode = mode;
-	*out_mode = mode;
+	*out_mode = camera_get_mode();
 }
 
 int get_kb ()

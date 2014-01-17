@@ -562,7 +562,7 @@ BOOL camera_scan_game_info ()
 		return FALSE;
 	}
 
-	read_from_memory(this->mp->proc, this->self_name, this->game_info_addr + 0xE4, sizeof(this->self_name) - 1);
+	read_from_memory(this->mp->proc, this->self_name, this->game_info_addr + 0x140, sizeof(this->self_name) - 1);
 
 	if (strlen(this->self_name) <= 0)
 	{
@@ -571,7 +571,7 @@ BOOL camera_scan_game_info ()
 	}
 
 	else
-		debug("Self name : <%s>", this->self_name);
+		debug("Self name (%p) : <%s>", this->game_info_addr + 0x140, this->self_name);
 
 	return TRUE;
 }
@@ -728,7 +728,7 @@ BOOL camera_scan_variables ()
 		camera_scan_hover_interface
 	};
 
-	for (int i = 0; i < (sizeof(scan_funcs) / sizeof(BOOL (*)())); i++)
+	for (int i = 0; i < (sizeof(scan_funcs) / sizeof(*scan_funcs)); i++)
 	{
 		if (!scan_funcs[i]())
 			res = FALSE;
@@ -752,7 +752,7 @@ BOOL camera_refresh_self ()
 
 	for (int i = 0; cur != end && i < 10; cur += 4, i++)
 	{
-		if (strcmp(this->self_name, this->champions[i]->player_name) == 0)
+	    if (strcmp(this->self_name, this->champions[i]->player_name) == 0)
 		{
 			this->self = this->champions[i];
 			return TRUE;
