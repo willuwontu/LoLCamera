@@ -54,6 +54,7 @@
 #define FILE_APPEND ((void*)1)
 #define EOS		 (-1)
 
+
 typedef
 struct _Ztring
 {
@@ -249,6 +250,10 @@ file_get_lines_count 	(char *filename);
 
 char *
 file_get_contents_line  (const char *filename, int *line);
+
+// String.h fix
+
+char *strdup (const char*);
 
 	/** * * * * * * * *
 	*   @Destructors  *

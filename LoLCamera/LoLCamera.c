@@ -30,6 +30,8 @@ static void camera_toggle (BOOL enable);
 static BOOL camera_is_translated ();
 static void camera_translate_toggle (BOOL enable);
 BOOL camera_interface_is_hovered ();
+static BOOL camera_refresh_mouse_screen ();
+static BOOL camera_mouse_in_minimap ();
 
 static void camera_toggle (BOOL enable)
 {
@@ -165,6 +167,7 @@ static BOOL camera_left_click ()
 		if (
 			(camera_interface_is_hovered())
 		&&  (this->interface_opened != LOLCAMERA_SHOP_OPENED_VALUE)
+        &&  (camera_mouse_in_minimap())
 		)
 		{
 			switch (this->lbutton_state)
@@ -203,42 +206,45 @@ static BOOL camera_left_click ()
 
 			case 1:
 				// On release click anywhere :
-				// Save LMB position
-				save_lmb_pos();
-				this->lbutton_state = 0;
-				this->translate_lmb.x = this->champ->v.x - this->lmb.x;
-				this->translate_lmb.y = this->champ->v.y - this->lmb.y;
+                    // Save LMB position
+                    save_lmb_pos();
+                    this->lbutton_state = 0;
+                    this->translate_lmb.x = this->champ->v.x - this->lmb.x;
+                    this->translate_lmb.y = this->champ->v.y - this->lmb.y;
 			break;
 
 			case 2:
 				// On release click on minimap :
-				if (!this->dead_mode)
-				{
-					float distance_cam_champ = vector2D_distance(&this->champ->v, &this->cam->v);
+				if (camera_mouse_in_minimap())
+                {
+                    if (!this->dead_mode)
+                    {
+                        float distance_cam_champ = vector2D_distance(&this->champ->v, &this->cam->v);
 
-					if (distance_cam_champ > IN_SCREEN_DISTANCE)
-					{
-						// Wait before reseting the view
-						event_start_now(&this->reset_after_minimap_click);
-						this->lbutton_state = 3;
-						this->wait_for_end_of_pause = TRUE;
-						this->request_polling = TRUE;
-					}
-					else
-					{
-						// We actualize the camera position to the current view
-						camera_save_state(&this->cam->v);
-						this->lbutton_state = 0;
-						this->restore_tmpcam = TRUE;
-					}
-				}
-				else
-				{
-					// Dead mode : we need to actualize the camera position to the current position
-					camera_save_state(&this->cam->v);
-					this->lbutton_state = 0;
-					this->restore_tmpcam = TRUE;
-				}
+                        if (distance_cam_champ > IN_SCREEN_DISTANCE)
+                        {
+                            // Wait before reseting the view
+                            event_start_now(&this->reset_after_minimap_click);
+                            this->lbutton_state = 3;
+                            this->wait_for_end_of_pause = TRUE;
+                            this->request_polling = TRUE;
+                        }
+                        else
+                        {
+                            // We actualize the camera position to the current view
+                            camera_save_state(&this->cam->v);
+                            this->lbutton_state = 0;
+                            this->restore_tmpcam = TRUE;
+                        }
+                    }
+                    else
+                    {
+                        // Dead mode : we need to actualize the camera position to the current position
+                        camera_save_state(&this->cam->v);
+                        this->lbutton_state = 0;
+                        this->restore_tmpcam = TRUE;
+                    }
+                }
 			break;
 
 			case 3:
@@ -336,6 +342,21 @@ static void camera_debug_mode ()
 
 		this->dbg_mode = FALSE;
 	}
+}
+
+static BOOL camera_refresh_mouse_screen ()
+{
+    return GetCursorPos(&this->mouse_screen);
+}
+
+static BOOL camera_mouse_in_minimap ()
+{
+    return (
+        this->mouse_screen.x >= this->minimap.xLeft
+    &&  this->mouse_screen.x <= this->minimap.xRight
+    &&  this->mouse_screen.y >= this->minimap.yTop
+    &&  this->mouse_screen.y <= this->minimap.yBot
+    );
 }
 
 static BOOL camera_window_is_active ()
@@ -714,6 +735,7 @@ BOOL camera_update ()
 		//{.func = camera_refresh_victory,	    .arg = NULL,				.desc = "Victory State"},
 		{.func = camera_refresh_entities_nearby,.arg = NULL,				.desc = "Nearby champions"},
 		{.func = camera_refresh_hover_interface,.arg = NULL,				.desc = "Hover Interface"},
+		{.func = camera_refresh_mouse_screen,   .arg = NULL,				.desc = "Mouse Screen"},
 	};
 
 	if (frame_count++ % this->poll_data == 0 || this->request_polling)

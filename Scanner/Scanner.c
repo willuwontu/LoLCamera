@@ -31,12 +31,12 @@ BbQueue *memscan_search (MemProc *mp, unsigned char *desc, unsigned char *patter
 	if (res_mask == NULL)
 		res_mask = search_mask;
 
-	BbQueue *res = scan_search(str, res_mask);
+	results = scan_search(str, res_mask);
 
 	debug("\"%s\" : found at 0x%.8x :", desc, ptr);
 	str = desc;
 
-	foreach_bbqueue_item (res, Buffer *b)
+	foreach_bbqueue_item (results, Buffer *b)
 	{
 		len = 0;
 		memcpy(&ptr, b->data, sizeof(DWORD));
@@ -58,7 +58,7 @@ BbQueue *memscan_search (MemProc *mp, unsigned char *desc, unsigned char *patter
 		str++;
 	}
 
-	return res;
+	return results;
 }
 
 BbQueue *scan_search (unsigned char *pattern, unsigned char *mask)

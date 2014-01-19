@@ -30,6 +30,13 @@
 
 // ------ Class declaration -------
 typedef struct _Camera Camera;
+typedef struct _Minimap Minimap;
+
+
+struct _Minimap
+{
+    int xLeft, xRight, yTop, yBot;
+};
 
 struct _Camera
 {
@@ -57,6 +64,7 @@ struct _Camera
 	DWORD victory_state_addr;		// Adress of the data : Victory or Defeat
 
 	DWORD interface_hovered_addr;	// Address of the data : Is the interface hovered ?
+	DWORD mmsize_addr;              // Address of the array containing the size of the minimap on the screen
 
 	// Offsets in the game structure
 	DWORD champx_offset;
@@ -165,6 +173,8 @@ struct _Camera
 	BOOL dead_mode;
 	BOOL global_weight_activated;
 	BOOL patch_border_screen_moving;
+	Minimap minimap;
+	POINT mouse_screen;
 
 	// Events
 	Event reset_after_minimap_click;
@@ -209,6 +219,7 @@ bool global_key_toggle ();
 BOOL camera_scan_champions (BOOL display_error);
 BOOL camera_scan_patch ();
 BOOL camera_scan_win_is_opened ();
+BOOL camera_scan_minimap_size ();
 BOOL camera_scan_variables ();
 BOOL camera_scan_loading ();
 BOOL camera_scan_cursor_champ ();

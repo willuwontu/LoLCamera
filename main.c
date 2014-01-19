@@ -7,7 +7,7 @@
 #include "./Crypto/md5.h"
 #include <signal.h>
 
-#define LOLCAMERA_VERSION 0.190
+#define LOLCAMERA_VERSION 0.191
 
 float get_version ()
 {
@@ -61,7 +61,7 @@ int main_light ()
 
 	info("Dumping process...");
 	DWORD text_section = mp->base_addr + 0x1000;
-	unsigned int text_size = 0x00B1A000;
+	unsigned int text_size = 0x00B0C000;
 	memproc_dump(mp, text_section, text_section + text_size);
 
 	// These calls produce warnings, keep it commented

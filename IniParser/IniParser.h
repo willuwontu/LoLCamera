@@ -52,8 +52,6 @@
 #define INIPARSER_H_INCLUDED
 
 /* Librairies */
-#include <assert.h>
-#include <string.h>
 #include "../BbQueue/BbQueue.h"
 #include "../Ztring/Ztring.h"
 

@@ -6,6 +6,8 @@
  */
 
 #include "IniParser.h"
+#include <assert.h>
+#include <string.h>
 
 static IniParser *this = NULL;
 

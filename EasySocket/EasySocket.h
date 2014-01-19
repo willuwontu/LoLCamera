@@ -60,12 +60,8 @@
 #define EasySocket_H_INCLUDED
 
 /* Includes */
-#include <stdlib.h>
-#include <stdio.h>
-#include <windows.h>
-#include <assert.h>
-
 #include "../Ztring/Ztring.h"
+#include <windows.h>
 
 #define ES_ERROR_BIND       ((void*)-1)
 #define ES_ERROR_LISTEN     ((void*)-2)

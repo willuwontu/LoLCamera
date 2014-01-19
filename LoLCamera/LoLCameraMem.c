@@ -723,6 +723,7 @@ BOOL camera_scan_variables ()
 		camera_scan_cursor_champ,
 		camera_scan_game_info,
 		camera_scan_win_is_opened,
+		camera_scan_minimap_size,
 		camera_scan_hovered_champ,
 		// camera_scan_victory,
 		camera_scan_hover_interface
@@ -837,6 +838,191 @@ BOOL camera_scan_win_is_opened ()
 		return FALSE;
 
 	this->win_is_opened_addr = win_is_opened_addr + 0x54;
+
+	return TRUE;
+}
+
+BOOL camera_scan_minimap_size ()
+{
+	Camera *this = camera_get_instance();
+	unsigned char *description = "minimapSize";
+
+	BbQueue *res = memscan_search (this->mp, description,
+	/*
+        0168CC87  ║·  E8 44751000   call League_of_Legends.017941D0                      ; └League_of_Legends.017941D0
+        0168CC8C  ║►  E8 EF6DFEFF   call League_of_Legends.01673A80                      ; [League_of_Legends.01673A80
+        0168CC91  ║·  8B0D 3CD04102 [3] mov ecx, [dword ds:League_of_Legends.241D03C]
+        0168CC97  ║·  85C9          test ecx, ecx
+        0168CC99  ║·▼ 74 05         jz short League_of_Legends.0168CCA0
+        0168CC9B  ║·  E8 C093F5FF   call League_of_Legends.015E6060                      ; [League_of_Legends.015E6060
+        0168CCA0  ║►  E8 7BB3E4FF   call League_of_Legends.014D8020                      ; [League_of_Legends.014D8020
+	*/
+		(unsigned char []) {
+		    0xE8,0x44,0x75,0x10,0x00,
+		    0xE8,0xEF,0x6D,0xFE,0xFF,
+		    0x8B,0x0D,0x3C,0xD0,0x41,0x02,
+		    0x85,0xC9,
+            0x74,0x05,
+            0xE8,0xC0,0x93,0xF5,0xFF,
+            0xE8,0x7B,0xB3,0xE4,0xFF
+		},
+		"x????"
+        "x????"
+        "xx????"
+        "xx"
+        "x?"
+        "x????"
+        "x????",
+
+        "xxxxx"
+        "xxxxx"
+        "xx????"
+        "xx"
+        "xx"
+        "xxxxx"
+        "xxxxx"
+	);
+
+	if (!res)
+	{
+		warning("Cannot find %s address", description);
+		return FALSE;
+	}
+
+	Buffer *minimapSize = bb_queue_pick_first(res);
+
+	memcpy(&this->mmsize_addr, minimapSize->data, minimapSize->size);
+
+    // Cleaning
+    bb_queue_free_all(res, buffer_free);
+
+
+	/** Get offsets **/
+	DWORD ptr[3];
+	DWORD offset[2] = {0xC4, 0xDC};
+
+	// Offset 1
+	res = memscan_search (this->mp, str_dup_printf("%s offset 1", description),
+	/*
+        015E6060  ╓$  53            push ebx                                             ; League_of_Legends.015E6060(guessed void)
+        ebx = ecx ║·  8BD9          mov ebx, ecx
+        015E6063  ║·  56            push esi
+        015E6064  ║·  8B8B C4000000 mov ecx, [dword ds:ebx+0C4]                          ; ecx=[ECX+C4] <=> [0x241D03C+C4]
+        015E606A  ║·  57            push edi
+        015E606B  ║·  85C9          test ecx, ecx
+        015E606D  ║·▼ 74 05         jz short League_of_Legends.015E6074
+        015E606F  ║·  E8 BCB6FDFF   call League_of_Legends.onResizeWindow                ; [League_of_Legends.onResizeWindow
+	*/
+		(unsigned char []) {
+		    0x53,
+		    0x8B,0xD9,
+		    0x56,
+		    0x8B,0x8B,0xC4,0x00,0x00,0x00,
+		    0x57,
+		    0x85,0xC9,
+		    0x74,0x05,
+		    0xE8,0xBC,0xB6,0xFD,0xFF
+		},
+		    "x"
+		    "xx"
+		    "x"
+		    "xx????"
+		    "x"
+		    "xx"
+		    "xx"
+		    "x????",
+
+		    "x"
+		    "xx"
+		    "x"
+		    "xx????"
+		    "x"
+		    "xx"
+		    "xx"
+		    "xxxxx"
+	);
+
+	if (!res)
+	{
+		warning("Cannot find %s offset 1, use the default one instead", description);
+	}
+
+	else
+    {
+        Buffer *buffer = bb_queue_pick_first(res);
+        memcpy(&offset[0], buffer->data, buffer->size);
+    }
+
+    // Cleaning
+    bb_queue_free_all(res, buffer_free);
+
+    // Offset 2
+	res = memscan_search (this->mp, str_dup_printf("%s offset 2", description),
+	/*
+        0148179F  ║·  D805 745DED01 fadd [dword ds:League_of_Legends.1ED5D74]         ; float 4.294967e+09 (const 2**32)
+        014817A5  ║►  D95D FC       fstp [dword ss:local.1]                           ; float -??? FFFF 00000278 64F861A6
+        014817A8  ║·  8996 DC000000 mov [dword ds:esi+0DC], edx
+        014817AE  ║·  F30F1045 FC   movss xmm0, [dword ss:ebp-4]                      ; float 768.0000
+        014817B3  ║·  F30F5945 F0   mulss xmm0, [dword ss:local.4]                    ; float 0.7500000 (const 3/4)
+        014817B8  ║·  F30F2CC8      cvttss2si ecx, xmm0                               ; float 0.0, 0.0, 0.0, 832.0000
+	*/
+		(unsigned char []) {
+            0xD8,0x05,0x74,0x5D,0xED,0x01,
+            0xD9,0x5D,0xFC,
+            0x89,0x96,0xDC,0x00,0x00,0x00,
+            0xF3,0x0F,0x10,0x45,0xFC,
+            0xF3,0x0F,0x59,0x45,0xF0,
+            0xF3,0x0F,0x2C,0xC8
+		},
+            "xx????"
+            "xx?"
+            "xx??xx"
+            "xxxx?"
+            "xxxx?"
+            "xxxx",
+
+            "xxxxxx"
+            "xxx"
+            "xx????"
+            "xxxxx"
+            "xxxxx"
+            "xxxx"
+	);
+
+	if (!res)
+	{
+		warning("Cannot find %s offset 2, use the default one instead", description);
+	}
+
+	else
+    {
+        Buffer *buffer = bb_queue_pick_first(res);
+        memcpy(&offset[1], buffer->data, buffer->size);
+    }
+
+    // Cleaning
+    bb_queue_free_all(res, buffer_free);
+
+    // Get the final value
+	ptr[0] = read_memory_as_int(this->mp->proc, this->mmsize_addr);
+	ptr[1] = read_memory_as_int(this->mp->proc, ptr[0] + offset[0]);
+	this->mmsize_addr = ptr[1] + offset[1];
+
+	if (!this->mmsize_addr)
+	{
+		warning("Cannot scan %s array", description);
+		return FALSE;
+	}
+
+    // Get window position
+    RECT wrect;
+    GetWindowRect(this->mp->hwnd, &wrect);
+
+    // Get minimap information
+	this->minimap.xLeft  = wrect.left + read_memory_as_int(this->mp->proc, this->mmsize_addr);
+	this->minimap.yTop   = wrect.top + read_memory_as_int(this->mp->proc, this->mmsize_addr + 4);
+	this->minimap.xRight = this->minimap.xLeft + read_memory_as_int(this->mp->proc, this->mmsize_addr + 8);
+	this->minimap.yBot   = this->minimap.yTop  + read_memory_as_int(this->mp->proc, this->mmsize_addr + 12);
 
 	return TRUE;
 }

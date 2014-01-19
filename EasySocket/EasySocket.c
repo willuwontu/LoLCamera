@@ -5,6 +5,10 @@
  *	Furthermore informations in EasySocket.h
 */
 #include "EasySocket.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <assert.h>
 
 #ifdef ES_WITHOUT_LINKED_LIBS
 	int (*_WSAStartup) (WORD,LPWSADATA);
