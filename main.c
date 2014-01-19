@@ -1,5 +1,5 @@
 /**
-*	Discussion thread	: http://www.reddit.com/r/leagueoflegends/comments/1jgfn8/lolcamera_first_release_tool/
+*	Discussion thread	: http://www.reddit.com/r/leagueoflegends/comments/1qcjj6/lolcamera_is_working_again/
 *	Source				: https://github.com/Spl3en/LoLCamera
 */
 

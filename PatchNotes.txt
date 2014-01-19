@@ -1,3 +1,7 @@
+=== 18 / 01 / 14 ===
+- [FIX] Annoying bug when the interface is clicked fixed
+- [FIX] When you ping on the minimap, the camera doesn't move anymore
+
 === 17 / 01 / 14 ===
 - [FIX] Season 4 patch fix
 

@@ -23,6 +23,7 @@
 // ---------- Defines -------------
 #define LOLCAMERA_SHOP_OPENED_VALUE 4
 #define LOLCAMERA_CHAT_OPENED_VALUE 2
+#define LOLCAMERA_PING_OR_SKILL_PRESSED 5
 
 #define IN_SCREEN_DISTANCE 2000.0
 #define MEDIUM_BOX 		   1500.0
@@ -35,6 +36,7 @@ typedef struct _Minimap Minimap;
 
 struct _Minimap
 {
+    // Screen pixels position
     int xLeft, xRight, yTop, yBot;
 };
 
@@ -46,7 +48,6 @@ struct _Camera
 	DWORD border_screen_addr;		// Address of the instructions moving the camera
 	DWORD locked_camera_addr;		// Address of the instructions moving the camera on locked camera
 	DWORD camera_movement_addr;		// Address of the instructions moving the camera when the mouse reaches the border of the screen
-
 	DWORD win_is_opened_ptr;		// Address of the data : address of the pointer to the variable containing "isShopOpen" (different of 0 if its the case)
 	DWORD entities_addr;			// Address of the data : entities array start
 	DWORD entities_addr_end;		// Address of the data : entities array end
@@ -65,6 +66,7 @@ struct _Camera
 
 	DWORD interface_hovered_addr;	// Address of the data : Is the interface hovered ?
 	DWORD mmsize_addr;              // Address of the array containing the size of the minimap on the screen
+	DWORD ping_state_addr;          // Address of the data : Has ping button been pressed ?
 
 	// Offsets in the game structure
 	DWORD champx_offset;
@@ -175,6 +177,7 @@ struct _Camera
 	BOOL patch_border_screen_moving;
 	Minimap minimap;
 	POINT mouse_screen;
+	int ping_state;
 
 	// Events
 	Event reset_after_minimap_click;
@@ -227,6 +230,7 @@ BOOL camera_scan_hovered_champ ();
 BOOL camera_scan_champ_offsets ();
 BOOL camera_scan_dest_offsets ();
 BOOL camera_scan_victory ();
+BOOL camera_scan_ping_or_skill_waiting ();
 
 BOOL camera_refresh_champions ();
 BOOL camera_refresh_entity_hovered ();
@@ -237,7 +241,8 @@ BOOL camera_refresh_victory ();
 BOOL camera_refresh_entities_nearby ();
 BOOL camera_refresh_hover_interface ();
 BOOL camera_refresh_screen_border ();
-
+BOOL camera_refresh_mouse_screen ();
+BOOL camera_refresh_ping_state ();
 
 // from CameraUnitTest.c
 BOOL camera_ut_campos ();

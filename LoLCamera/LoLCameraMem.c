@@ -724,6 +724,7 @@ BOOL camera_scan_variables ()
 		camera_scan_game_info,
 		camera_scan_win_is_opened,
 		camera_scan_minimap_size,
+		camera_scan_ping_or_skill_waiting,
 		camera_scan_hovered_champ,
 		// camera_scan_victory,
 		camera_scan_hover_interface
@@ -1027,6 +1028,59 @@ BOOL camera_scan_minimap_size ()
 	return TRUE;
 }
 
+BOOL camera_scan_ping_or_skill_waiting ()
+{
+	Camera *this = camera_get_instance();
+	unsigned char * description = "pingWaiting";
+
+	BbQueue *res = memscan_search (this->mp, description,
+    /*
+        0145F1E2   ·  8BCC          mov ecx, esp
+        0145F1E4   ·  E8 07F7FFFF   call League_of_Legends.0145E8F0
+        0145F1E9   ·  E8 F20D1F00   call League_of_Legends.0164FFE0
+        0145F1EE   ·  A1 20CC2D02   mov eax, [dword ds:League_of_Legends.22DCC20]
+        0145F1F3   ·  A3 08CC2D02   mov [dword ds:League_of_Legends.22DCC08], eax
+    */
+
+		(unsigned char []) {
+            0x8B,0xCC,
+            0xE8,0x07,0xF7,0xFF,0xFF,
+            0xE8,0xF2,0x0D,0x1F,0x00,
+            0xA1,0x20,0xCC,0x2D,0x02,
+            0xA3,0x08,0xCC,0x2D,0x02
+		},
+
+        "xx"
+        "x????"
+        "x????"
+        "x????"
+        "x????",
+
+        "xx"
+        "xxxxx"
+        "xxxxx"
+        "xxxxx"
+        "x????"
+    );
+
+	if (!res)
+	{
+		warning("Cannot find %s", description);
+		return FALSE;
+	}
+
+	Buffer *pingWaiting = bb_queue_pick_first(res);
+	memcpy(&this->ping_state_addr, pingWaiting->data, pingWaiting->size);
+
+	if (!this->ping_state_addr)
+	{
+		warning("Cannot scan %s", description);
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
 BOOL camera_scan_hovered_champ ()
 /// FIXED
 {
@@ -1281,7 +1335,6 @@ BOOL camera_scan_champions (BOOL display_error)
 
 
 /** Refreshers **/
-
 BOOL camera_refresh_victory ()
 /// OK
 {
@@ -1290,6 +1343,19 @@ BOOL camera_refresh_victory ()
 	this->victory_state = read_memory_as_int(this->mp->proc, this->victory_state_addr);
 
 	return TRUE;
+}
+
+BOOL camera_refresh_mouse_screen ()
+{
+	Camera *this = camera_get_instance();
+    return GetCursorPos(&this->mouse_screen);
+}
+
+BOOL camera_refresh_ping_state ()
+{
+    Camera *this = camera_get_instance();
+    this->ping_state = read_memory_as_int(this->mp->proc, this->ping_state_addr);
+    return TRUE;
 }
 
 BOOL camera_refresh_champions ()

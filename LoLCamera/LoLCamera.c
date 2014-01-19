@@ -23,14 +23,13 @@ typedef enum {
 // Static functions declaration
 static void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode);
 static void camera_compute_camera_scroll_speed (float *camera_scroll_speed, CameraTrackingMode camera_mode);
-BOOL camera_entity_is_near (Entity *e, float limit);
+static BOOL camera_entity_is_near (Entity *e, float limit);
 static BOOL camera_follow_champion_requested ();
 static BOOL camera_restore_requested ();
 static void camera_toggle (BOOL enable);
 static BOOL camera_is_translated ();
 static void camera_translate_toggle (BOOL enable);
-BOOL camera_interface_is_hovered ();
-static BOOL camera_refresh_mouse_screen ();
+static BOOL camera_interface_is_hovered ();
 static BOOL camera_mouse_in_minimap ();
 
 static void camera_toggle (BOOL enable)
@@ -156,6 +155,15 @@ void camera_reset ()
 	this->section_settings_name = "Default";
 }
 
+static BOOL camera_not_pinging ()
+{
+    return (
+            !(camera_getkey(VK_LMENU) < 0)    // not alt pressed
+        &&  !(camera_getkey(VK_LCONTROL) < 0) // not ctrl pressed
+        &&  !(this->ping_state == LOLCAMERA_PING_OR_SKILL_PRESSED)
+    );
+}
+
 static BOOL camera_left_click ()
 {
 	if (camera_getkey(VK_LBUTTON) < 0)
@@ -168,6 +176,7 @@ static BOOL camera_left_click ()
 			(camera_interface_is_hovered())
 		&&  (this->interface_opened != LOLCAMERA_SHOP_OPENED_VALUE)
         &&  (camera_mouse_in_minimap())
+        &&  (camera_not_pinging())
 		)
 		{
 			switch (this->lbutton_state)
@@ -343,12 +352,6 @@ static void camera_debug_mode ()
 		this->dbg_mode = FALSE;
 	}
 }
-
-static BOOL camera_refresh_mouse_screen ()
-{
-    return GetCursorPos(&this->mouse_screen);
-}
-
 static BOOL camera_mouse_in_minimap ()
 {
     return (
@@ -736,6 +739,7 @@ BOOL camera_update ()
 		{.func = camera_refresh_entities_nearby,.arg = NULL,				.desc = "Nearby champions"},
 		{.func = camera_refresh_hover_interface,.arg = NULL,				.desc = "Hover Interface"},
 		{.func = camera_refresh_mouse_screen,   .arg = NULL,				.desc = "Mouse Screen"},
+		{.func = camera_refresh_ping_state,     .arg = NULL,				.desc = "Ping State"},
 	};
 
 	if (frame_count++ % this->poll_data == 0 || this->request_polling)
