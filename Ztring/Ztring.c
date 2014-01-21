@@ -940,6 +940,7 @@ str_bet_buffer (const char *str, const char *start, const char *end, char *buffe
 	int pos_end;
 	int pos_start = str_pos(str, start);
 
+
 	if (pos_start == -1)
 		return;
 

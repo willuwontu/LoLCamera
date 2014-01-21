@@ -64,6 +64,8 @@ entity_refresh (Entity *e);
 void
 entity_debug (Entity *e);
 
+int
+entity_ally_with (Entity *e1, Entity *e2);
 
 
 

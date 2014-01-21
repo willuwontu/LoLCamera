@@ -95,6 +95,15 @@ entity_is_alive (Entity *e)
 }
 
 int
+entity_ally_with (Entity *e1, Entity *e2)
+{
+    if (!e1 || !e2)
+        return 0;
+
+    return e1->team == e2->team;
+}
+
+int
 entity_is_visible (Entity *e)
 {
 	if (e == NULL)

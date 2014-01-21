@@ -451,7 +451,11 @@ static BOOL camera_follow_champion_requested ()
 
 	for (int i = 1; i < 10; i++)
 	{
-		if (camera_getkey(keys[i]) < 0 && this->team_size > i)
+		if (
+            (camera_getkey(keys[i]) < 0)
+        &&  (this->team_size > i)
+        &&  (entity_ally_with(this->self, this->champions[i]))
+        )
 		{
 			this->followed_entity = this->champions[i];
 			this->fxstate = (this->fxstate) ? this->fxstate : 1;
