@@ -34,6 +34,8 @@
 			</Target>
 		</Build>
 		<Compiler>
+			<Add option="-O3" />
+			<Add option="-Wextra" />
 			<Add option="-Wall" />
 			<Add option="-fgnu89-inline" />
 			<Add option="-std=gnu99" />
@@ -107,10 +109,18 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="Scanner/Scanner.h" />
+		<Unit filename="Utils/Utils.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Utils/Utils.h" />
 		<Unit filename="Vector/Vector2D.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="Vector/Vector2D.h" />
+		<Unit filename="WebServer/WebServer.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="WebServer/WebServer.h" />
 		<Unit filename="Win32Tools/Win32Tools.c">
 			<Option compilerVar="CC" />
 		</Unit>

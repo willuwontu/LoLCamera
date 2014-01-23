@@ -730,7 +730,7 @@ BOOL camera_scan_variables ()
 		camera_scan_hover_interface
 	};
 
-	for (int i = 0; i < (sizeof(scan_funcs) / sizeof(*scan_funcs)); i++)
+	for (int i = 0; i < sizeof_array(scan_funcs); i++)
 	{
 		if (!scan_funcs[i]())
 			res = FALSE;

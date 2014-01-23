@@ -158,9 +158,6 @@ es_set_timeout (EasySocket *es, long int milliseconds);
 int
 es_close(EasySocket *es);
 
-char *
-es_wait_for_http_answer (EasySocket *es);
-
 void
 es_end();
 
@@ -171,16 +168,23 @@ void
 _es_func_set_data (EasySocketListened *esl, void *data);
 
 void
-es_set_connected(EasySocket *es, int is_connected);
+es_set_connected (EasySocket *es, int is_connected);
 
 void
-es_answer_http_request (EasySocket *es, char *msg);
+es_http_answer_request (EasySocket *es, char *msg);
+
+void
+es_http_send_request (EasySocket *es, char *method, char *additionnal_headers, char *data, char *path);
 
 char *
-es_get_http_file (EasySocket *es, char *path);
+es_http_get (EasySocket *es, char *path);
 
-void
-es_send_http_request (EasySocket *es, char *method, char *additionnal_headers, char *data, char *path);
+char *
+es_http_get_contents (EasySocket *es, char *path);
+
+char *
+es_http_wait_for_answer (EasySocket *es);
+
 
 	/**=================
 		@Destructors

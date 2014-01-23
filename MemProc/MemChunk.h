@@ -32,7 +32,7 @@ struct _MemChunk
 	DWORD  addr;
 
 	unsigned char *buffer;
-	int size;
+	unsigned int size;
 	MemType type;
 
 	BbQueue *matches;

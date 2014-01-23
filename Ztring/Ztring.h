@@ -106,7 +106,11 @@ buffer_new_from_ptr_noalloc (unsigned char *ptr, int size);
 	*	 @Methods	*
 	* * * * * * * * * */
 /* * Buffer * */
+void
+buffer_debug (Buffer *buffer);
 
+void
+buffer_string_debug (Buffer *buffer);
 
 /* * Ztring * */
 void

@@ -4,51 +4,20 @@
 */
 
 #include "./LoLCamera/LoLCamera.h"
+#include "./Webserver/Webserver.h"
 #include "./Crypto/md5.h"
 #include <signal.h>
 
 #define LOLCAMERA_VERSION 0.191
 
-float get_version ()
+char download_link[] = "https://sourceforge.net/projects/lolcamera/files";
+char download_host[] = "cznic.dl.sourceforge.net";
+char download_path[] = "/project/lolcamera/LoLCamera%20exe%2Bini.zip";
+
+void download_lolcamera (char *link)
 {
-	es_init();
-	info("Checking for updates (current version : %.3f) ...", LOLCAMERA_VERSION);
-
-	EasySocket *socket = es_client_new_from_host("lolcamera.alwaysdata.net", 80);
-	char *version = es_get_http_file(socket, "/version.txt");
-	es_free(socket);
-
-	if (version != NULL)
-	{
-	    char v[10];
-	    char vbin[10];
-	    sprintf(v,    "%.3f", atof(version));
-	    sprintf(vbin, "%.3f", LOLCAMERA_VERSION);
-	    if (strcmp(v, vbin) != 0)
-            return atof(version);
-	}
-
-	return 0.0;
-}
-
-char * get_last_md5 ()
-{
-	EasySocket *socket = es_client_new_from_host("lolcamera.alwaysdata.net", 80);
-    char *md5 = es_get_http_file(socket, str_dup_printf("/md5/%.3f.txt", LOLCAMERA_VERSION));
-	es_free(socket);
-
-	return md5;
-}
-
-char * get_own_md5 (char *filename)
-{
-	FILE *file = file_open(filename, "rb");
-
-	if (!file)
-        return NULL;
-
-	char *md5 = MD5_file(file);
-	return md5;
+    EasySocket *sourceforge = es_client_new_from_host(download_host, 80);
+    // TODO : get from sourceforge :)
 }
 
 int main_light ()
@@ -93,8 +62,7 @@ int main_light ()
 	return 0;
 }
 
-
-int main (int argc, char **argv)
+int main ()
 {
 	// return main_light();
 	LoLCameraState state = PLAY;
@@ -107,29 +75,60 @@ int main (int argc, char **argv)
 	important("------------------------------------------------------------------");
 
 	// Check online version
-	const char *download_link = "https://sourceforge.net/projects/lolcamera/files";
-	float new_version = 0.0;
-	if ((new_version = get_version()) != 0.0)
+	info("Checking for updates ... (current version = %.3f)", LOLCAMERA_VERSION);
+
+	float last_version = atof(webserver_do(GET_VERSION));
+    char *patchnotes;
+    bool update_available = false;
+
+	if (last_version < LOLCAMERA_VERSION)
 	{
-		important("\n"
+		warning ("\n"
 				  "    +-------------------------------------------------------------------+\n"
 				  "    |                   A NEW UPDATE IS AVAILABLE                       |\n"
 				  "    |             New version = %.3f, current version = %.3f          |\n"
 				  "    |    Download : %s    |\n"
 				  "    +-------------------------------------------------------------------+",
-					new_version, LOLCAMERA_VERSION, download_link);
-		system("pause");
+					last_version, LOLCAMERA_VERSION, download_link);
+
+        update_available = true;
 	}
+	else
+        info("No updates.");
+
+    info("Getting patchnotes ...");
+    patchnotes = (update_available) ? webserver_do(GET_PATCHNOTES) : get_own_patchnotes();
+
+    if (patchnotes != NULL)
+    {
+        char *ptr = patchnotes;
+        char loops[] = {0, 0, 1};
+        int pos;
+
+        for (int i = 0; i < sizeof_array(loops); i++)
+        {
+            pos = str_pos_after(ptr, "===");
+
+            if (loops[i])
+                ptr[pos-strlen("===") - 1] = '\0';
+            else
+                ptr = &ptr[pos];
+        }
+
+        readable("LoLCamera Patch %.3f Notes :\n%s", last_version, patchnotes);
+    }
 
 	// Check integrity
 	#ifndef DEBUG
-	if (!str_equals(get_own_md5(argv[0]), get_last_md5()))
+	info("Checking executable integrity...");
+	if (!str_equals(get_own_md5(argv[0]), webserver_do(GET_MD5, LOLCAMERA_VERSION)))
 	{
 		error("Integrity error : Please download the last version here : \n\t%s", download_link);
 		system("pause");
 		exit(EXIT_FAILURE);
 	}
 	#endif
+	webserver_disconnect();
 
 	// Debug privileges
 	if (!enable_debug_privileges())
@@ -170,6 +169,9 @@ int main (int argc, char **argv)
 			camera_reset();
 			info("Waiting for a new game ...");
 
+            // if (update_available)
+            //    readable("Keep pressing [U] if you want to download the new version.\n");
+
 			while (!memproc_refresh_handle(mp))
 			{
 				int key;
@@ -178,6 +180,9 @@ int main (int argc, char **argv)
 					// User input
 					if (exit_request(key))
 						return 0;
+
+                    if (update_available && update_request(key))
+                        download_lolcamera(download_link);
 				}
 
 				Sleep(1000);

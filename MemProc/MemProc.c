@@ -29,7 +29,7 @@ void
 memproc_dump_details (MemProc *mp, int start, int end, int (*boolean_function) (MEMORY_BASIC_INFORMATION *, void *), void *arg)
 {
 	MEMORY_BASIC_INFORMATION meminfo;
-	DWORD addr = start;
+	int addr = start;
 
 	if (!mp->proc)
 	{
@@ -70,6 +70,9 @@ memproc_dump_details (MemProc *mp, int start, int end, int (*boolean_function) (
 static int
 memproc_dump_helper (MEMORY_BASIC_INFORMATION *meminfo, void *arg)
 {
+    (void) meminfo;
+    (void) arg;
+
 	return 1;
 }
 
@@ -185,6 +188,9 @@ BbQueue *
 memblock_get_change (MemProc *mp, BbQueue *res)
 {
 	// TODO
+	(void) mp;
+	(void) res;
+
 	return NULL;
 }
 

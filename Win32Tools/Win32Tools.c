@@ -226,9 +226,7 @@ compare_pattern (const unsigned char *buffer, const unsigned char *pattern, cons
 int
 find_pattern (const unsigned char *buffer, DWORD size, unsigned char *pattern, char *mask)
 {
-	int i;
-
-	for (i = 0; i < size; i ++)
+	for (unsigned int i = 0; i < size; i ++)
 	{
 		if (compare_pattern((buffer + i), pattern, mask))
 		{
@@ -461,6 +459,19 @@ _info (char *msg, ...)
 }
 
 void
+_readable (char *msg, ...)
+{
+    va_list args;
+	console_set_col(0x0A);
+
+	va_start (args, msg);
+		vfprintf (stdout, msg, args);
+	va_end (args);
+
+	console_set_col(0x07);
+}
+
+void
 _debug (char *msg, ...)
 {
 	#if DEBUG_ACTIVATED == 1
@@ -639,7 +650,9 @@ create_mask_from_file (char *filename)
 DWORD
 get_baseaddr (char *module_name)
 {
-	MODULEENTRY32 module_entry = {};
+	MODULEENTRY32 module_entry;
+	memset(&module_entry, 0, sizeof(module_entry));
+
 	HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, get_pid_by_name(module_name));
 
 	if (!snapshot)

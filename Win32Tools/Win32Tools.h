@@ -1,14 +1,4 @@
-// --- Author	: Moreau Cyril - Spl3en
-// --- File		: Win32Tools.h
-// --- Date		: 2012-03-02-03.09.54
-// --- Version	: 1.0
-/*
-	A lot of the implementation has not been written by me - specially those manipulating PE format deeply :)
-	Please apologize for the lake of references and credits
-*/
-
-#ifndef Win32Tools_H_INCLUDED
-#define Win32Tools_H_INCLUDED
+#pragma once
 
 // ---------- Includes ------------
 #include <stdlib.h>
@@ -45,6 +35,9 @@
 
 #define info(msg, ...) \
 	do {_info("[+] " msg "\n", ##__VA_ARGS__);} while(0)
+
+#define readable(msg, ...) \
+	do {_readable("[+] " msg "\n", ##__VA_ARGS__);} while(0)
 
 #define debug(msg, ...) \
 	do {_debug("[+] " msg "\n", ##__VA_ARGS__);} while(0)
@@ -209,6 +202,9 @@ void
 _debug (char *msg, ...);
 
 void
+_readable (char *msg, ...);
+
+void
 console_stack_pos (int todo);
 
 void
@@ -248,5 +244,3 @@ get_hwnd_from_title (char *title);
 
 
 
-
-#endif // Win32Tools_INCLUDED

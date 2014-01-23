@@ -1,5 +1,6 @@
-=== 22 / 01 / 14 ===
-- [RMV] The lock camera on ennemies has been removed.
+=== 23 / 01 / 14 ===
+- [RMV] The lock camera on ennemies (Fx key) has been removed.
+- [FIX] Settings in .ini were not loaded correctly
 
 === 18 / 01 / 14 ===
 - [FIX] Annoying bug when the interface is clicked fixed

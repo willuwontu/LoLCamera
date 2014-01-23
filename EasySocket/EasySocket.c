@@ -304,7 +304,18 @@ es_set_timeout (EasySocket *es, long int milliseconds)
 }
 
 char *
-es_get_http_file (EasySocket *es, char *path)
+es_http_get_contents (EasySocket *es, char *path)
+{
+    char *page     = es_http_get(es, path);
+    int pos        = str_pos_after (page, "\r\n\r\n");
+    char *contents = strdup(&page[pos]);
+
+    free(page);
+    return contents;
+}
+
+char *
+es_http_get (EasySocket *es, char *path)
 {
     char *host = (es->hostname != NULL) ? es->hostname : es->ip;
 	char *full_msg = str_dup_printf(
@@ -313,6 +324,7 @@ es_get_http_file (EasySocket *es, char *path)
 		"User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:24.0) Gecko/20100101 Firefox/42.0\r\n"
 		"Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n"
         "Accept-Encoding: deflate\r\n"
+        "Connection: close\r\n"
 		"\r\n\r\n",
 		path, host
     );
@@ -326,13 +338,14 @@ es_get_http_file (EasySocket *es, char *path)
     if (answer != NULL)
         answer[size-1] = '\0';
     else
-        answer = es_wait_for_http_answer(es);
+        answer = es_http_wait_for_answer(es);
 
     return answer;
 }
 
+
 char *
-es_wait_for_http_answer (EasySocket *es)
+es_http_wait_for_answer (EasySocket *es)
 {
     char *answer = NULL;
 
@@ -349,7 +362,7 @@ es_wait_for_http_answer (EasySocket *es)
 }
 
 void
-es_send_http_request (EasySocket *es, char *method, char *additionnal_headers, char *data, char *path)
+es_http_send_request (EasySocket *es, char *method, char *additionnal_headers, char *data, char *path)
 {
     char *full_msg = str_dup_printf(
 
@@ -400,7 +413,7 @@ unsigned char *
 es_recv (EasySocket *es, int *_out_size)
 {
 	int bytes;
-	unsigned char data[1024*10] = {};
+	unsigned char data[1024] = {};
 	unsigned int total_bytes = 0;
 	BbQueue msg_recved = bb_queue_local_decl();
 

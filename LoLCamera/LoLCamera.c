@@ -343,7 +343,7 @@ static void camera_debug_mode ()
 				{"Loading state",     camera_ut_loading_state}
 			};
 
-			for (int i = 0; i < sizeof(unit_tests) / sizeof(*unit_tests); i++)
+			for (int i = 0; i < sizeof_array(unit_tests); i++)
 			{
 				info("Unit test %s : %s", unit_tests[i].str, (unit_tests[i].fct()) ? "OK" : "FAILED");
 			}
@@ -750,7 +750,7 @@ BOOL camera_update ()
 
 	if (frame_count++ % this->poll_data == 0 || this->request_polling)
 	{
-		for (int i = 0; i < sizeof(refresh_funcs) / sizeof(struct refreshFunctions); i++)
+		for (int i = 0; i < sizeof_array(refresh_funcs); i++)
 		{
 			BOOL (*func)() = refresh_funcs[i].func;
 			void *arg = refresh_funcs[i].arg;
@@ -832,6 +832,11 @@ BOOL exit_request (int c)
 	return (c == 'X' || c == 'x');
 }
 
+BOOL update_request (int c)
+{
+    return (c == 'U' || c == 'u');
+}
+
 BOOL reload_ini_request (int c)
 {
 	return (c == 'R' || c == 'r');
@@ -892,7 +897,7 @@ LoLCameraState camera_main ()
 {
 	Vector2D target;
 	float camera_scroll_speed;
-	CameraTrackingMode camera_mode;
+	CameraTrackingMode camera_mode = NoMove;
 
 	while (this->active)
 	{
@@ -1314,7 +1319,7 @@ void camera_load_settings (char *section)
 			[5] = "camera_scroll_speed_bottom"
 		};
 
-		for (int i = 0; i < sizeof(possible_settings) / sizeof(*possible_settings); i++)
+		for (int i = 0; i < sizeof_array(possible_settings); i++)
 		{
 			if (strcmp(setting, possible_settings[i]) == 0)
 			{
@@ -1417,7 +1422,7 @@ void camera_load_ini ()
 		{ .p.i = &this->poll_data,	.v.i = 5.0},
 	};
 
-	for (int i = 0; i < sizeof(tabSet) / sizeof(struct SettingVal); i++)
+	for (int i = 0; i < sizeof_array(tabSet); i++)
 	{
 		if (*(tabSet[i].p.i) == 0)
 			(*tabSet[i].p.i) = tabSet[i].v.i;
