@@ -44,6 +44,9 @@
 	#define closesocket _closesocket
 #endif
 
+/* Private variables */
+BOOL wsadata_initialized = FALSE;
+
 /* Private Methods */
 
 static void
@@ -92,6 +95,9 @@ esla_new(EasySocketListened *esl, void (*callback)(), void (*finish_callback)())
 EasySocket *
 es_server_new (int port, int max_connection)
 {
+    if (!wsadata_initialized)
+        es_init();
+
     EasySocket *p = NULL;
 
     SOCKET sock = 0;
@@ -124,6 +130,9 @@ es_server_new (int port, int max_connection)
 EasySocket *
 es_client_new_from_ip (char *ip, int port)
 {
+    if (!wsadata_initialized)
+        es_init();
+
     EasySocket *p = NULL;
 
     SOCKET sock = 0;
@@ -146,6 +155,8 @@ es_client_new_from_ip (char *ip, int port)
 
     p->sock = sock;
     p->is_connected = 1;
+    p->hostname = NULL;
+    p->ip = ip;
 
     return p;
 }
@@ -153,13 +164,20 @@ es_client_new_from_ip (char *ip, int port)
 EasySocket *
 es_client_new_from_host (char *hostname, int port)
 {
+    if (!wsadata_initialized)
+        es_init();
+
     EasySocket *p = NULL;
     char *ip = NULL;
 
     if ((ip = es_get_ip_from_hostname(hostname)) == NULL)
+    {
+        printf("[!] Cannot connect to %s:%d.\n", hostname, port);
         return ES_ERROR_MALLOC;
+    }
 
     p = es_client_new_from_ip(ip, port);
+    p->hostname = hostname;
 
 	return p;
 }
@@ -189,6 +207,7 @@ _es_func_get_data (EasySocketListened *esl)
 int
 es_init()
 {
+    wsadata_initialized = TRUE;
     WSADATA wsaData;
 
 	#ifdef ES_WITHOUT_LINKED_LIBS
@@ -273,34 +292,90 @@ es_send(EasySocket *es, char *msg, int len)
     send(es->sock, msg, len, 0);
 }
 
-char *
-es_get_http_file (EasySocket *es, char *path, char *host)
+void
+es_set_timeout (EasySocket *es, long int milliseconds)
 {
+    struct timeval tv;
+
+    tv.tv_sec = 0;
+    tv.tv_usec = milliseconds;
+
+    setsockopt(es->sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(struct timeval));
+}
+
+char *
+es_get_http_file (EasySocket *es, char *path)
+{
+    char *host = (es->hostname != NULL) ? es->hostname : es->ip;
 	char *full_msg = str_dup_printf(
 		"GET %s HTTP/1.1\r\n"
 		"Host: %s\r\n"
-		"User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:24.0) Gecko/20100101 Firefox/24.0\r\n\r\n\r\n",
+		"User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:24.0) Gecko/20100101 Firefox/42.0\r\n"
+		"Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n"
+        "Accept-Encoding: deflate\r\n"
+		"\r\n\r\n",
 		path, host
     );
 
     es_send(es, full_msg, -1);
     free(full_msg);
 
-	char buffer[1024 * 100];
-    es_recv(es, buffer, sizeof(buffer));
-    int bytes = es_recv(es, buffer, sizeof(buffer));
+    int size;
+    unsigned char *answer = es_recv(es, &size);
 
-	if (bytes > 0)
-	{
-		buffer[bytes] = '\0';
-		return strdup(buffer);
-	}
+    if (answer != NULL)
+        answer[size-1] = '\0';
+    else
+        answer = es_wait_for_http_answer(es);
 
-	return NULL;
+    return answer;
+}
+
+char *
+es_wait_for_http_answer (EasySocket *es)
+{
+    char *answer = NULL;
+
+    while (answer == NULL)
+    {
+        int size;
+        answer = es_recv(es, &size);
+
+        if (answer != NULL)
+            answer[size-1] = '\0';
+    }
+
+    return answer;
 }
 
 void
-es_send_http_request(EasySocket *es, char *msg)
+es_send_http_request (EasySocket *es, char *method, char *additionnal_headers, char *data, char *path)
+{
+    char *full_msg = str_dup_printf(
+
+        "%s %s HTTP/1.1\r\n"
+        "Host: %s\r\n"
+        "User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:26.0) Gecko/20100101 Firefox/26.0\r\n"
+        "Content-Type: application/x-www-form-urlencoded\r\n"
+        "Content-Length: %d\r\n"
+        "%s"
+        "\r\n\r\n"
+        "%s",
+
+        method, path,
+        es->hostname,
+        (data) ? strlen(data) : 0,
+        (additionnal_headers) ? additionnal_headers : "",
+        (data) ? data : ""
+    );
+
+    es_send(es, full_msg, -1);
+
+    free(full_msg);
+}
+
+void
+es_answer_http_request(EasySocket *es, char *msg)
 {
     char *full_msg = str_dup_printf(
         "HTTP/1.1 200 OK\r\n"
@@ -321,10 +396,37 @@ es_send_http_request(EasySocket *es, char *msg)
     free(full_msg);
 }
 
-int
-es_recv(EasySocket *es, char *buffer, int len)
+unsigned char *
+es_recv (EasySocket *es, int *_out_size)
 {
-    return recv(es->sock, buffer, len, 0);
+	int bytes;
+	unsigned char data[1024*10] = {};
+	unsigned int total_bytes = 0;
+	BbQueue msg_recved = bb_queue_local_decl();
+
+    while ((bytes = recv(es->sock, data, (sizeof data) - 1, 0)) > 0)
+    {
+        Buffer *buffer = buffer_new_from_ptr(data, bytes);
+        bb_queue_add(&msg_recved, buffer);
+        total_bytes += bytes;
+    }
+
+    *_out_size = total_bytes;
+
+    if (total_bytes == 0)
+        return NULL;
+
+    unsigned int write_pos = 0;
+    char *response = malloc(total_bytes);
+
+    foreach_bbqueue_item (&msg_recved, Buffer *buffer)
+    {
+        memcpy(&response[write_pos], buffer->data, buffer->size);
+        write_pos += buffer->size;
+        buffer_free(buffer);
+    }
+
+    return response;
 }
 
 int
@@ -337,6 +439,7 @@ void
 es_end()
 {
     WSACleanup();
+    wsadata_initialized = FALSE;
 }
 
 /**

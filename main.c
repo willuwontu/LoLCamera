@@ -15,7 +15,7 @@ float get_version ()
 	info("Checking for updates (current version : %.3f) ...", LOLCAMERA_VERSION);
 
 	EasySocket *socket = es_client_new_from_host("lolcamera.alwaysdata.net", 80);
-	char *version = es_get_http_file(socket, "/version.txt", "lolcamera.alwaysdata.net");
+	char *version = es_get_http_file(socket, "/version.txt");
 	es_free(socket);
 
 	if (version != NULL)
@@ -34,7 +34,7 @@ float get_version ()
 char * get_last_md5 ()
 {
 	EasySocket *socket = es_client_new_from_host("lolcamera.alwaysdata.net", 80);
-	char *md5 = es_get_http_file(socket, str_dup_printf("/md5/%.3f.txt", LOLCAMERA_VERSION), "lolcamera.alwaysdata.net");
+    char *md5 = es_get_http_file(socket, str_dup_printf("/md5/%.3f.txt", LOLCAMERA_VERSION));
 	es_free(socket);
 
 	return md5;
@@ -123,7 +123,7 @@ int main (int argc, char **argv)
 
 	// Check integrity
 	#ifndef DEBUG
-	if (strcmp(get_own_md5(argv[0]), get_last_md5()) != 0)
+	if (!str_equals(get_own_md5(argv[0]), get_last_md5()))
 	{
 		error("Integrity error : Please download the last version here : \n\t%s", download_link);
 		system("pause");
@@ -191,6 +191,8 @@ int main (int argc, char **argv)
 		#ifdef DEBUG
 			camera_export_to_cheatengine();
 		#endif
+
+		info("LoLCamera is ready and running !");
 
 		state = camera_main();
 		camera_unload();

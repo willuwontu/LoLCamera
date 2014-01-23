@@ -96,10 +96,10 @@ Buffer *
 buffer_dup (Buffer *buf);
 
 Buffer *
-buffer_new_ptr (unsigned char *ptr, int size);
+buffer_new_from_ptr (unsigned char *ptr, int size);
 
 Buffer *
-buffer_new_ptr_noalloc (unsigned char *ptr, int size);
+buffer_new_from_ptr_noalloc (unsigned char *ptr, int size);
 
 
 	/** * * * * * * * *
@@ -180,6 +180,9 @@ str_gets				(char *buffer, int len);
 
 int
 str_pos				 (const char *str, const char *search);
+
+int
+str_pos_after       (const char *str, const char *search);
 
 int
 str_pos_reverse 		(const char *str, const char *search);

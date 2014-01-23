@@ -414,4 +414,7 @@ bb_queue_free_all			   (BbQueue *queue, void (*free_func)());
 void
 bb_queue_clear				  (BbQueue *queue);
 
+void
+bb_queue_free_elements (BbQueue *q, void (* free_func)());
+
 #endif

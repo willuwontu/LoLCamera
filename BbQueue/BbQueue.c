@@ -775,6 +775,16 @@ bb_queue_free_all (BbQueue *q, void (* free_func)())
 }
 
 EXPORT_FUNCTION void
+bb_queue_free_elements (BbQueue *q, void (* free_func)())
+{
+	while (bb_queue_get_length(q))
+	{
+		free_func(bb_queue_pop(q));
+	}
+}
+
+
+EXPORT_FUNCTION void
 bb_queue_clear (BbQueue *q)
 {
 	while (bb_queue_get_length(q))

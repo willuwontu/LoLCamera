@@ -5,7 +5,7 @@
  *  @date		:	2011-04-12-16.51
  *
  *
- *  EasySocket propose un ensemble de méthodes permettant l'utilisation agréable de socket en C.
+ *  EasySocket propose un ensemble de mÃ©thodes permettant l'utilisation agrÃ©able de socket en C.
  *  La librairie permet de faire abstraction de l'utilisation des threads par callback.
  *
  *  Exemple :
@@ -87,6 +87,9 @@ struct _EasySocket
     SOCKET sock;
     int is_connected;
 
+    char *hostname;
+    char *ip;
+
 }	EasySocket;
 
 typedef
@@ -146,11 +149,17 @@ es_get_ip_from_hostname (char *addr);
 void
 es_send(EasySocket *es, char *msg, int len);
 
-int
-es_recv(EasySocket *es, char *buffer, int len);
+unsigned char *
+es_recv (EasySocket *es, int *_out_size);
+
+void
+es_set_timeout (EasySocket *es, long int milliseconds);
 
 int
 es_close(EasySocket *es);
+
+char *
+es_wait_for_http_answer (EasySocket *es);
 
 void
 es_end();
@@ -165,10 +174,13 @@ void
 es_set_connected(EasySocket *es, int is_connected);
 
 void
-es_send_http_request(EasySocket *es, char *msg);
+es_answer_http_request (EasySocket *es, char *msg);
 
 char *
-es_get_http_file (EasySocket *es, char *path, char *host);
+es_get_http_file (EasySocket *es, char *path);
+
+void
+es_send_http_request (EasySocket *es, char *method, char *additionnal_headers, char *data, char *path);
 
 	/**=================
 		@Destructors

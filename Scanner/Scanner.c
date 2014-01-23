@@ -88,7 +88,7 @@ BbQueue *scan_search (unsigned char *pattern, unsigned char *mask)
 	{
 		z = bb_queue_get_first(res);
 
-		Buffer *b = buffer_new_ptr_noalloc(ztring_get_text(z), ztring_get_len(z));
+		Buffer *b = buffer_new_from_ptr_noalloc(ztring_get_text(z), ztring_get_len(z));
 		bb_queue_add (res_buffer, b);
 
 		ztring_free(z);

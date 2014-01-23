@@ -549,14 +549,16 @@ void camera_init (MemProc *mp)
 	// Signature scanning for patches
     camera_scan_patch();
 
+    // Patch
+    info("Patching ...");
+	patch_list_set (this->patchlist, TRUE);
+
 	// Init data from the client
 	this->cam   	   = mempos_new (this->mp, this->camx_val,      this->camy_val);
 	this->camPos   	   = mempos_new (this->mp, this->camx_addr,     this->camy_addr);
 	this->champ 	   = mempos_new (this->mp, this->champx_addr,   this->champy_addr);
 	this->mouse 	   = mempos_new (this->mp, this->mousex_addr,   this->mousey_addr);
 	this->dest  	   = mempos_new (this->mp, this->destx_addr,    this->desty_addr);
-
-	patch_list_set (this->patchlist, TRUE);
 
 	// Export to CE
 	if (this->output_cheatengine_table)
@@ -862,7 +864,13 @@ short int camera_getkey (int key)
 	return GetKeyState(key);
 }
 
-bool global_key_toggle ()
+bool move_keys_pressed ()
+{
+
+    return false;
+}
+
+bool global_key_pressed ()
 {
 	static short int last_global_key = -1;
 	short int global_key_state = camera_getkey(this->global_key);
@@ -907,11 +915,16 @@ LoLCameraState camera_main ()
 		// In game keys
 		if (camera_mode != ForeGround)
 		{
-			if (global_key_toggle())
+			if (global_key_pressed())
 			{
 				this->global_weight_activated = ! (this->global_weight_activated);
 				info("Global weight has been %s.", (this->global_weight_activated) ? "enabled" : "disabled");
 			}
+
+			if (move_keys_pressed())
+            {
+
+            }
 		}
 
 		Sleep(this->sleep_time);

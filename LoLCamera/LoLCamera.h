@@ -216,7 +216,7 @@ short int camera_getkey (int key);
 void camera_reset ();
 
 // -- Hotkeys
-bool global_key_toggle ();
+bool global_key_pressed ();
 
 // From LoLCameraMem.c
 BOOL camera_scan_champions (BOOL display_error);

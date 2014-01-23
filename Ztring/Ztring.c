@@ -97,11 +97,11 @@ buffer_new (int size)
 Buffer *
 buffer_dup (Buffer *buf)
 {
-	return buffer_new_ptr(buf->data, buf->size);
+	return buffer_new_from_ptr(buf->data, buf->size);
 }
 
 Buffer *
-buffer_new_ptr (unsigned char *ptr, int size)
+buffer_new_from_ptr (unsigned char *ptr, int size)
 {
 	Buffer *b = buffer_new(size);
 	memcpy(b->data, ptr, size);
@@ -110,7 +110,7 @@ buffer_new_ptr (unsigned char *ptr, int size)
 }
 
 Buffer *
-buffer_new_ptr_noalloc (unsigned char *ptr, int size)
+buffer_new_from_ptr_noalloc (unsigned char *ptr, int size)
 {
 	Buffer *b = NULL;
 
@@ -561,24 +561,33 @@ str_cat (char **dest, const char *cat)
 BbQueue *
 str_explode (char *str, const char *delimiter)
 {
-	BbQueue *q = bb_queue_new();
+	BbQueue *q = NULL;
 	int pos = -1;
 	int len_delimiter = strlen(delimiter);
+	int len = strlen(str);
 
 	char *tmp = NULL;
 
-	while ((pos = str_pos(str, delimiter)) != -1)
+	while (
+        ((pos = str_pos(str, delimiter)) != -1)
+    &&  (pos != 0)
+    &&  (pos <= len)
+    )
 	{
-		if (pos != 0)
-		{
-			tmp = malloc(pos + 1);
-			strncpy(tmp, str, pos);
-			tmp[pos] = '\0';
-			bb_queue_add(q, tmp);
-		}
+        if (q == NULL)
+            q = bb_queue_new();
 
-		str = str + pos + len_delimiter;
+        tmp = malloc(pos);
+        strncpy(tmp, str, pos);
+        tmp[pos-1] = '\0';
+        bb_queue_add(q, tmp);
+
+        str = str + pos + len_delimiter;
+
 	}
+
+    if (tmp == NULL)
+        return NULL;
 
 	str_cpy(&tmp, str);
 	bb_queue_add(q, tmp);
@@ -855,7 +864,8 @@ file_save_binary (const char *filename, const char *data, int size)
 int
 str_pos (const char *str, const char *search)
 {
-	int i, len_string = strlen(str), len_search = strlen(search);
+	int i,  len_string = strlen(str),
+            len_search = strlen(search);
 	int count = 0;
 
 
@@ -874,6 +884,18 @@ str_pos (const char *str, const char *search)
 	}
 
 	return -1;
+}
+
+int
+str_pos_after (const char *str, const char *search)
+{
+    int res = str_pos(str, search);
+    if (res != -1)
+    {
+        res += strlen(search);
+    }
+
+    return res;
 }
 
 int

@@ -11,7 +11,7 @@
 #define EOFF_CTXT			0x154
 
 // Offset in champion structure
-#define EOFF_CHAMP_NAME		0x1C
+#define EOFF_CHAMP_NAME		0x20
 
 // Offset in champion context
 #define EOFF_IS_VISIBLE		0x24
