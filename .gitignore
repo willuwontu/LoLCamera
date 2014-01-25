@@ -15,12 +15,15 @@ local.properties
 .classpath
 .settings/
 .loadpath
+<<<<<<< HEAD
 .cbTemp
 LoLCamera.exe
 IOGraph/
 patches/*
 LoLRipotLogs/*
 LoLCamera.lnk
+=======
+>>>>>>> ce88f15b980ad1fc53934864305ff6b0a9f35ec2
 
 # External tool builders
 .externalToolBuilders/
@@ -48,8 +51,23 @@ LoLCamera.lnk
 *.sln.docstates
 
 # Build results
+<<<<<<< HEAD
 [Dd]ebug/
 [Rr]elease/
+=======
+
+[Dd]ebug/
+[Rr]elease/
+x64/
+build/
+[Bb]in/
+[Oo]bj/
+
+# MSTest test Results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+>>>>>>> ce88f15b980ad1fc53934864305ff6b0a9f35ec2
 *_i.c
 *_p.c
 *.ilk
@@ -65,12 +83,23 @@ LoLCamera.lnk
 *.tli
 *.tlh
 *.tmp
+<<<<<<< HEAD
 *.vspscc
 .builds
 *.dotCover
 
 ## TODO: If you have NuGet Package Restore enabled, uncomment this
 #packages/
+=======
+*.tmp_proj
+*.log
+*.vspscc
+*.vssscc
+.builds
+*.pidb
+*.log
+*.scc
+>>>>>>> ce88f15b980ad1fc53934864305ff6b0a9f35ec2
 
 # Visual C++ cache files
 ipch/
@@ -78,16 +107,44 @@ ipch/
 *.ncb
 *.opensdf
 *.sdf
+<<<<<<< HEAD
+=======
+*.cachefile
+>>>>>>> ce88f15b980ad1fc53934864305ff6b0a9f35ec2
 
 # Visual Studio profiler
 *.psess
 *.vsp
+<<<<<<< HEAD
 
 # ReSharper is a .NET coding add-in
 _ReSharper*
 
 # Installshield output folder
 [Ee]xpress
+=======
+*.vspx
+
+# Guidance Automation Toolkit
+*.gpState
+
+# ReSharper is a .NET coding add-in
+_ReSharper*/
+*.[Rr]e[Ss]harper
+
+# TeamCity is a build add-in
+_TeamCity*
+
+# DotCover is a Code Coverage Tool
+*.dotCover
+
+# NCrunch
+*.ncrunch*
+.*crunch*.local.xml
+
+# Installshield output folder
+[Ee]xpress/
+>>>>>>> ce88f15b980ad1fc53934864305ff6b0a9f35ec2
 
 # DocProject is a documentation generator add-in
 DocProject/buildhelp/
@@ -100,6 +157,7 @@ DocProject/Help/Html2
 DocProject/Help/html
 
 # Click-Once directory
+<<<<<<< HEAD
 publish
 
 # Others
@@ -113,12 +171,46 @@ stylecop.*
 ~$*
 *.dbmdl
 Generated_Code #added for RIA/Silverlight projects
+=======
+publish/
+
+# Publish Web Output
+*.Publish.xml
+*.pubxml
+
+# NuGet Packages Directory
+## TODO: If you have NuGet Package Restore enabled, uncomment the next line
+#packages/
+
+# Windows Azure Build Output
+csx
+*.build.csdef
+
+# Windows Store app package directory
+AppPackages/
+
+# Others
+sql/
+*.Cache
+ClientBin/
+[Ss]tyle[Cc]op.*
+~$*
+*~
+*.dbmdl
+*.[Pp]ublish.xml
+*.pfx
+*.publishsettings
+
+# RIA/Silverlight projects
+Generated_Code/
+>>>>>>> ce88f15b980ad1fc53934864305ff6b0a9f35ec2
 
 # Backup & report files from converting an old project file to a newer
 # Visual Studio version. Backup files are not needed, because we have git ;-)
 _UpgradeReport_Files/
 Backup*/
 UpgradeLog*.XML
+<<<<<<< HEAD
 
 
 
@@ -128,10 +220,34 @@ UpgradeLog*.XML
 
 # Windows image file caches
 Thumbs.db
+=======
+UpgradeLog*.htm
+
+# SQL Server files
+App_Data/*.mdf
+App_Data/*.ldf
+
+#############
+## Windows detritus
+#############
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+>>>>>>> ce88f15b980ad1fc53934864305ff6b0a9f35ec2
 
 # Folder config file
 Desktop.ini
 
+<<<<<<< HEAD
+=======
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Mac crap
+.DS_Store
+
+>>>>>>> ce88f15b980ad1fc53934864305ff6b0a9f35ec2
 
 #############
 ## Python
@@ -142,6 +258,7 @@ Desktop.ini
 # Packages
 *.egg
 *.egg-info
+<<<<<<< HEAD
 dist
 build
 eggs
@@ -150,6 +267,15 @@ bin
 var
 sdist
 develop-eggs
+=======
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+>>>>>>> ce88f15b980ad1fc53934864305ff6b0a9f35ec2
 .installed.cfg
 
 # Installer logs
@@ -164,6 +290,7 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
+<<<<<<< HEAD
 
 # Mac crap
 .DS_Store
@@ -175,3 +302,5 @@ pip-log.txt
 LoLCamera.layout
 LoLCamera.depend
 out.ct
+=======
+>>>>>>> ce88f15b980ad1fc53934864305ff6b0a9f35ec2
