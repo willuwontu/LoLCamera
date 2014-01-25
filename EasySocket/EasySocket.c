@@ -370,14 +370,20 @@ es_http_send_request (EasySocket *es, char *method, char *additionnal_headers, c
         "Host: %s\r\n"
         "User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:26.0) Gecko/20100101 Firefox/26.0\r\n"
         "Content-Type: application/x-www-form-urlencoded\r\n"
-        "Content-Length: %d\r\n"
+        "%s" // dynamic content-length only if method == POST
         "%s"
-        "\r\n\r\n"
+        "\r\n"
         "%s",
 
         method, path,
         es->hostname,
-        (data) ? strlen(data) : 0,
+        (str_equals(method, "POST")) ?
+                (str_dup_printf("Content-Length: %d\r\n",
+                        (data) ?
+                                strlen(data)
+                            :   0
+                ))
+            :   "",
         (additionnal_headers) ? additionnal_headers : "",
         (data) ? data : ""
     );
