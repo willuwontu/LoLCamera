@@ -81,6 +81,12 @@
 #define es_is_connected(es) \
     (es->is_connected)
 
+#ifndef bool
+#define bool BOOL
+#define true TRUE
+#define false FALSE
+#endif
+
 typedef
 struct _EasySocket
 {

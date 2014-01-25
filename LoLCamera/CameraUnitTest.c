@@ -3,51 +3,53 @@
 #define MAP_WIDTH  15000.0
 #define MAP_HEIGHT 15200.0
 
-BOOL camera_ut_campos ()
+static bool out_of_map (float x, float y)
+{
+	return (x >= 0.0       && y >= 0.0
+	&&		x <= MAP_WIDTH && y <= MAP_HEIGHT);
+}
+
+bool camera_ut_campos ()
 {
 	Camera *this = camera_get_instance();
 	float x, y;
 
 	mempos_get(this->cam, &x, &y);
 
-	return (x >= 0.0       && y >= 0.0
-	&&		x <= MAP_WIDTH && y <= MAP_HEIGHT);
+	return (out_of_map(x, y) == FALSE);
 }
 
-BOOL camera_ut_champos ()
+bool camera_ut_champos ()
 {
 	Camera *this = camera_get_instance();
 	float x, y;
 
 	mempos_get(this->champ, &x, &y);
 
-	return (x >= 0.0       && y >= 0.0
-	&&		x <= MAP_WIDTH && y <= MAP_HEIGHT);
+	return (out_of_map(x, y) == FALSE);
 }
 
-BOOL camera_ut_mousepos ()
+bool camera_ut_mousepos ()
 {
 	Camera *this = camera_get_instance();
 	float x, y;
 
 	mempos_get(this->mouse, &x, &y);
 
-	return (x >= 0.0       && y >= 0.0
-	&&		x <= MAP_WIDTH && y <= MAP_HEIGHT);
+	return out_of_map(x, y);
 }
 
-BOOL camera_ut_destpos ()
+bool camera_ut_destpos ()
 {
 	Camera *this = camera_get_instance();
 	float x, y;
 
-	mempos_get(this->dest, &x, &y);
+	mempos_get (this->dest, &x, &y);
 
-	return (x >= 0.0       && y >= 0.0
-	&&		x <= MAP_WIDTH && y <= MAP_HEIGHT);
+	return out_of_map(x, y);
 }
 
-BOOL camera_ut_is_win_opened ()
+bool camera_ut_is_win_opened ()
 {
 	Camera *this = camera_get_instance();
 
@@ -55,7 +57,25 @@ BOOL camera_ut_is_win_opened ()
 	&& 		this->interface_opened <  7);
 }
 
-BOOL camera_ut_loading_state ()
+bool camera_ut_entities ()
+{
+    Camera *this = camera_get_instance();
+
+    if (this->playersCount <= 0 || this->playersCount > 10)
+        return false;
+
+    for (int i = 0; i < this->playersCount; i++)
+    {
+        Entity *entity = this->champions[i];
+
+        if (out_of_map(entity->p.v.x, entity->p.v.y) == FALSE)
+            return false;
+    }
+
+    return true;
+}
+
+bool camera_ut_loading_state ()
 {
 	Camera *this = camera_get_instance();
 

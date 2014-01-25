@@ -120,7 +120,7 @@ kill_process_by_name (char *filename)
 	HANDLE hSnapShot = CreateToolhelp32Snapshot(TH32CS_SNAPALL, 0);
 	PROCESSENTRY32 pEntry;
 	pEntry.dwSize = sizeof (pEntry);
-	BOOL hRes = Process32First(hSnapShot, &pEntry);
+	bool hRes = Process32First(hSnapShot, &pEntry);
 
 	while (hRes)
 	{
@@ -155,7 +155,7 @@ error_exit (LPTSTR lpszFunction)
 	exit(EXIT_FAILURE);
 }
 
-BOOL enable_debug_privileges ()
+bool enable_debug_privileges ()
 {
 	HANDLE hToken = 0;
 	TOKEN_PRIVILEGES newPrivs;
@@ -659,7 +659,7 @@ get_baseaddr (char *module_name)
 		return 0;
 
 	module_entry.dwSize = sizeof(module_entry);
-	BOOL bModule = Module32First(snapshot, &module_entry);
+	bool bModule = Module32First(snapshot, &module_entry);
 
 	while (bModule)
 	{

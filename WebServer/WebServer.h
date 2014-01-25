@@ -37,9 +37,6 @@ void webserver_connect ();
 // ----------- Methods ------------
 
 char * webserver_do (WebServerAction action, ...);
-char * get_own_md5 (char *filename);
-char * get_own_patchnotes (void);
-
 
 // --------- Destructors ----------
 

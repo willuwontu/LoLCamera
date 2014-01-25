@@ -20,6 +20,22 @@ void download_lolcamera (char *link)
     // TODO : get from sourceforge :)
 }
 
+char * get_own_patchnotes ()
+{
+    return file_get_contents("./patchnotes.txt");
+}
+
+char * get_own_md5 (char *filename)
+{
+	FILE *file = file_open(filename, "rb");
+
+	if (!file)
+        return NULL;
+
+	char *md5 = MD5_file(file);
+	return md5;
+}
+
 int main_light ()
 {
 	MemProc *mp = NULL;

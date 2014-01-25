@@ -109,21 +109,6 @@ buffer_new_from_ptr (unsigned char *ptr, int size)
 	return b;
 }
 
-void
-buffer_debug (Buffer *buffer)
-{
-    printf("Buffer %p (%dB) :\n[ ");
-    for (int i = 0; i < buffer->size; i++)
-        printf("0x%.2X ");
-    printf("]\n");
-}
-
-void
-buffer_string_debug (Buffer *buffer)
-{
-    printf("Buffer %p (%dB) : %s\n", buffer, buffer->size, buffer->data);
-}
-
 Buffer *
 buffer_new_from_ptr_noalloc (unsigned char *ptr, int size)
 {
@@ -874,6 +859,28 @@ file_save_binary (const char *filename, const char *data, int size)
 	fclose(fp);
 
 	return 1;
+}
+
+char *
+str_pos_ptr (char *str, const char *search)
+{
+    int pos = str_pos(str, search);
+
+    if (pos >= 0)
+        return &str[pos];
+
+    return NULL;
+}
+
+char *
+str_pos_after_ptr (char *str, const char *search)
+{
+    int pos = str_pos_after(str, search);
+
+    if (pos >= 0)
+        return &str[pos];
+
+    return NULL;
 }
 
 int

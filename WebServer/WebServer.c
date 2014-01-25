@@ -1,7 +1,8 @@
 #include "WebServer.h"
 #include <stdarg.h>
 
-WebServer webserver = {
+WebServer webserver =
+{
     .socket  = NULL,
     .version = NULL,
     .patchnotes = NULL,
@@ -15,27 +16,11 @@ void webserver_connect ()
 
 void webserver_disconnect ()
 {
-    es_free(webserver.socket);
+    es_close (webserver.socket);
+    es_free  (webserver.socket);
 }
 
-char * get_own_patchnotes ()
-{
-    return file_get_contents("./patchnotes.txt");
-}
-
-char * get_own_md5 (char *filename)
-{
-	FILE *file = file_open(filename, "rb");
-
-	if (!file)
-        return NULL;
-
-	char *md5 = MD5_file(file);
-	return md5;
-}
-
-
-// ----- Public
+// ----- Public -----
 
 char * webserver_do (WebServerAction action, ...)
 {
@@ -47,10 +32,12 @@ char * webserver_do (WebServerAction action, ...)
     {
         case GET_VERSION:
             contents = es_http_get_contents(webserver.socket, "/version.txt");
+            webserver.version = strdup(contents);
         break;
 
         case GET_PATCHNOTES:
             contents = es_http_get_contents(webserver.socket, "/patchnotes.txt");
+            webserver.patchnotes = strdup(contents);
         break;
 
         case GET_MD5:
@@ -61,6 +48,7 @@ char * webserver_do (WebServerAction action, ...)
             va_end (args);
 
             contents = es_http_get_contents(webserver.socket, str_dup_printf("/md5/%.3f.txt", version));
+            webserver.md5 = strdup(contents);
         }
         break;
 

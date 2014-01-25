@@ -3,7 +3,7 @@
 - [FIX] Settings in .ini were not loaded correctly
 
 === 18 / 01 / 14 ===
-- [FIX] Annoying bug when the interface is clicked fixed
+- [FIX] Annoying bug when the interface is clicked fixed (Thanks Penteano, )
 - [FIX] When you ping on the minimap, the camera doesn't move anymore
 
 === 17 / 01 / 14 ===
@@ -16,7 +16,7 @@
 - [FIX] Yasuo patch fix
 
 === 29 / 11 / 13 ===
-- [FIX] Threshold value was too much sensitive when the mouse was going to the bottom of the screen (Thank Penteano)
+- [FIX] Threshold value was too much sensitive when the mouse was going to the bottom of the screen (Thanks Penteano)
 - [FIX] Hotkeys when chat is opened (Thanks Penteano)
 - [FIX] The loading screen detection has been fixed.
 - [FIX] If you clicked on the minimap a second time, the camera refused to moved ; it is now fixed.

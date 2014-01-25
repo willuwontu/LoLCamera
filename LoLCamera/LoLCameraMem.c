@@ -1,12 +1,11 @@
 #include "LoLCamera.h"
 
-static BOOL 	 camera_search_signatures (unsigned char *pattern, char *mask, char *name, DWORD **addr, int size, BbQueue *addresses);
-static BOOL      camera_search_signature  (unsigned char *pattern, DWORD *addr, unsigned char **code_ptr, char *mask, char *name);
+static bool 	 camera_search_signatures (unsigned char *pattern, char *mask, char *name, DWORD **addr, int size, BbQueue *addresses);
+static bool      camera_search_signature  (unsigned char *pattern, DWORD *addr, unsigned char **code_ptr, char *mask, char *name);
 static Patch *   camera_get_patch         (MemProc *mp, char *description, DWORD *addr, unsigned char *sig, char *sig_mask, unsigned char *patch, char *patch_mask);
 void     		 camera_get_patches       (Patch **patches, int size, MemProc *mp, char *description, DWORD **addrs, unsigned char *sig, char *sig_mask, unsigned char *patch, char *patch_mask);
 
-BOOL camera_scan_patch ()
-/// FIXED
+bool camera_scan_patch (void)
 {
 	Camera *this = camera_get_instance();
 
@@ -197,7 +196,7 @@ BOOL camera_scan_patch ()
 	return TRUE;
 }
 
-BOOL camera_scan_camval ()
+bool camera_scan_camval (void)
 {
 	Camera *this = camera_get_instance();
 	unsigned char *description = "CameraX_Value/CameraY_Value";
@@ -298,8 +297,7 @@ BOOL camera_scan_camval ()
 	return TRUE;
 }
 
-BOOL camera_scan_campos ()
-/// FIXED
+bool camera_scan_campos (void)
 {
 	Camera *this = camera_get_instance();
 	unsigned char *description = "CameraX_Memory/CameraY_Memory";
@@ -368,8 +366,7 @@ BOOL camera_scan_campos ()
 	return TRUE;
 }
 
-BOOL camera_scan_hover_interface ()
-/// FIXED
+bool camera_scan_hover_interface (void)
 {
 	Camera *this = camera_get_instance();
 
@@ -435,8 +432,7 @@ BOOL camera_scan_hover_interface ()
 	return TRUE;
 }
 
-BOOL camera_scan_loading ()
-/// FIXED
+bool camera_scan_loading (void)
 {
 	Camera *this = camera_get_instance();
 
@@ -501,7 +497,7 @@ BOOL camera_scan_loading ()
 	return TRUE;
 }
 
-BOOL camera_scan_game_info ()
+bool camera_scan_game_info (void)
 {
 	Camera *this = camera_get_instance();
 
@@ -576,8 +572,7 @@ BOOL camera_scan_game_info ()
 	return TRUE;
 }
 
-BOOL camera_scan_cursor_champ ()
-/// FIXED
+bool camera_scan_cursor_champ (void)
 {
 	Camera *this = camera_get_instance();
 
@@ -647,8 +642,7 @@ BOOL camera_scan_cursor_champ ()
 	return TRUE;
 }
 
-BOOL camera_scan_dest ()
-/// FIXED
+bool camera_scan_dest (void)
 {
 	Camera *this = camera_get_instance();
 
@@ -707,15 +701,14 @@ BOOL camera_scan_dest ()
 	return TRUE;
 }
 
-BOOL camera_scan_variables ()
-/// OK
+bool camera_scan_variables (void)
 {
-	BOOL res = TRUE;
+	bool res = TRUE;
 
 	info("------------------------------------------------------------------");
 	info("Searching for static variables address ...");
 
-	BOOL (*scan_funcs[])(void) = {
+	bool (*scan_funcs[])(void) = {
 		camera_scan_campos,
 		camera_scan_camval,
 		camera_scan_loading,
@@ -744,8 +737,7 @@ BOOL camera_scan_variables ()
 	return res;
 }
 
-BOOL camera_refresh_self ()
-/// OK
+bool camera_refresh_self (void)
 {
 	Camera *this = camera_get_instance();
 
@@ -764,8 +756,7 @@ BOOL camera_refresh_self ()
 	return FALSE;
 }
 
-BOOL camera_scan_win_is_opened ()
-/// FIXED
+bool camera_scan_win_is_opened (void)
 {
 	Camera *this = camera_get_instance();
 
@@ -843,7 +834,7 @@ BOOL camera_scan_win_is_opened ()
 	return TRUE;
 }
 
-BOOL camera_scan_minimap_size ()
+bool camera_scan_minimap_size (void)
 {
 	Camera *this = camera_get_instance();
 	unsigned char *description = "minimapSize";
@@ -1028,7 +1019,7 @@ BOOL camera_scan_minimap_size ()
 	return TRUE;
 }
 
-BOOL camera_scan_ping_or_skill_waiting ()
+bool camera_scan_ping_or_skill_waiting (void)
 {
 	Camera *this = camera_get_instance();
 	unsigned char * description = "pingWaiting";
@@ -1081,8 +1072,7 @@ BOOL camera_scan_ping_or_skill_waiting ()
 	return TRUE;
 }
 
-BOOL camera_scan_hovered_champ ()
-/// FIXED
+bool camera_scan_hovered_champ (void)
 {
 	Camera *this = camera_get_instance();
 
@@ -1161,7 +1151,7 @@ BOOL camera_scan_hovered_champ ()
 	return TRUE;
 }
 
-BOOL camera_scan_victory ()
+bool camera_scan_victory (void)
 {
 	Camera *this = camera_get_instance();
 
@@ -1241,8 +1231,7 @@ BOOL camera_scan_victory ()
 	return (victory_state != 0);
 }
 
-BOOL camera_scan_champions (BOOL display_error)
-/// FIXED :)
+bool camera_scan_champions (bool display_error)
 {
 	Camera *this = camera_get_instance();
 
@@ -1335,8 +1324,7 @@ BOOL camera_scan_champions (BOOL display_error)
 
 
 /** Refreshers **/
-BOOL camera_refresh_victory ()
-/// OK
+bool camera_refresh_victory (void)
 {
 	Camera *this = camera_get_instance();
 
@@ -1345,28 +1333,27 @@ BOOL camera_refresh_victory ()
 	return TRUE;
 }
 
-BOOL camera_refresh_mouse_screen ()
+bool camera_refresh_mouse_screen (void)
 {
 	Camera *this = camera_get_instance();
     return GetCursorPos(&this->mouse_screen);
 }
 
-BOOL camera_refresh_ping_state ()
+bool camera_refresh_ping_state (void)
 {
     Camera *this = camera_get_instance();
     this->ping_state = read_memory_as_int(this->mp->proc, this->ping_state_addr);
     return TRUE;
 }
 
-BOOL camera_refresh_champions ()
-/// OK
+bool camera_refresh_champions (void)
 {
 	Camera *this = camera_get_instance();
 
 	DWORD entity_ptr     = read_memory_as_int(this->mp->proc, this->entities_addr);
 	DWORD entity_ptr_end = read_memory_as_int(this->mp->proc, this->entities_addr_end);
 
-	this->team_size = (entity_ptr_end - entity_ptr) / 4;
+	this->playersCount = (entity_ptr_end - entity_ptr) / 4;
 
 	for (int i = 0; entity_ptr != entity_ptr_end && i < 10; entity_ptr+=4, i++)
 	{
@@ -1383,8 +1370,7 @@ BOOL camera_refresh_champions ()
 	return TRUE;
 }
 
-BOOL camera_refresh_entity_hovered ()
-/// FIXED
+bool camera_refresh_entity_hovered (void)
 {
 	Camera *this = camera_get_instance();
 
@@ -1425,8 +1411,7 @@ BOOL camera_refresh_entity_hovered ()
 	return TRUE;
 }
 
-BOOL camera_refresh_entities_nearby ()
-/// OK
+bool camera_refresh_entities_nearby (void)
 {
 	Camera *this = camera_get_instance();
 	float in_screen = 2000.0;
@@ -1475,8 +1460,7 @@ BOOL camera_refresh_entities_nearby ()
 	return TRUE;
 }
 
-BOOL camera_refresh_win_is_opened ()
-/// FIXED
+bool camera_refresh_win_is_opened (void)
 {
 	Camera *this = camera_get_instance();
 
@@ -1488,8 +1472,7 @@ BOOL camera_refresh_win_is_opened ()
 	return this->interface_opened != 0;
 }
 
-BOOL camera_refresh_hover_interface ()
-/// OK
+bool camera_refresh_hover_interface (void)
 {
 	Camera *this = camera_get_instance();
 	this->interface_hovered = read_memory_as_int(this->mp->proc, this->interface_hovered_addr);
@@ -1548,7 +1531,7 @@ unsigned char *camera_read_patch (long int id, int *len, DWORD *addr)
 }
 
 // ------------ Scanners ------------
-static long int patch_id = 0;
+static unsigned long int patch_id = 0;
 
 static Patch *camera_get_patch (MemProc *mp, char *description, DWORD *addr, unsigned char *sig, char *sig_mask, unsigned char *patch, char *patch_mask)
 {
@@ -1645,7 +1628,7 @@ void camera_get_patches (Patch **patches, int size, MemProc *mp, char *descripti
 	bb_queue_free_all(addresses, membuffer_free);
 }
 
-static BOOL camera_search_signature (unsigned char *pattern, DWORD *addr, unsigned char **code_ptr, char *mask, char *name)
+static bool camera_search_signature (unsigned char *pattern, DWORD *addr, unsigned char **code_ptr, char *mask, char *name)
 {
 	Camera *this = camera_get_instance();
 	debug("Looking for \"%s\" ...", name);
@@ -1682,7 +1665,7 @@ static BOOL camera_search_signature (unsigned char *pattern, DWORD *addr, unsign
 	return TRUE;
 }
 
-static BOOL camera_search_signatures (unsigned char *pattern, char *mask, char *name, DWORD **addr, int size, BbQueue *addresses)
+static bool camera_search_signatures (unsigned char *pattern, char *mask, char *name, DWORD **addr, int size, BbQueue *addresses)
 {
 	Camera *this = camera_get_instance();
 	debugb("Looking for \"%s\" ...", name);
@@ -1741,7 +1724,7 @@ static BOOL camera_search_signatures (unsigned char *pattern, char *mask, char *
 	return TRUE;
 }
 
-void camera_export_to_cheatengine ()
+void camera_export_to_cheatengine (void)
 {
 	Camera *this = camera_get_instance();
 

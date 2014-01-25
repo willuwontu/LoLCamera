@@ -53,7 +53,9 @@
 
 
 #ifdef BOOL
+#ifndef bool
 #define bool BOOL
+#endif
 #endif
 
 #ifndef bool
@@ -61,17 +63,21 @@
 #endif
 
 #ifdef TRUE
+#ifndef true
 #define true TRUE
+#endif
 #endif
 
 #ifdef FALSE
+#ifndef false
 #define false FALSE
+#endif
 #endif
 
 #define PUSH_POS 	0
 #define POP_POS 	1
 
-#define COMPILE_GDI 0
+#define COMPILE_GDI 1
 
 #ifdef DEBUG
 #define DEBUG_ACTIVATED 1
@@ -97,7 +103,7 @@ get_handle_from_pid (DWORD pid);
 HANDLE
 get_handle_by_name (char *proc_name);
 
-BOOL enable_debug_privileges ();
+bool enable_debug_privileges ();
 
 int
 set_privilege (HANDLE hToken, LPCTSTR lpszPrivilege, int bEnablePrivilege);

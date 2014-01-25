@@ -37,13 +37,13 @@ mempos_int_new (MemProc *mp, DWORD addrX, DWORD addrY);
 
 // ----------- Methods ------------
 
-int
+bool
 mempos_refresh (MemPos *p);
 
 void
 mempos_init (MemPos *p, MemProc *mp, DWORD addrX, DWORD addrY);
 
-int
+bool
 mempos_int_refresh (MemPos *p);
 
 // --- Accessors

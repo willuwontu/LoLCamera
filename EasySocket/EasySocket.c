@@ -45,7 +45,7 @@
 #endif
 
 /* Private variables */
-BOOL wsadata_initialized = FALSE;
+bool wsadata_initialized = FALSE;
 
 /* Private Methods */
 
