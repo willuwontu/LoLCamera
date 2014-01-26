@@ -8,7 +8,7 @@
 #include "./Crypto/md5.h"
 #include <signal.h>
 
-#define LOLCAMERA_VERSION 0.191
+#define LOLCAMERA_VERSION 0.192
 
 char download_link[] = "https://sourceforge.net/projects/lolcamera/files";
 char download_host[] = "cznic.dl.sourceforge.net";
@@ -78,8 +78,11 @@ int main_light ()
 	return 0;
 }
 
-int main ()
+int main (int argc, char **argv)
 {
+    (void) argc;
+    (void) argv;
+
 	// return main_light();
 	LoLCameraState state = PLAY;
 	MemProc *mp = NULL;
@@ -92,12 +95,19 @@ int main ()
 
 	// Check online version
 	info("Checking for updates ... (current version = %.3f)", LOLCAMERA_VERSION);
+    char *str_last_version = webserver_do(GET_VERSION);
+    float last_version = 0.0;
 
-	float last_version = atof(webserver_do(GET_VERSION));
+    if (str_last_version)
+    {
+        last_version = atof(str_last_version);
+        free(str_last_version);
+    }
+
     char *patchnotes;
     bool update_available = false;
 
-	if (last_version < LOLCAMERA_VERSION)
+    if (last_version > LOLCAMERA_VERSION)
 	{
 		warning ("\n"
 				  "    +-------------------------------------------------------------------+\n"
@@ -132,6 +142,7 @@ int main ()
         }
 
         readable("LoLCamera Patch %.3f Notes :\n%s", last_version, patchnotes);
+        free(patchnotes);
     }
 
 	// Check integrity
@@ -144,7 +155,6 @@ int main ()
 		exit(EXIT_FAILURE);
 	}
 	#endif
-	webserver_disconnect();
 
 	// Debug privileges
 	if (!enable_debug_privileges())
@@ -219,7 +229,10 @@ int main ()
 		camera_unload();
 
 		if (state == END_OF_LOLCAMERA)
-			memproc_free(mp);
+        {
+            memproc_free(mp);
+            mp = NULL;
+        }
 	}
 
 	// Force atexit event

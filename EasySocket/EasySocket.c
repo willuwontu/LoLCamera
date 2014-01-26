@@ -307,10 +307,15 @@ char *
 es_http_get_contents (EasySocket *es, char *path)
 {
     char *page     = es_http_get(es, path);
-    int pos        = str_pos_after (page, "\r\n\r\n");
-    char *contents = strdup(&page[pos]);
+    char *contents = NULL;
 
-    free(page);
+    if (page)
+    {
+        int pos = str_pos_after (page, "\r\n\r\n");
+        contents = strdup(&page[pos]);
+        free(page);
+    }
+
     return contents;
 }
 
@@ -318,7 +323,7 @@ char *
 es_http_get (EasySocket *es, char *path)
 {
     char *host = (es->hostname != NULL) ? es->hostname : es->ip;
-	char *full_msg = str_dup_printf(
+	char *full_msg = str_dup_printf (
 		"GET %s HTTP/1.1\r\n"
 		"Host: %s\r\n"
 		"User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:24.0) Gecko/20100101 Firefox/42.0\r\n"
@@ -335,8 +340,8 @@ es_http_get (EasySocket *es, char *path)
     int size;
     unsigned char *answer = es_recv(es, &size);
 
-    if (answer != NULL)
-        answer[size-1] = '\0';
+    if (answer != NULL && size >= 0)
+        answer[size] = '\0';
     else
         answer = es_http_wait_for_answer(es);
 
@@ -423,7 +428,7 @@ es_recv (EasySocket *es, int *_out_size)
 	unsigned int total_bytes = 0;
 	BbQueue msg_recved = bb_queue_local_decl();
 
-    while ((bytes = recv(es->sock, data, (sizeof data) - 1, 0)) > 0)
+    while ((bytes = recv(es->sock, data, sizeof(data) - 1, 0)) > 0)
     {
         Buffer *buffer = buffer_new_from_ptr(data, bytes);
         bb_queue_add(&msg_recved, buffer);
@@ -436,14 +441,15 @@ es_recv (EasySocket *es, int *_out_size)
         return NULL;
 
     unsigned int write_pos = 0;
-    char *response = malloc(total_bytes);
+    char *response = malloc(total_bytes + 1);
 
     foreach_bbqueue_item (&msg_recved, Buffer *buffer)
     {
         memcpy(&response[write_pos], buffer->data, buffer->size);
         write_pos += buffer->size;
-        buffer_free(buffer);
     }
+
+    bb_queue_free_elements(&msg_recved, buffer_free);
 
     return response;
 }

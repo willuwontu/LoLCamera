@@ -6,6 +6,8 @@ get_pid_by_name (char *proc_name)
 	DWORD dwPID = 0;
 
 	PROCESSENTRY32 pe32;
+	memset(&pe32, 0, sizeof(pe32));
+
 	HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 
 	pe32.dwSize = sizeof(PROCESSENTRY32);

@@ -16,8 +16,11 @@ void webserver_connect ()
 
 void webserver_disconnect ()
 {
-    es_close (webserver.socket);
-    es_free  (webserver.socket);
+    if (webserver.socket)
+    {
+        es_close (webserver.socket);
+        es_free  (webserver.socket);
+    }
 }
 
 // ----- Public -----
@@ -31,13 +34,13 @@ char * webserver_do (WebServerAction action, ...)
     switch (action)
     {
         case GET_VERSION:
-            contents = es_http_get_contents(webserver.socket, "/version.txt");
-            webserver.version = strdup(contents);
+            if (contents = es_http_get_contents(webserver.socket, "/version.txt"))
+                webserver.version = strdup(contents);
         break;
 
         case GET_PATCHNOTES:
-            contents = es_http_get_contents(webserver.socket, "/patchnotes.txt");
-            webserver.patchnotes = strdup(contents);
+            if (contents = es_http_get_contents(webserver.socket, "/patchnotes.txt"))
+                webserver.patchnotes = strdup(contents);
         break;
 
         case GET_MD5:
@@ -47,8 +50,8 @@ char * webserver_do (WebServerAction action, ...)
             double version = va_arg (args, double);
             va_end (args);
 
-            contents = es_http_get_contents(webserver.socket, str_dup_printf("/md5/%.3f.txt", version));
-            webserver.md5 = strdup(contents);
+            if (contents = es_http_get_contents(webserver.socket, str_dup_printf("/md5/%.3f.txt", version)))
+                webserver.md5 = strdup(contents);
         }
         break;
 
