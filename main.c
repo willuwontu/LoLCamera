@@ -8,7 +8,7 @@
 #include "./Crypto/md5.h"
 #include <signal.h>
 
-#define LOLCAMERA_VERSION 0.192
+#define LOLCAMERA_VERSION 0.193
 
 char download_link[] = "https://sourceforge.net/projects/lolcamera/files";
 char download_host[] = "cznic.dl.sourceforge.net";
@@ -17,6 +17,9 @@ char download_path[] = "/project/lolcamera/LoLCamera%20exe%2Bini.zip";
 void download_lolcamera (char *link)
 {
     EasySocket *sourceforge = es_client_new_from_host(download_host, 80);
+
+    (void) sourceforge;
+    (void) link;
     // TODO : get from sourceforge :)
 }
 
@@ -93,68 +96,77 @@ int main (int argc, char **argv)
 	important("Keep pressing X in this console to exit safely (strongly recommanded)");
 	important("------------------------------------------------------------------");
 
-	// Check online version
-	info("Checking for updates ... (current version = %.3f)", LOLCAMERA_VERSION);
-    char *str_last_version = webserver_do(GET_VERSION);
-    float last_version = 0.0;
-
-    if (str_last_version)
-    {
-        last_version = atof(str_last_version);
-        free(str_last_version);
-    }
-
-    char *patchnotes;
+    IniParser *parser = ini_parser_new("LoLCamera.ini");
+    ini_parser_reg_and_read(parser);
+    char * offline = ini_parser_get_value(parser, "offline");
+    ini_parser_free(parser);
+    bool isOffline = (offline) ? atoi(offline) : 0;
     bool update_available = false;
 
-    if (last_version > LOLCAMERA_VERSION)
-	{
-		warning ("\n"
-				  "    +-------------------------------------------------------------------+\n"
-				  "    |                   A NEW UPDATE IS AVAILABLE                       |\n"
-				  "    |             New version = %.3f, current version = %.3f          |\n"
-				  "    |    Download : %s    |\n"
-				  "    +-------------------------------------------------------------------+",
-					last_version, LOLCAMERA_VERSION, download_link);
-
-        update_available = true;
-	}
-	else
-        info("No updates.");
-
-    info("Getting patchnotes ...");
-    patchnotes = (update_available) ? webserver_do(GET_PATCHNOTES) : get_own_patchnotes();
-
-    if (patchnotes != NULL)
+	// Check online version
+	if (!isOffline)
     {
-        char *ptr = patchnotes;
-        char loops[] = {0, 0, 1};
-        int pos;
+        info("Checking for updates ... (current version = %.3f)", LOLCAMERA_VERSION);
+        char *str_last_version = webserver_do(GET_VERSION);
+        float last_version = 0.0;
 
-        for (int i = 0; i < sizeof_array(loops); i++)
+        if (str_last_version)
         {
-            pos = str_pos_after(ptr, "===");
-
-            if (loops[i])
-                ptr[pos-strlen("===") - 1] = '\0';
-            else
-                ptr = &ptr[pos];
+            last_version = atof(str_last_version);
+            free(str_last_version);
         }
 
-        readable("LoLCamera Patch %.3f Notes :\n%s", last_version, patchnotes);
-        free(patchnotes);
-    }
+        char *patchnotes;
 
-	// Check integrity
-	#ifndef DEBUG
-	info("Checking executable integrity...");
-	if (!str_equals(get_own_md5(argv[0]), webserver_do(GET_MD5, LOLCAMERA_VERSION)))
-	{
-		error("Integrity error : Please download the last version here : \n\t%s", download_link);
-		system("pause");
-		exit(EXIT_FAILURE);
-	}
-	#endif
+        if ((int)(last_version * 1000) > (int)(LOLCAMERA_VERSION * 1000))
+        {
+            warning ("\n"
+                      "    +-------------------------------------------------------------------+\n"
+                      "    |                   A NEW UPDATE IS AVAILABLE                       |\n"
+                      "    |             New version = %.3f, current version = %.3f          |\n"
+                      "    |    Download : %s    |\n"
+                      "    +-------------------------------------------------------------------+",
+                        last_version, LOLCAMERA_VERSION, download_link);
+
+            update_available = true;
+        }
+        else
+            info("No updates.");
+
+        info("Getting patchnotes ...");
+        patchnotes = (update_available) ? webserver_do(GET_PATCHNOTES) : get_own_patchnotes();
+
+        if (patchnotes != NULL)
+        {
+            char *ptr = patchnotes;
+            char loops[] = {0, 0, 1};
+            int pos;
+
+            for (int i = 0; i < sizeof_array(loops); i++)
+            {
+                pos = str_pos_after(ptr, "===");
+
+                if (loops[i])
+                    ptr[pos-strlen("===") - 1] = '\0';
+                else
+                    ptr = &ptr[pos];
+            }
+
+            readable("LoLCamera Patch %.3f Notes :\n%s", last_version, patchnotes);
+            free(patchnotes);
+        }
+
+        // Check integrity
+        #ifndef DEBUG
+        info("Checking executable integrity...");
+        if (!str_equals(get_own_md5(argv[0]), webserver_do(GET_MD5, LOLCAMERA_VERSION)))
+        {
+            error("Integrity error : Please download the last version here : \n\t%s", download_link);
+            system("pause");
+            exit(EXIT_FAILURE);
+        }
+        #endif
+    }
 
 	// Debug privileges
 	if (!enable_debug_privileges())

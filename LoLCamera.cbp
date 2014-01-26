@@ -34,7 +34,6 @@
 			</Target>
 		</Build>
 		<Compiler>
-			<Add option="-O3" />
 			<Add option="-Wextra" />
 			<Add option="-Wall" />
 			<Add option="-fgnu89-inline" />
