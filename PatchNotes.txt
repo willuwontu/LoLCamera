@@ -3,9 +3,10 @@
 - [FIX] Settings in .ini were not loaded correctly
 - [FIX] Memory leaks and errors during loading have been fixed (Thanks Dreamed & LegendofScryd)
 - [NEW] Add an "offline" option in LoLCamera.ini for disabling internet connection (check version / patchnotes / integrity)
+- [FIX] Improve the loading screen conditions.
 
 === 18 / 01 / 14 ===
-- [FIX] Annoying bug when the interface is clicked fixed (Thanks Penteano, )
+- [FIX] Annoying bug fixed when the interface is clicked (Thanks Penteano)
 - [FIX] When you ping on the minimap, the camera doesn't move anymore
 
 === 17 / 01 / 14 ===

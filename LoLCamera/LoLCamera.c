@@ -587,8 +587,6 @@ bool camera_ingame_conditions ()
 	DWORD cur = this->entity_ptr;
 	DWORD end = this->entity_ptr_end;
 
-	bool valid = true;
-
 	for (int i = 0; cur != end && i < 10; cur += 4, i++)
 	{
 		Entity *e = this->champions[i];
@@ -597,19 +595,34 @@ bool camera_ingame_conditions ()
 			return false;
 	}
 
-	if (this->mouse)
+    // Check from mouse IG position
+	if (!this->mouse)
     {
-        if (out_of_map(this->mouse->v.x, this->mouse->v.y))
-            return false;
+        if (camera_scan_cursor_champ())
+        {
+            if (this->mouse = mempos_new (this->mp, this->mousex_addr, this->mousey_addr))
+            {
+                if (out_of_map(this->mouse->v.x, this->mouse->v.y))
+                    return false;
+            }
+        }
+
+        return false;
     }
 
-	return valid;
+    if (!this->mouse)
+        return false;
+
+    if (!camera_window_is_active())
+        return false;
+
+	return true;
 }
 
 bool out_of_map (float x, float y)
 {
-	return (x >= 0.0       && y >= 0.0
-	&&		x <= MAP_WIDTH && y <= MAP_HEIGHT);
+	return (x > 0.0       && y > 0.0
+	&&		x < MAP_WIDTH && y < MAP_HEIGHT);
 }
 
 bool camera_wait_for_ingame ()
@@ -647,7 +660,7 @@ bool camera_wait_for_ingame ()
 			infobn(".");
 		}
 
-		Sleep(1000);
+		Sleep(3000);
 	}
 
 	if (already_displayed_message)
