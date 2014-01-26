@@ -98,10 +98,10 @@ int main (int argc, char **argv)
 
     IniParser *parser = ini_parser_new("LoLCamera.ini");
     ini_parser_reg_and_read(parser);
-    char * offline = ini_parser_get_value(parser, "offline");
-    ini_parser_free(parser);
+    char * offline = (char *) ini_parser_get_value(parser, "offline");
     bool isOffline = (offline) ? atoi(offline) : 0;
     bool update_available = false;
+    ini_parser_free(parser);
 
 	// Check online version
 	if (!isOffline)
