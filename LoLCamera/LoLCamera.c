@@ -581,8 +581,8 @@ bool bypass_login_screen_request (int key)
 
 bool camera_ingame_conditions ()
 {
-	if (!camera_scan_champions(FALSE))
-		return FALSE;
+	if (!camera_scan_champions(false))
+		return false;
 
 	DWORD cur = this->entity_ptr;
 	DWORD end = this->entity_ptr_end;
@@ -594,10 +594,22 @@ bool camera_ingame_conditions ()
 		Entity *e = this->champions[i];
 
 		if ((e->entity_data == 0))
-			return FALSE;
+			return false;
 	}
 
+	if (this->mouse)
+    {
+        if (out_of_map(this->mouse->v.x, this->mouse->v.y))
+            return false;
+    }
+
 	return valid;
+}
+
+bool out_of_map (float x, float y)
+{
+	return (x >= 0.0       && y >= 0.0
+	&&		x <= MAP_WIDTH && y <= MAP_HEIGHT);
 }
 
 bool camera_wait_for_ingame ()

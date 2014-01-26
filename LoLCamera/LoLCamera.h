@@ -28,6 +28,9 @@
 #define IN_SCREEN_DISTANCE 2000.0
 #define MEDIUM_BOX 		   1500.0
 #define SMALL_BOX 		   1000.0
+#define MAP_WIDTH  15000.0
+#define MAP_HEIGHT 15200.0
+
 
 // ------ Class declaration -------
 typedef struct _Camera Camera;
@@ -244,6 +247,8 @@ bool camera_refresh_hover_interface ();
 bool camera_refresh_screen_border ();
 bool camera_refresh_mouse_screen ();
 bool camera_refresh_ping_state ();
+
+bool out_of_map (float x, float y);
 
 // from CameraUnitTest.c
 bool camera_ut_campos ();

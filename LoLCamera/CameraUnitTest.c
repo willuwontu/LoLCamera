@@ -1,14 +1,5 @@
 #include "LoLCamera.h"
 
-#define MAP_WIDTH  15000.0
-#define MAP_HEIGHT 15200.0
-
-static bool out_of_map (float x, float y)
-{
-	return (x >= 0.0       && y >= 0.0
-	&&		x <= MAP_WIDTH && y <= MAP_HEIGHT);
-}
-
 bool camera_ut_campos ()
 {
 	Camera *this = camera_get_instance();
