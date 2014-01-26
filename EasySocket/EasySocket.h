@@ -61,6 +61,7 @@
 
 /* Includes */
 #include "../Ztring/Ztring.h"
+#include "../Utils/Utils.h"
 #include <windows.h>
 
 #define ES_ERROR_BIND       ((void*)-1)
@@ -80,12 +81,6 @@
 
 #define es_is_connected(es) \
     (es->is_connected)
-
-#ifndef bool
-#define bool BOOL
-#define true TRUE
-#define false FALSE
-#endif
 
 typedef
 struct _EasySocket

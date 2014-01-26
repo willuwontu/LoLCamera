@@ -161,7 +161,7 @@ struct _Camera
 	bool restore_tmpcam;				// Request to restore the temporary camera
 	bool drag_request;					// User requested a drag
 	bool active;						// Loop state
-	bool request_polling; 				// Force to poll data the next loop if TRUE
+	bool request_polling; 				// Force to poll data the next loop if true
 	int interface_opened;				// Interface state (window focus : shop, chat, etc)
 	bool enabled;						// LoLCamera enabled ?
 	bool dbg_mode;						// For unit tests

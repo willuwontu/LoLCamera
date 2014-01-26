@@ -109,7 +109,7 @@ bool event_update (Event *this)
     if (this->elapsed > this->ms_max)
     {
     	event_tick(this, now);
-        return TRUE;
+        return true;
     }
 
     if (this->elapsed < this->ms_min)
@@ -126,7 +126,7 @@ bool event_update (Event *this)
 
 void event_set_done (Event *this)
 {
-    this->state = TRUE;
+    this->state = true;
 }
 
 bool event_done (Event *this)

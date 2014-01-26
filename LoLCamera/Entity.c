@@ -53,7 +53,7 @@ entity_init (Entity *e, MemProc *mp, DWORD addr)
 	DWORD champ_struct = read_memory_as_int(e->ctxt->proc, e->entity_data + EOFF_CHAMP_STRUCT);
 	read_from_memory(e->ctxt->proc, e->champ_name, champ_struct + EOFF_CHAMP_NAME, sizeof(e->champ_name) - 1);
 
-	return TRUE;
+	return true;
 }
 
 int

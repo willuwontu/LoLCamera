@@ -65,7 +65,7 @@ static void camera_translation_reset ()
 static void camera_sensor_reset (bool reset_translation)
 {
     // Polling data is requested because we want to center the camera exactly where the champion is
-	this->request_polling = TRUE;
+	this->request_polling = true;
 	this->focused_entity = NULL;
 	this->hint_entity = NULL;
 
@@ -87,7 +87,7 @@ static bool camera_center_requested ()
 	 && (this->interface_opened != LOLCAMERA_CHAT_OPENED_VALUE))
     {
 		camera_sensor_reset(true);
-        return TRUE;
+        return true;
     }
 
     return FALSE;
@@ -98,7 +98,7 @@ static bool camera_restore_requested ()
 	if (this->restore_tmpcam)
 	{
 		camera_sensor_reset(false);
-		return TRUE;
+		return true;
 	}
 
 	return FALSE;
@@ -200,7 +200,7 @@ static bool camera_left_click ()
 				break;
 			}
 
-			return TRUE;
+			return true;
 		}
 	}
 
@@ -235,15 +235,15 @@ static bool camera_left_click ()
                             // Wait before reseting the view
                             event_start_now(&this->reset_after_minimap_click);
                             this->lbutton_state = 3;
-                            this->wait_for_end_of_pause = TRUE;
-                            this->request_polling = TRUE;
+                            this->wait_for_end_of_pause = true;
+                            this->request_polling = true;
                         }
                         else
                         {
                             // We actualize the camera position to the current view
                             camera_save_state(&this->cam->v);
                             this->lbutton_state = 0;
-                            this->restore_tmpcam = TRUE;
+                            this->restore_tmpcam = true;
                         }
                     }
                     else
@@ -251,7 +251,7 @@ static bool camera_left_click ()
                         // Dead mode : we need to actualize the camera position to the current position
                         camera_save_state(&this->cam->v);
                         this->lbutton_state = 0;
-                        this->restore_tmpcam = TRUE;
+                        this->restore_tmpcam = true;
                     }
                 }
 			break;
@@ -261,14 +261,14 @@ static bool camera_left_click ()
 				if (event_update(&this->reset_after_minimap_click))
 				{
 					event_stop(&this->reset_after_minimap_click);
-					this->restore_tmpcam = TRUE;
+					this->restore_tmpcam = true;
 					this->wait_for_end_of_pause = FALSE;
 					this->lbutton_state  = 0;
-					this->request_polling = TRUE;
+					this->request_polling = true;
 				}
 				else
 				{
-					this->wait_for_end_of_pause = TRUE;
+					this->wait_for_end_of_pause = true;
 				}
 			break;
 		}
@@ -324,7 +324,7 @@ static void camera_debug_mode ()
 		if (!this->dbg_mode)
 		{
 			// Debug mode activated
-			this->dbg_mode = TRUE;
+			this->dbg_mode = true;
 		}
 	}
 
@@ -380,7 +380,7 @@ bool camera_interface_is_hovered ()
 
 bool camera_is_freezing ()
 {
-	return (this->wait_for_end_of_pause == TRUE);
+	return (this->wait_for_end_of_pause == true);
 }
 
 bool camera_reset_conditions ()
@@ -460,7 +460,7 @@ static bool camera_follow_champion_requested ()
 		{
 			this->followed_entity = this->champions[i];
 			this->fxstate = (this->fxstate) ? this->fxstate : 1;
-			fx_pressed = TRUE;
+			fx_pressed = true;
 		}
 	}
 
@@ -469,7 +469,7 @@ static bool camera_follow_champion_requested ()
 		if (this->fxstate == 2)
 		{
 			camera_save_state(&this->champ->v);
-			this->restore_tmpcam = TRUE;
+			this->restore_tmpcam = true;
 		}
 
 		this->fxstate = 0;
@@ -509,8 +509,8 @@ void camera_init (MemProc *mp)
 	this->drag_pos = vector2D_new();
 
 	// Initialize states
-	this->enabled = TRUE;
-	this->global_weight_activated = TRUE;
+	this->enabled = true;
+	this->global_weight_activated = true;
 	this->active = FALSE;
 
 	// TODO : get .text section offset + size properly
@@ -552,7 +552,7 @@ void camera_init (MemProc *mp)
 
     // Patch
     info("Patching ...");
-	patch_list_set (this->patchlist, TRUE);
+	patch_list_set (this->patchlist, true);
 
 	// Init data from the client
 	this->cam   	   = mempos_new (this->mp, this->camx_val,      this->camy_val);
@@ -571,7 +571,7 @@ void camera_init (MemProc *mp)
 	if (strlen(this->section_settings_name) > 0)
 		camera_load_settings(this->section_settings_name);
 
-	this->active = TRUE;
+	this->active = true;
 }
 
 bool bypass_login_screen_request (int key)
@@ -587,17 +587,14 @@ bool camera_ingame_conditions ()
 	DWORD cur = this->entity_ptr;
 	DWORD end = this->entity_ptr_end;
 
-	bool valid = TRUE;
+	bool valid = true;
 
 	for (int i = 0; cur != end && i < 10; cur += 4, i++)
 	{
 		Entity *e = this->champions[i];
 
 		if ((e->entity_data == 0))
-		{
-			entity_debug(e);
-			valid = FALSE;
-		}
+			return FALSE;
 	}
 
 	return valid;
@@ -608,7 +605,7 @@ bool camera_wait_for_ingame ()
 	bool waited = FALSE;
 
 	if (!this->wait_loading_screen)
-		return TRUE;
+		return true;
 
 	// Wait here
 	int already_displayed_message = FALSE;
@@ -626,12 +623,12 @@ bool camera_wait_for_ingame ()
 				exit(0);
 		}
 
-		waited = TRUE;
+		waited = true;
 
 		if (!already_displayed_message)
 		{
 			infob("Loading screen detected.\nKeep pressing 'P' if you wish to bypass that detection (only if you are already in game).\n");
-			already_displayed_message = TRUE;
+			already_displayed_message = true;
 		}
 		else
 		{
@@ -699,7 +696,7 @@ static void camera_middle_click ()
 		{
 			case 0:
 				this->drag_pos = this->mouse->v;
-				this->request_polling = TRUE;
+				this->request_polling = true;
 				this->mbutton_state = 1;
 			break;
 
@@ -712,7 +709,7 @@ static void camera_middle_click ()
 			break;
 		}
 
-		this->drag_request = TRUE;
+		this->drag_request = true;
 	}
 
 	else
@@ -771,7 +768,7 @@ bool camera_update ()
 
 				// Resynchronize with the process
 				if (!camera_scan_variables()
-				||	!camera_scan_champions(TRUE))
+				||	!camera_scan_champions(true))
 				{
 					warning("Synchronization with the client isn't possible - Retrying in 0.5s.");
 					Sleep(500);
@@ -789,7 +786,7 @@ bool camera_update ()
 		this->request_polling = FALSE;
 	}
 
-	return TRUE;
+	return true;
 }
 
 void camera_mode_dump (CameraTrackingMode mode)

@@ -6,8 +6,8 @@
 #endif
 
 // ---------- Defines -------------
-#ifndef TRUE
-#define TRUE 1
+#ifndef true
+#define true 1
 #define FALSE 0
 #endif
 #ifndef bool

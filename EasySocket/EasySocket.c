@@ -207,7 +207,7 @@ _es_func_get_data (EasySocketListened *esl)
 int
 es_init()
 {
-    wsadata_initialized = TRUE;
+    wsadata_initialized = true;
     WSADATA wsaData;
 
 	#ifdef ES_WITHOUT_LINKED_LIBS

@@ -7,6 +7,7 @@
 // ---------- Includes ------------
 #include <stdlib.h>
 #include <windows.h>
+#include "../Utils/Utils.h"
 
 #include "../MemProc/MemProc.h"
 #include "../Vector/Vector2D.h"

@@ -187,7 +187,7 @@ bool enable_debug_privileges ()
 	}
 
 	CloseHandle(hToken);
-	return TRUE;
+	return true;
 }
 
 HWND
@@ -403,7 +403,7 @@ console_set_size (int w, int h)
 	HWND console = GetConsoleWindow();
 	RECT r;
 	GetWindowRect(console, &r);
-	MoveWindow(console, r.left, r.top, w, h, TRUE);
+	MoveWindow(console, r.left, r.top, w, h, true);
 }
 
 void
@@ -476,6 +476,8 @@ _readable (char *msg, ...)
 void
 _debug (char *msg, ...)
 {
+    (void) msg;
+
 	#if DEBUG_ACTIVATED == 1
 	va_list args;
 	console_set_col(0x03);

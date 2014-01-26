@@ -69,7 +69,7 @@ int main_light ()
 	camera_scan_hovered_champ();
 	camera_scan_victory();
 	camera_refresh_entity_hovered();
-	camera_scan_champions(TRUE);
+	camera_scan_champions(true);
 
 	//
 	camera_run_light();
@@ -192,7 +192,7 @@ int main (int argc, char **argv)
 				if (!already_displayed_message)
 				{
 					info("Waiting for the end of the game...");
-					already_displayed_message = TRUE;
+					already_displayed_message = true;
 				}
 			}
 		}

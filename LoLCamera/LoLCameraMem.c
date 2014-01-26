@@ -193,7 +193,7 @@ bool camera_scan_patch (void)
 
 	this->patchlist = patch_list_get();
 
-	return TRUE;
+	return true;
 }
 
 bool camera_scan_camval (void)
@@ -294,7 +294,7 @@ bool camera_scan_camval (void)
 	this->camx_val = camx_addr_ptr - this->mp->base_addr;
 	this->camy_val = camy_addr_ptr - this->mp->base_addr;
 
-	return TRUE;
+	return true;
 }
 
 bool camera_scan_campos (void)
@@ -363,7 +363,7 @@ bool camera_scan_campos (void)
 	this->camx_addr  = camx_addr_ptr  - this->mp->base_addr;
 	this->camy_addr  = camy_addr_ptr  - this->mp->base_addr;
 
-	return TRUE;
+	return true;
 }
 
 bool camera_scan_hover_interface (void)
@@ -429,7 +429,7 @@ bool camera_scan_hover_interface (void)
 
 	camera_refresh_hover_interface();
 
-	return TRUE;
+	return true;
 }
 
 bool camera_scan_loading (void)
@@ -494,7 +494,7 @@ bool camera_scan_loading (void)
 		return FALSE;
 	}
 
-	return TRUE;
+	return true;
 }
 
 bool camera_scan_game_info (void)
@@ -569,7 +569,7 @@ bool camera_scan_game_info (void)
 	else
 		debug("Self name (%p) : <%s>", this->game_info_addr + 0x140, this->self_name);
 
-	return TRUE;
+	return true;
 }
 
 bool camera_scan_cursor_champ (void)
@@ -639,7 +639,7 @@ bool camera_scan_cursor_champ (void)
 	this->mousex_addr -= this->mp->base_addr;
 	this->mousey_addr  = this->mousex_addr + 8;
 
-	return TRUE;
+	return true;
 }
 
 bool camera_scan_dest (void)
@@ -698,12 +698,12 @@ bool camera_scan_dest (void)
 
 	bb_queue_free_all(res, buffer_free);
 
-	return TRUE;
+	return true;
 }
 
 bool camera_scan_variables (void)
 {
-	bool res = TRUE;
+	bool res = true;
 
 	info("------------------------------------------------------------------");
 	info("Searching for static variables address ...");
@@ -731,7 +731,7 @@ bool camera_scan_variables (void)
 
 	info("------------------------------------------------------------------");
 	info("Reading the content of pointers...");
-	camera_scan_champions(TRUE);
+	camera_scan_champions(true);
 	camera_refresh_self();
 
 	return res;
@@ -749,7 +749,7 @@ bool camera_refresh_self (void)
 	    if (strcmp(this->self_name, this->champions[i]->player_name) == 0)
 		{
 			this->self = this->champions[i];
-			return TRUE;
+			return true;
 		}
 	}
 
@@ -831,7 +831,7 @@ bool camera_scan_win_is_opened (void)
 
 	this->win_is_opened_addr = win_is_opened_addr + 0x54;
 
-	return TRUE;
+	return true;
 }
 
 bool camera_scan_minimap_size (void)
@@ -1016,7 +1016,7 @@ bool camera_scan_minimap_size (void)
 	this->minimap.xRight = this->minimap.xLeft + read_memory_as_int(this->mp->proc, this->mmsize_addr + 8);
 	this->minimap.yBot   = this->minimap.yTop  + read_memory_as_int(this->mp->proc, this->mmsize_addr + 12);
 
-	return TRUE;
+	return true;
 }
 
 bool camera_scan_ping_or_skill_waiting (void)
@@ -1069,7 +1069,7 @@ bool camera_scan_ping_or_skill_waiting (void)
 		return FALSE;
 	}
 
-	return TRUE;
+	return true;
 }
 
 bool camera_scan_hovered_champ (void)
@@ -1148,7 +1148,7 @@ bool camera_scan_hovered_champ (void)
 		return FALSE;
 	}
 
-	return TRUE;
+	return true;
 }
 
 bool camera_scan_victory (void)
@@ -1319,7 +1319,7 @@ bool camera_scan_champions (bool display_error)
 			);
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -1330,7 +1330,7 @@ bool camera_refresh_victory (void)
 
 	this->victory_state = read_memory_as_int(this->mp->proc, this->victory_state_addr);
 
-	return TRUE;
+	return true;
 }
 
 bool camera_refresh_mouse_screen (void)
@@ -1343,7 +1343,7 @@ bool camera_refresh_ping_state (void)
 {
     Camera *this = camera_get_instance();
     this->ping_state = read_memory_as_int(this->mp->proc, this->ping_state_addr);
-    return TRUE;
+    return true;
 }
 
 bool camera_refresh_champions (void)
@@ -1367,7 +1367,7 @@ bool camera_refresh_champions (void)
 		}
 	}
 
-	return TRUE;
+	return true;
 }
 
 bool camera_refresh_entity_hovered (void)
@@ -1408,7 +1408,7 @@ bool camera_refresh_entity_hovered (void)
 	else
 		this->entity_hovered = NULL;
 
-	return TRUE;
+	return true;
 }
 
 bool camera_refresh_entities_nearby (void)
@@ -1457,7 +1457,7 @@ bool camera_refresh_entities_nearby (void)
 		}
 	}
 
-	return TRUE;
+	return true;
 }
 
 bool camera_refresh_win_is_opened (void)
@@ -1662,7 +1662,7 @@ static bool camera_search_signature (unsigned char *pattern, DWORD *addr, unsign
 
 	bb_queue_free_all(results, memblock_free);
 
-	return TRUE;
+	return true;
 }
 
 static bool camera_search_signatures (unsigned char *pattern, char *mask, char *name, DWORD **addr, int size, BbQueue *addresses)
@@ -1721,7 +1721,7 @@ static bool camera_search_signatures (unsigned char *pattern, char *mask, char *
 
 	bb_queue_free_all(results, memblock_free);
 
-	return TRUE;
+	return true;
 }
 
 void camera_export_to_cheatengine (void)

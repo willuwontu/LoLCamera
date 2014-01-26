@@ -14,6 +14,7 @@
 #include <wincon.h>
 
 #include "../Ztring/Ztring.h"
+#include "../Utils/Utils.h"
 
 // ---------- Defines -------------
 #define make_ptr(cast, ptr, offset) (cast)((DWORD)(ptr) + (DWORD)(offset))
@@ -50,29 +51,6 @@
 
 #define infobn(msg, ...) \
 	do {_info(msg, ##__VA_ARGS__);} while(0)
-
-
-#ifdef BOOL
-#ifndef bool
-#define bool BOOL
-#endif
-#endif
-
-#ifndef bool
-#define bool char
-#endif
-
-#ifdef TRUE
-#ifndef true
-#define true TRUE
-#endif
-#endif
-
-#ifdef FALSE
-#ifndef false
-#define false FALSE
-#endif
-#endif
 
 #define PUSH_POS 	0
 #define POP_POS 	1
