@@ -23,13 +23,10 @@ Mouse
 
 
 
-Authors
--------
-- Spl3en (data mining & patching) <spl3en.contact@gmail.com>
-- jtjin (camera behavior coding)
-
-Testers
--------
+Contributors of this project :
+--------------------------------
+- Spl3en <spl3en.contact@gmail.com>
+- jtjin 
 - MrGoodKill
 - SephirothSG
 
