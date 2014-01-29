@@ -197,6 +197,7 @@ static bool camera_left_click ()
 				case 2:
 					save_lmb_pos();
 					camera_set_pos(this->lmb.x, this->lmb.y);
+					this->request_polling = TRUE;
 				break;
 			}
 
@@ -1002,7 +1003,7 @@ LoLCameraState camera_main ()
 
 		// Distance from ideal target and current camera
 		float threshold_min = this->champ_settings.threshold - 300.0,
-              threshold_max = this->champ_settings.threshold + 300.0;
+              threshold_max = this->champ_settings.threshold;
 
         threshold_min = (threshold_min < 0.0) ? 0.0 : threshold_min;
 
@@ -1263,7 +1264,7 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 				// from the falloff distance
 				float dest_falloff_rate  = 0.0001;
 				float mouse_falloff_rate = 0.0010;
-				float global_falloff_rate = 0.0010;
+				float global_falloff_rate = 0.0001;
 
 				// adjust weights based on distance
 				if (distance_dest_champ > this->champ_settings.dest_range_max)
