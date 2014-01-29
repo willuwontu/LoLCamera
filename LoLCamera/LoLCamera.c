@@ -1001,13 +1001,14 @@ LoLCameraState camera_main ()
 		float camera_scroll_speed = camera_compute_camera_scroll_speed (camera_mode);
 
 		// Distance from ideal target and current camera
-		float threshold_min = this->champ_settings.threshold - 100.0,
-              threshold_max = this->champ_settings.threshold + 100.0;
+		float threshold_min = this->champ_settings.threshold - 300.0,
+              threshold_max = this->champ_settings.threshold + 300.0;
 
         threshold_min = (threshold_min < 0.0) ? 0.0 : threshold_min;
 
 		float dist_target_cam = vector2D_distance_between(&target, &this->cam->v);
-        camera_scroll_speed = camera_scroll_speed * (dist_target_cam - threshold_min) / threshold_max;
+		if ((dist_target_cam - threshold_min) > 0)
+            camera_scroll_speed *= (dist_target_cam - threshold_min) / threshold_max;
 
 		// Apply to target
 		vector2D_sscalar(&target, 1.0 + camera_scroll_speed);
@@ -1157,7 +1158,6 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 			float focus_weight = 0.0;
 			float global_weight_allies = 0.0;
 			float global_weight_ennemies = 0.0;
-			float scrollbottom_offset = 0.0;
 
 			// Fix the perspective
             if (mouse_weight)
