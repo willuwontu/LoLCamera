@@ -1232,15 +1232,21 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 			float weight_sum;
 			{
 				// Distances
-				float distance_mouse_champ = vector2D_distance(&this->mouse->v, &this->champ->v);
-				float distance_dest_champ  = vector2D_distance(&this->dest->v, &this->champ->v);
-				float distance_mouse_dest  = vector2D_distance(&this->dest->v, &this->mouse->v);
+				Vector2D allies   = {.x = average_allies_x, .y = average_allies_y};
+				Vector2D ennemies = {.x = average_ennemies_x, .y = average_ennemies_y};
+
+				float distance_mouse_champ    = vector2D_distance(&this->mouse->v, &this->champ->v);
+				float distance_dest_champ     = vector2D_distance(&this->dest->v, &this->champ->v);
+				float distance_allies_champ   = vector2D_distance(&allies, &this->champ->v);
+				float distance_ennemies_champ = vector2D_distance(&ennemies, &this->champ->v);
+				float distance_mouse_dest     = vector2D_distance(&this->dest->v, &this->mouse->v);
 
 				// weighted averages
 				// these values control how quickly the weights fall off the further you are
 				// from the falloff distance
 				float dest_falloff_rate  = 0.0001;
 				float mouse_falloff_rate = 0.0010;
+				float global_falloff_rate = 0.0010;
 
 				// adjust weights based on distance
 				if (distance_dest_champ > this->champ_settings.dest_range_max)
@@ -1248,6 +1254,12 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 
 				if (distance_mouse_champ > this->champ_settings.mouse_range_max)
 					champ_weight = champ_weight * (((distance_mouse_champ - this->champ_settings.mouse_range_max) * mouse_falloff_rate) + 1.0);
+
+				if (distance_allies_champ > this->distance_entity_nearby)
+					global_weight_allies = global_weight_allies * (((distance_allies_champ - this->distance_entity_nearby) * global_falloff_rate) + 1.0);
+
+				if (distance_ennemies_champ > this->champ_settings.mouse_range_max)
+					global_weight_ennemies = global_weight_ennemies * (((distance_ennemies_champ - this->distance_entity_nearby) * global_falloff_rate) + 1.0);
 
 				// if the mouse is far from dest, reduce dest weight (mouse is more important)
 				if (distance_mouse_dest > this->champ_settings.mouse_dest_range_max)
@@ -1317,7 +1329,7 @@ void camera_load_settings (char *section)
 
 	if (bb_queue_is_empty(default_settings))
 	{
-		warning("Can't load \"%s\" settings in .ini (the section #%s doesn't exist)", section, section);
+		warning("Can't load \"%s\" settings in LoLCamera.ini (the section #%s doesn't exist)", section, section);
 		return;
 	}
 
