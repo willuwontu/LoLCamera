@@ -22,7 +22,6 @@ typedef enum {
 
 // Static functions declaration
 static void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode);
-static void camera_compute_camera_scroll_speed (float *camera_scroll_speed, CameraTrackingMode camera_mode);
 static bool camera_entity_is_near (Entity *e, float limit);
 static bool camera_follow_champion_requested ();
 static bool camera_restore_requested ();
@@ -31,6 +30,7 @@ static bool camera_is_translated ();
 static void camera_translate_toggle (int state);
 static bool camera_interface_is_hovered ();
 static bool camera_mouse_in_minimap ();
+static float camera_compute_camera_scroll_speed (CameraTrackingMode camera_mode);
 
 static void camera_toggle (bool enable)
 {
@@ -588,7 +588,10 @@ bool camera_ingame_conditions ()
 		Entity *e = this->champions[i];
 
 		if ((e->entity_data == 0))
-			return false;
+        {
+            debug("Entity data is NULL (%d:0x%x)", i, cur);
+            return false;
+        }
 	}
 
     // Check from mouse IG position
@@ -599,26 +602,33 @@ bool camera_ingame_conditions ()
             if (this->mouse = mempos_new (this->mp, this->mousex_addr, this->mousey_addr))
             {
                 if (out_of_map(this->mouse->v.x, this->mouse->v.y))
+                {
+                    debug("Mouse = %.2f - %.2f", this->mouse->v.x, this->mouse->v.y);
+                    debug("Mouse is out of map");
                     return false;
+                }
+            }
+            else
+            {
+                debug("mouse alloc error");
+                return false;
             }
         }
 
-        return false;
+        else
+        {
+            debug("Cannot scan cursor_champ");
+            return false;
+        }
     }
-
-    if (!this->mouse)
-        return false;
-
-    if (!camera_window_is_active())
-        return false;
 
 	return true;
 }
 
 bool out_of_map (float x, float y)
 {
-	return (x > 0.0       && y > 0.0
-	&&		x < MAP_WIDTH && y < MAP_HEIGHT);
+	return (x < 0.0       || y < 0.0
+	||		x > MAP_WIDTH || y > MAP_HEIGHT);
 }
 
 bool camera_wait_for_ingame ()
@@ -915,7 +925,6 @@ bool global_key_pressed ()
 LoLCameraState camera_main ()
 {
 	Vector2D target;
-	float camera_scroll_speed;
 	CameraTrackingMode camera_mode = NoMove;
 
 	while (this->active)
@@ -989,15 +998,26 @@ LoLCameraState camera_main ()
 		camera_compute_target(&target, camera_mode);
 
 		// Compute Camera Scroll Speed
-		camera_compute_camera_scroll_speed (&camera_scroll_speed, camera_mode);
-		camera_scroll_speed *= (this->self->movement_speed / 400.0);
+		float camera_scroll_speed = camera_compute_camera_scroll_speed (camera_mode);
+
+		// Distance from ideal target and current camera
+		float threshold_min = this->champ_settings.threshold - 100.0,
+              threshold_max = this->champ_settings.threshold + 100.0;
+
+        threshold_min = (threshold_min < 0.0) ? 0.0 : threshold_min;
+
+		float dist_target_cam = vector2D_distance_between(&target, &this->cam->v);
+        camera_scroll_speed = camera_scroll_speed * (dist_target_cam - threshold_min) / threshold_max;
+
+		// Apply to target
+		vector2D_sscalar(&target, 1.0 + camera_scroll_speed);
 
         // Smoothing
 		if (abs(target.x - this->cam->v.x) > this->champ_settings.threshold)
-			this->cam->v.x += (target.x - this->cam->v.x) * camera_scroll_speed;
+			this->cam->v.x += (target.x - this->cam->v.x) * 0.0010;
 
 		if (abs(target.y - this->cam->v.y) > this->champ_settings.threshold)
-			this->cam->v.y += (target.y - this->cam->v.y) * camera_scroll_speed;
+			this->cam->v.y += (target.y - this->cam->v.y) * 0.0010;
 
 		// Keep this just before camera_set_pos(this->cam->v.x, this->cam->v.y);
         if (camera_mode == NoMove)
@@ -1019,33 +1039,33 @@ void camera_set_pos (float x, float y)
 	mempos_set(this->cam, x, y);
 }
 
-static void camera_compute_camera_scroll_speed (float *camera_scroll_speed, CameraTrackingMode camera_mode)
+static float camera_compute_camera_scroll_speed (CameraTrackingMode camera_mode)
 {
-	float local_camera_scroll_speed = this->champ_settings.camera_scroll_speed;
+	float camera_scroll_speed = this->champ_settings.camera_scroll_speed;
 
+    // Adjust camera smoothing rate
 	switch (camera_mode)
 	{
 		case Translate:
-			local_camera_scroll_speed = local_camera_scroll_speed * 5;
+			camera_scroll_speed *= 5;
 		break;
 
 		case isTranlating:
-			local_camera_scroll_speed = local_camera_scroll_speed * 1;
+			camera_scroll_speed *= 1;
 		break;
 
 		case RestoreCam:
 		break;
 
 		case CenterCam:
-			// adjust camera smoothing rate when center camera
-			local_camera_scroll_speed = local_camera_scroll_speed * 5;
+			camera_scroll_speed *= 5;
 		break;
 
 		case FollowEntity:
 		break;
 
 		case Free:
-			local_camera_scroll_speed = local_camera_scroll_speed * 2;
+			camera_scroll_speed *= 2;
 		break;
 
 		case Normal:
@@ -1062,7 +1082,9 @@ static void camera_compute_camera_scroll_speed (float *camera_scroll_speed, Came
 		break;
 	}
 
-	*camera_scroll_speed = local_camera_scroll_speed;
+    camera_scroll_speed *= (this->self->movement_speed / 400.0);
+
+    return camera_scroll_speed;
 }
 
 bool camera_is_near (MemPos *pos, float limit)
@@ -1087,40 +1109,39 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
              hint = vector2D_zero(),
              allies = vector2D_zero(),
              ennemies = vector2D_zero(),
-             lmb  = vector2D_zero();
+             lmb  = vector2D_zero(),
+             mouse = this->mouse->v,
+             champ = this->champ->v,
+             cam = this->cam->v,
+             tmpcam = this->tmpcam.v,
+             entity = (this->followed_entity) ? this->followed_entity->p.v : (Vector2D) vector2D_zero(),
+             dest = this->dest->v;
 
 	switch (camera_mode)
 	{
 		case Free:
-			if (!camera_interface_is_hovered())
-			{
-				vector2D_set_pos(target,
-					(
-						(this->mouse->v.x) +
-						(this->cam->v.x)
-					 ) / 2.0,
-					(
-						(this->mouse->v.y) +
-						(this->cam->v.y)
-					) / 2.0
+			if (!camera_interface_is_hovered()) {
+				vector2D_set_pos (target,
+					(mouse.x + cam.x) / 2.0,
+					(mouse.y + cam.y) / 2.0
 				);
 			}
 		break;
 
 		case RestoreCam :
-			vector2D_set_pos(target, this->tmpcam.v.x, this->tmpcam.v.y);
-			mempos_set(this->cam,    this->tmpcam.v.x, this->tmpcam.v.y);
+			vector2D_set_pos(target, tmpcam.x, tmpcam.y);
+			mempos_set(this->cam,    tmpcam.x, tmpcam.y);
 			this->restore_tmpcam = FALSE;
 		break;
 
 		case FollowEntity :
-			vector2D_set_pos(target, this->followed_entity->p.v.x, this->followed_entity->p.v.y);
-			mempos_set(this->cam, this->followed_entity->p.v.x, this->followed_entity->p.v.y);
+			vector2D_set_pos(target, entity.x, entity.y);
+			mempos_set(this->cam, entity.x, entity.y);
 		break;
 
 		case FocusSelf :
-			vector2D_set_pos(target, this->champ->v.x, this->champ->v.y);
-			mempos_set(this->cam, this->champ->v.x, this->champ->v.y);
+			vector2D_set_pos(target, champ.x, champ.y);
+			mempos_set(this->cam, champ.x, champ.y);
 		break;
 
 		case Normal:
@@ -1136,16 +1157,15 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 			float focus_weight = 0.0;
 			float global_weight_allies = 0.0;
 			float global_weight_ennemies = 0.0;
-
 			float scrollbottom_offset = 0.0;
 
 			// Fix the perspective
             if (mouse_weight)
             {
             	// The camera goes farther when the camera is moving to the south
-				float distance_mouse_champ_y = this->champ->v.y - this->mouse->v.y;
+				float distance_mouse_champ_y = champ.y - mouse.y;
 				if (distance_mouse_champ_y > 0.0) {
-					scrollbottom_offset = (distance_mouse_champ_y * this->champ_settings.camera_scroll_speed_bottom); // <-- arbitrary value
+					mouse.y -= (distance_mouse_champ_y * this->champ_settings.camera_scroll_speed_bottom); // <-- arbitrary value
 				}
             }
 
@@ -1156,14 +1176,14 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 			}
 			else
 			{
-				lmb.x = this->champ->v.x - (this->translate_lmb.x);
-				lmb.y = this->champ->v.y - (this->translate_lmb.y);
+				lmb.x = champ.x - (this->translate_lmb.x);
+				lmb.y = champ.y - (this->translate_lmb.y);
 			}
 
 			if (this->drag_request)
 			{
-				drag.x = (this->drag_pos.x - this->mouse->v.x) * 10;
-				drag.y = (this->drag_pos.y - this->mouse->v.y) * 10;
+				drag.x = (drag.x - mouse.x) * 10;
+				drag.y = (drag.y - mouse.y) * 10;
 			}
 
 			if (this->global_weight_allies && this->global_weight_activated)
@@ -1232,11 +1252,11 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 			float weight_sum;
 			{
 				// Distances
-				float distance_mouse_champ    = vector2D_distance(&this->mouse->v, &this->champ->v);
-				float distance_dest_champ     = vector2D_distance(&this->dest->v, &this->champ->v);
-				float distance_allies_champ   = vector2D_distance(&allies, &this->champ->v);
-				float distance_ennemies_champ = vector2D_distance(&ennemies, &this->champ->v);
-				float distance_mouse_dest     = vector2D_distance(&this->dest->v, &this->mouse->v);
+				float distance_mouse_champ    = vector2D_distance(&mouse, &champ);
+				float distance_dest_champ     = vector2D_distance(&dest, &champ);
+				float distance_allies_champ   = vector2D_distance(&allies, &champ);
+				float distance_ennemies_champ = vector2D_distance(&ennemies, &champ);
+				float distance_mouse_dest     = vector2D_distance(&dest, &mouse);
 
 				// weighted averages
 				// these values control how quickly the weights fall off the further you are
@@ -1267,46 +1287,42 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 
             // Compute the target (weighted averages)
 			vector2D_set_pos(target,
-                (
-                    (this->champ->v.x * champ_weight) +
-                    (this->mouse->v.x * mouse_weight) +
-                    (this->dest->v.x * dest_weight) +
-                    (focus.x * focus_weight) +
-					(hint.x * hint_weight) +
-                    (allies.x * global_weight_allies) +
-                    (ennemies.x * global_weight_ennemies) +
-                    (lmb.x * lmb_weight)
-                 ) / weight_sum
-					+ drag.x,
-                (
-                    (this->champ->v.y * champ_weight) +
-                    ((this->mouse->v.y - scrollbottom_offset) * mouse_weight) +
-                    (this->dest->v.y * dest_weight) +
-                    (focus.y * focus_weight) +
-					(hint.y * hint_weight) +
-                    (allies.y * global_weight_allies) +
-                    (ennemies.y * global_weight_ennemies) +
-                    (lmb.y * lmb_weight)
-                ) / weight_sum
-					+ drag.y
+            (drag.x + ((lmb.x   * lmb_weight) +
+                    (dest.x     * dest_weight) +
+					(hint.x     * hint_weight) +
+                    (champ.x    * champ_weight) +
+                    (mouse.x    * mouse_weight) +
+                    (focus.x    * focus_weight) +
+                    (allies.x   * global_weight_allies) +
+                    (ennemies.x * global_weight_ennemies)))
+                     / weight_sum,
+            (drag.y + ((lmb.y   * lmb_weight) +
+                    (dest.y     * dest_weight) +
+					(hint.y     * hint_weight) +
+                    (champ.y    * champ_weight) +
+                    (mouse.y    * mouse_weight) +
+                    (focus.y    * focus_weight) +
+                    (allies.y   * global_weight_allies) +
+                    (ennemies.y * global_weight_ennemies)))
+                     / weight_sum
             );
 		}
 		break;
 
 		case isTranlating:
 			vector2D_set_pos(target,
-				this->distance_translation.x + this->mouse->v.x,
-				this->distance_translation.y + this->mouse->v.y
+				this->distance_translation.x + mouse.x,
+				this->distance_translation.y + mouse.y
 		);
 		break;
 
 		case Translate:
-			vector2D_set_pos(target, this->champ->v.x + this->distance_translation.x, this->champ->v.y + this->distance_translation.y);
+			vector2D_set_pos(target, champ.x + this->distance_translation.x, champ.y + this->distance_translation.y);
 		break;
 
 		case CenterCam:
 			// Target the champion
-            vector2D_set_pos(target, this->champ->v.x, this->champ->v.y);
+            vector2D_set_pos(target, champ.x, champ.y);
 		break;
 
 		case NoMove:

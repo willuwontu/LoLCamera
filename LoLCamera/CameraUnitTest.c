@@ -7,7 +7,7 @@ bool camera_ut_campos ()
 
 	mempos_get(this->cam, &x, &y);
 
-	return (out_of_map(x, y) == FALSE);
+	return out_of_map(x, y) == FALSE;
 }
 
 bool camera_ut_champos ()
@@ -17,7 +17,7 @@ bool camera_ut_champos ()
 
 	mempos_get(this->champ, &x, &y);
 
-	return (out_of_map(x, y) == FALSE);
+	return out_of_map(x, y) == FALSE;
 }
 
 bool camera_ut_mousepos ()
@@ -27,7 +27,7 @@ bool camera_ut_mousepos ()
 
 	mempos_get(this->mouse, &x, &y);
 
-	return out_of_map(x, y);
+	return out_of_map(x, y) == FALSE;
 }
 
 bool camera_ut_destpos ()
@@ -37,7 +37,7 @@ bool camera_ut_destpos ()
 
 	mempos_get (this->dest, &x, &y);
 
-	return out_of_map(x, y);
+	return out_of_map(x, y) == FALSE;
 }
 
 bool camera_ut_is_win_opened ()
