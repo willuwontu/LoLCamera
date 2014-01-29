@@ -1414,7 +1414,7 @@ bool camera_refresh_entity_hovered (void)
 bool camera_refresh_entities_nearby (void)
 {
 	Camera *this = camera_get_instance();
-	float in_screen = 2000.0;
+	float in_screen = this->distance_entity_nearby;
 
 	float distance;
 	int index = 0;

@@ -125,6 +125,7 @@ struct _Camera
 	Entity *nearby[10];				// Array of entities nearby the champion
 	Entity *nearby_allies[5];		// Array of allies entities nearby the champion
 	Entity *nearby_ennemies[5];		// Array of ennemies entities nearby the champion
+	float distance_entity_nearby;
 	int nb_allies_nearby;
 	int nb_ennemies_nearby;
 
@@ -169,7 +170,6 @@ struct _Camera
 	bool enabled;						// LoLCamera enabled ?
 	bool dbg_mode;						// For unit tests
 	bool wait_loading_screen;			// Wait for the start of the game
-	bool output_cheatengine_table;		// Output the adresses in CheatEngineTable format in "out.ct"
 	bool interface_hovered;
 	int victory_state;
 	int ms_after_minimap_click;

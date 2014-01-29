@@ -561,10 +561,6 @@ void camera_init (MemProc *mp)
 	this->mouse 	   = mempos_new (this->mp, this->mousex_addr,   this->mousey_addr);
 	this->dest  	   = mempos_new (this->mp, this->destx_addr,    this->desty_addr);
 
-	// Export to CE
-	if (this->output_cheatengine_table)
-		camera_export_to_cheatengine();
-
 	// Load settings associated with champ name
     this->section_settings_name = this->self->champ_name;
 
@@ -1431,6 +1427,7 @@ void camera_load_ini ()
 	this->wait_loading_screen = strtol(ini_parser_get_value(parser, "wait_loading_screen"), NULL, 10);
 	this->ms_after_minimap_click = strtol(ini_parser_get_value(parser, "ms_after_minimap_click"), NULL, 10);
 	this->patch_border_screen_moving = strtol(ini_parser_get_value(parser, "patch_border_screen_moving"), NULL, 10);
+	this->distance_entity_nearby = atof(ini_parser_get_value(parser, "distance_entity_nearby"));
 
 	// Champion Settings
 	camera_load_settings(this->section_settings_name);
