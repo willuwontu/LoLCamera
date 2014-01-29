@@ -1082,12 +1082,12 @@ bool camera_entity_is_near (Entity *e, float limit)
 
 void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 {
-	float focus_x = 0.0, focus_y = 0.0;
-	float drag_x = 0.0, drag_y = 0.0;
-	float hint_x = 0.0, hint_y = 0.0;
-	float average_allies_x = 0.0, average_allies_y = 0.0;
-	float average_ennemies_x = 0.0, average_ennemies_y = 0.0;
-	float lmb_x = 0.0, lmb_y = 0.0;
+    Vector2D focus = vector2D_zero(),
+             drag = vector2D_zero(),
+             hint = vector2D_zero(),
+             allies = vector2D_zero(),
+             ennemies = vector2D_zero(),
+             lmb  = vector2D_zero();
 
 	switch (camera_mode)
 	{
@@ -1156,14 +1156,14 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 			}
 			else
 			{
-				lmb_x = this->champ->v.x - (this->translate_lmb.x);
-				lmb_y = this->champ->v.y - (this->translate_lmb.y);
+				lmb.x = this->champ->v.x - (this->translate_lmb.x);
+				lmb.y = this->champ->v.y - (this->translate_lmb.y);
 			}
 
 			if (this->drag_request)
 			{
-				drag_x = (this->drag_pos.x - this->mouse->v.x) * 10;
-				drag_y = (this->drag_pos.y - this->mouse->v.y) * 10;
+				drag.x = (this->drag_pos.x - this->mouse->v.x) * 10;
+				drag.y = (this->drag_pos.y - this->mouse->v.y) * 10;
 			}
 
 			if (this->global_weight_allies && this->global_weight_activated)
@@ -1185,8 +1185,8 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 						sum_y += this->nearby_allies[i]->p.v.y;
 					}
 
-					average_allies_x = sum_x / (float) this->nb_allies_nearby;
-					average_allies_y = sum_y / (float) this->nb_allies_nearby;
+					allies.x = sum_x / (float) this->nb_allies_nearby;
+					allies.y = sum_y / (float) this->nb_allies_nearby;
 				}
 			}
 
@@ -1209,8 +1209,8 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 						sum_y += this->nearby_ennemies[i]->p.v.y;
 					}
 
-					average_ennemies_x = sum_x / (float) this->nb_ennemies_nearby;
-					average_ennemies_y = sum_y / (float) this->nb_ennemies_nearby;
+					ennemies.x = sum_x / (float) this->nb_ennemies_nearby;
+					ennemies.y = sum_y / (float) this->nb_ennemies_nearby;
 				}
 			}
 
@@ -1218,23 +1218,20 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 			{
 				// ShareEntity is a Normal camera behavior + ally weight
 				focus_weight = this->focus_weight;
-				focus_x = this->focused_entity->p.v.x;
-				focus_y = this->focused_entity->p.v.y;
+				focus.x = this->focused_entity->p.v.x;
+				focus.y = this->focused_entity->p.v.y;
 			}
 
 			if (this->hint_entity != NULL)
 			{
 				hint_weight = this->hint_weight;
-				hint_x = this->hint_entity->p.v.x;
-				hint_y = this->hint_entity->p.v.y;
+				hint.x = this->hint_entity->p.v.x;
+				hint.y = this->hint_entity->p.v.y;
 			}
 
 			float weight_sum;
 			{
 				// Distances
-				Vector2D allies   = {.x = average_allies_x, .y = average_allies_y};
-				Vector2D ennemies = {.x = average_ennemies_x, .y = average_ennemies_y};
-
 				float distance_mouse_champ    = vector2D_distance(&this->mouse->v, &this->champ->v);
 				float distance_dest_champ     = vector2D_distance(&this->dest->v, &this->champ->v);
 				float distance_allies_champ   = vector2D_distance(&allies, &this->champ->v);
@@ -1258,7 +1255,7 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 				if (distance_allies_champ > this->distance_entity_nearby)
 					global_weight_allies = global_weight_allies * (((distance_allies_champ - this->distance_entity_nearby) * global_falloff_rate) + 1.0);
 
-				if (distance_ennemies_champ > this->champ_settings.mouse_range_max)
+				if (distance_ennemies_champ > this->distance_entity_nearby)
 					global_weight_ennemies = global_weight_ennemies * (((distance_ennemies_champ - this->distance_entity_nearby) * global_falloff_rate) + 1.0);
 
 				// if the mouse is far from dest, reduce dest weight (mouse is more important)
@@ -1274,24 +1271,24 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
                     (this->champ->v.x * champ_weight) +
                     (this->mouse->v.x * mouse_weight) +
                     (this->dest->v.x * dest_weight) +
-                    (focus_x * focus_weight) +
-					(hint_x * hint_weight) +
-                    (average_allies_x * global_weight_allies) +
-                    (average_ennemies_x * global_weight_ennemies) +
-                    (lmb_x * lmb_weight)
+                    (focus.x * focus_weight) +
+					(hint.x * hint_weight) +
+                    (allies.x * global_weight_allies) +
+                    (ennemies.x * global_weight_ennemies) +
+                    (lmb.x * lmb_weight)
                  ) / weight_sum
-					+ drag_x,
+					+ drag.x,
                 (
                     (this->champ->v.y * champ_weight) +
                     ((this->mouse->v.y - scrollbottom_offset) * mouse_weight) +
                     (this->dest->v.y * dest_weight) +
-                    (focus_y * focus_weight) +
-					(hint_y * hint_weight) +
-                    (average_allies_y * global_weight_allies) +
-                    (average_ennemies_y * global_weight_ennemies) +
-                    (lmb_y * lmb_weight)
+                    (focus.y * focus_weight) +
+					(hint.y * hint_weight) +
+                    (allies.y * global_weight_allies) +
+                    (ennemies.y * global_weight_ennemies) +
+                    (lmb.y * lmb_weight)
                 ) / weight_sum
-					+ drag_y
+					+ drag.y
             );
 		}
 		break;
