@@ -8,7 +8,7 @@
 #include "./Crypto/md5.h"
 #include <signal.h>
 
-#define LOLCAMERA_VERSION 0.194
+#define LOLCAMERA_VERSION 0.196
 
 char download_link[] = "https://sourceforge.net/projects/lolcamera/files";
 char download_host[] = "cznic.dl.sourceforge.net";
@@ -102,6 +102,10 @@ int main (int argc, char **argv)
     bool isOffline = (offline) ? atoi(offline) : 0;
     bool update_available = false;
     ini_parser_free(parser);
+
+    #ifdef DEBUG
+    isOffline = false;
+    #endif // DEBUG
 
 	// Check online version
 	if (!isOffline)

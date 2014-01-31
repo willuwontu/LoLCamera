@@ -151,7 +151,6 @@ void camera_reset ()
 
 	this->nb_allies_nearby = 0;
 	this->nb_ennemies_nearby = 0;
-
 	this->section_settings_name = "Default";
 }
 
@@ -215,12 +214,12 @@ static bool camera_left_click ()
 			break;
 
 			case 1:
-				// On release click anywhere :
-                    // Save LMB position
-                    save_lmb_pos();
-                    this->lbutton_state = 0;
-                    this->translate_lmb.x = this->champ->v.x - this->lmb.x;
-                    this->translate_lmb.y = this->champ->v.y - this->lmb.y;
+				// On release click anywhere
+                // Save LMB position
+                save_lmb_pos();
+                this->lbutton_state = 0;
+                this->translate_lmb.x = this->champ->v.x - this->lmb.x;
+                this->translate_lmb.y = this->champ->v.y - this->lmb.y;
 			break;
 
 			case 2:
@@ -246,13 +245,6 @@ static bool camera_left_click ()
                             this->restore_tmpcam = true;
                             this->lbutton_state = 0;
                         }
-                    }
-                    else
-                    {
-                        // Dead mode : we need to actualize the camera position to the current position
-                        camera_save_state(&this->cam->v);
-                        this->restore_tmpcam = true;
-                        this->lbutton_state = 0;
                     }
                 }
                 else
@@ -410,6 +402,10 @@ static CameraTrackingMode camera_get_mode ()
 	if (!camera_is_enabled())
         return NoUpdate;
 
+	// User hovered the interface, moving the camera uselessly
+	if (camera_interface_is_hovered())
+		return NoMove;
+
 	// If our champion is dead, set free mode
 	if (this->dead_mode)
 		return Free;
@@ -442,10 +438,6 @@ static CameraTrackingMode camera_get_mode ()
 	// The champion has been teleported far, focus on the champion
 	if (camera_reset_conditions())
 		return FocusSelf;
-
-	// User hovered the interface, moving the camera uselessly
-	if (camera_interface_is_hovered())
-		return NoMove;
 
     return Normal;
 }
@@ -1006,16 +998,14 @@ LoLCameraState camera_main ()
 		float camera_scroll_speed = camera_compute_camera_scroll_speed (camera_mode);
 
 		// Distance from ideal target and current camera
-		/*
-		float threshold_max = 200.0 + this->champ_settings.threshold;
+		float dist_target_cam = vector2D_distance(&target, &this->cam->v);
+		float threshold       = this->champ_settings.threshold;
 
-		float dist_target_cam = vector2D_distance_between(&target, &this->cam->v);
-		if ((dist_target_cam - threshold_max) > 0)
-            camera_scroll_speed *= ((dist_target_cam - threshold_max) / 100.0);
+		if (dist_target_cam > threshold)
+            camera_scroll_speed *= ((dist_target_cam - threshold) / 100.0);
 
 		// Apply to target
-		// vector2D_sscalar(&target, 1.0 + camera_scroll_speed);
-        */
+        vector2D_sscalar(&target, 1.0 + camera_scroll_speed);
 
         // Smoothing
 		if (abs(target.x - this->cam->v.x) > this->champ_settings.threshold)
@@ -1040,8 +1030,11 @@ LoLCameraState camera_main ()
 
 void camera_set_pos (float x, float y)
 {
-	mempos_set(this->camPos, x, y - 1000.0);
-	mempos_set(this->cam, x, y);
+    //if (!out_of_map(x, y))
+    {
+        mempos_set(this->camPos, x, y - 1000.0);
+        mempos_set(this->cam, x, y);
+    }
 }
 
 static float camera_compute_camera_scroll_speed (CameraTrackingMode camera_mode)
@@ -1122,6 +1115,26 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
              entity = (this->followed_entity) ? this->followed_entity->p.v : (Vector2D) vector2D_zero(),
              dest = this->dest->v;
 
+    // Weights
+    float champ_weight = this->champ_weight;
+    float mouse_weight = this->mouse_weight;
+    float dest_weight  = this->dest_weight;
+    float lmb_weight   = this->lmb_weight;
+    float hint_weight  = 0.0;
+    float focus_weight = 0.0;
+    float global_weight_allies   = 0.0;
+    float global_weight_ennemies = 0.0;
+
+    // Fix the perspective
+    if (mouse_weight)
+    {
+        // The camera goes farther when the camera is moving to the south
+        float distance_mouse_cam_y = cam.y - mouse.y;
+        if (distance_mouse_cam_y > 0.0) {
+            mouse.y -= (distance_mouse_cam_y * this->champ_settings.camera_scroll_speed_bottom); // <-- arbitrary value
+        }
+    }
+
 	switch (camera_mode)
 	{
 		case Free:
@@ -1151,28 +1164,6 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 
 		case Normal:
 		{
-			// Always activated
-			float champ_weight = this->champ_weight;
-			float mouse_weight = this->mouse_weight;
-			float dest_weight  = this->dest_weight;
-			float lmb_weight   = this->lmb_weight;
-
-			// Optional weights
-			float hint_weight = 0.0;
-			float focus_weight = 0.0;
-			float global_weight_allies = 0.0;
-			float global_weight_ennemies = 0.0;
-
-			// Fix the perspective
-            if (mouse_weight)
-            {
-            	// The camera goes farther when the camera is moving to the south
-				float distance_mouse_champ_y = champ.y - mouse.y;
-				if (distance_mouse_champ_y > 0.0) {
-					mouse.y -= (distance_mouse_champ_y * this->champ_settings.camera_scroll_speed_bottom); // <-- arbitrary value
-				}
-            }
-
 			// LMB is not set
 			if (this->lmb.x == 0 || this->lmb.y == 0)
 			{
@@ -1266,7 +1257,7 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 				// these values control how quickly the weights fall off the further you are
 				// from the falloff distance
 				float dest_falloff_rate  = 0.0001;
-				float mouse_falloff_rate = 0.0010;
+				float mouse_falloff_rate = 0.0001;
 				float global_falloff_rate = 0.0001;
 
 				// adjust weights based on distance

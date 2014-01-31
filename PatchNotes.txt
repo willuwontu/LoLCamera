@@ -1,3 +1,8 @@
+=== 31 / 01 / 14 ===
+- [FIX] Camera scroll speed formula has been reverted ; The camera behavior was too much different
+- [FIX] Global faloff for allies/ennemies has been improved
+
+
 === 29 / 01 / 14 ===
 - [NEW] Camera scroll speed formula has been improved (Thanks Care Level)
 - [FIX] Minimap bug should be fixed
