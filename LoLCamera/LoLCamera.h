@@ -101,10 +101,6 @@ struct _Camera
 	float camera_scroll_speed;		// This controls smoothing, smaller values mean slower camera movement
 	float threshold;				// Minimum threshold before calculations halted because camera is "close enough"
 									// Controls the range at which these factors start falling off :
-	float mouse_range_max,			// mouse-champ range
-		  dest_range_max,			// dest-champ range
-		  mouse_dest_range_max;		// mouse-dest range
-
 
 	// Camera system settings
 	int sleep_time;					// Sleep time at each start of main loop

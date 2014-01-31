@@ -1260,12 +1260,16 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 				float mouse_falloff_rate = 0.0001;
 				float global_falloff_rate = 0.0001;
 
-				// adjust weights based on distance
-				if (distance_dest_champ > this->champ_settings.dest_range_max)
-					dest_weight = dest_weight / (((distance_dest_champ - this->champ_settings.dest_range_max) * dest_falloff_rate) + 1.0);
+				float mouse_range_max = 1000.0;
+				float dest_range_max  = 3000.0;
+				float mouse_dest_range_max = 3000.0;
 
-				if (distance_mouse_champ > this->champ_settings.mouse_range_max)
-					champ_weight = champ_weight * (((distance_mouse_champ - this->champ_settings.mouse_range_max) * mouse_falloff_rate) + 1.0);
+				// adjust weights based on distance
+				if (distance_dest_champ > dest_range_max)
+					dest_weight = dest_weight / (((distance_dest_champ - dest_range_max) * dest_falloff_rate) + 1.0);
+
+				if (distance_mouse_champ > mouse_range_max)
+					champ_weight = champ_weight * (((distance_mouse_champ - mouse_range_max) * mouse_falloff_rate) + 1.0);
 
 				if (distance_allies_champ > this->distance_entity_nearby)
 					global_weight_allies = global_weight_allies * (((distance_allies_champ - this->distance_entity_nearby) * global_falloff_rate) + 1.0);
@@ -1274,8 +1278,8 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 					global_weight_ennemies = global_weight_ennemies * (((distance_ennemies_champ - this->distance_entity_nearby) * global_falloff_rate) + 1.0);
 
 				// if the mouse is far from dest, reduce dest weight (mouse is more important)
-				if (distance_mouse_dest > this->champ_settings.mouse_dest_range_max)
-					dest_weight = dest_weight / (((distance_mouse_dest - this->champ_settings.mouse_dest_range_max) / 1500.0) + 1.0);
+				if (distance_mouse_dest > mouse_dest_range_max)
+					dest_weight = dest_weight / (((distance_mouse_dest - mouse_dest_range_max) / 1500.0) + 1.0);
 
 				weight_sum = champ_weight + mouse_weight + dest_weight + focus_weight + hint_weight + global_weight_allies + global_weight_ennemies + lmb_weight;
 			}
@@ -1352,10 +1356,7 @@ void camera_load_settings (char *section)
 		char *possible_settings[] = {
 			[0] = "camera_scroll_speed",
 			[1] = "threshold",
-			[2] = "mouse_range_max",
-			[3] = "dest_range_max",
-			[4] = "mouse_dest_range_max",
-			[5] = "camera_scroll_speed_bottom"
+			[2] = "camera_scroll_speed_bottom"
 		};
 
 		for (int i = 0; i < sizeof_array(possible_settings); i++)
@@ -1374,22 +1375,7 @@ void camera_load_settings (char *section)
 						info("%s threshold = %f", section, this->champ_settings.threshold);
 					break;
 
-					case 2: // mouse_range_max
-						this->champ_settings.mouse_range_max = atof(value);
-						info("%s mouse_range_max = %f", section, this->champ_settings.mouse_range_max);
-					break;
-
-					case 3: // dest_range_max
-						this->champ_settings.dest_range_max = atof(value);
-						info("%s dest_range_max = %f", section, this->champ_settings.dest_range_max);
-					break;
-
-					case 4: // mouse_dest_range_max
-						this->champ_settings.mouse_dest_range_max = atof(value);
-						info("%s mouse_dest_range_max = %f", section, this->champ_settings.mouse_dest_range_max);
-					break;
-
-					case 5: // camera_scroll_speed_bottom
+					case 2: // camera_scroll_speed_bottom
 						this->champ_settings.camera_scroll_speed_bottom = atof(value);
 						info("%s camera_scroll_speed_bottom = %f", section, this->champ_settings.camera_scroll_speed_bottom);
 					break;
