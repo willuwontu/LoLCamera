@@ -1002,7 +1002,7 @@ LoLCameraState camera_main ()
 		float threshold       = this->champ_settings.threshold;
 
 		if (dist_target_cam > threshold)
-            camera_scroll_speed *= ((dist_target_cam - threshold) / 100.0);
+            camera_scroll_speed *= ((dist_target_cam - threshold) * 0.01);
 
 		// Apply to target
         vector2D_sscalar(&target, 1.0 + camera_scroll_speed);
@@ -1366,7 +1366,7 @@ void camera_load_settings (char *section)
 				switch (i)
 				{
 					case 0: // lerp rate
-						this->champ_settings.camera_scroll_speed = atof (value); // this controls smoothing, smaller values mean slower camera movement
+						this->champ_settings.camera_scroll_speed = atof (value) / 10000.0; // this controls smoothing, smaller values mean slower camera movement
 						info("%s camera_scroll_speed = %f", section, this->champ_settings.camera_scroll_speed);
 					break;
 
