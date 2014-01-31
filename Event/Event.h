@@ -2,17 +2,7 @@
 
 // ---------- Includes ------------
 #include <time.h>
-#ifndef WIN32
-#endif
-
-// ---------- Defines -------------
-#ifndef true
-#define true 1
-#define FALSE 0
-#endif
-#ifndef bool
-#define bool char
-#endif
+#include "../Utils/Utils.h"
 
 // ------ Class declaration -------
 

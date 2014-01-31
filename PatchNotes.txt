@@ -1,3 +1,8 @@
+=== 29 / 01 / 14 ===
+- [NEW] Camera scroll speed formula has been improved (Thanks Care Level)
+- [FIX] Minimap bug should be fixed
+- [NEW] Add "distance_entity_nearby" option in LoLCamera.ini, range at which the entities will be included in the global_weight (Thanks Care Level)
+
 === 26 / 01 / 14 ===
 - [RMV] The lock camera on ennemies (Fx key) has been removed.
 - [FIX] Settings in .ini were not loaded correctly

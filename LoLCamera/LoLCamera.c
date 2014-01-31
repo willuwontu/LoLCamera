@@ -72,7 +72,7 @@ static void camera_sensor_reset (bool reset_translation)
 	if (reset_translation)
 		camera_translation_reset();
 
-	mempos_set(this->cam, this->champ->v.x, this->champ->v.y);
+	camera_set_pos(this->champ->v.x, this->champ->v.y);
 	vector2D_set_zero(&this->lmb);
 
 	// Events reset
@@ -192,7 +192,7 @@ static bool camera_left_click ()
 				break;
 
 				case 3:
-					event_stop(&this->reset_after_minimap_click);
+                    event_stop(&this->reset_after_minimap_click);
 					this->lbutton_state = 2;
 				case 2:
 					save_lmb_pos();
@@ -243,27 +243,32 @@ static bool camera_left_click ()
                         {
                             // We actualize the camera position to the current view
                             camera_save_state(&this->cam->v);
-                            this->lbutton_state = 0;
                             this->restore_tmpcam = true;
+                            this->lbutton_state = 0;
                         }
                     }
                     else
                     {
                         // Dead mode : we need to actualize the camera position to the current position
                         camera_save_state(&this->cam->v);
-                        this->lbutton_state = 0;
                         this->restore_tmpcam = true;
+                        this->lbutton_state = 0;
                     }
+                }
+                else
+                {
+                    // Release click on minimap somewhere else
+                    this->lbutton_state = 0;
                 }
 			break;
 
 			case 3:
 				// Wait the end of the event before reseting
 				if (event_update(&this->reset_after_minimap_click))
-				{
+                {
 					event_stop(&this->reset_after_minimap_click);
 					this->restore_tmpcam = true;
-					this->wait_for_end_of_pause = FALSE;
+					this->wait_for_end_of_pause = false;
 					this->lbutton_state  = 0;
 					this->request_polling = true;
 				}
@@ -388,8 +393,7 @@ bool camera_reset_conditions ()
 {
 	float distance_traveled = vector2D_distance(&this->champ->v, &this->last_champpos);
 
-	return (
-		distance_traveled > 1000.0
+	return (distance_traveled > 1000.0
 	&&  !this->dead_mode
 	&&  !this->wait_for_end_of_pause);
 }
@@ -1002,22 +1006,23 @@ LoLCameraState camera_main ()
 		float camera_scroll_speed = camera_compute_camera_scroll_speed (camera_mode);
 
 		// Distance from ideal target and current camera
-		float threshold_min = this->champ_settings.threshold,
-              threshold_max = this->champ_settings.threshold + 500.0;
+		/*
+		float threshold_max = 200.0 + this->champ_settings.threshold;
 
 		float dist_target_cam = vector2D_distance_between(&target, &this->cam->v);
 		if ((dist_target_cam - threshold_max) > 0)
-            camera_scroll_speed *= ((dist_target_cam - threshold_max) / (threshold_min + 1.0));
+            camera_scroll_speed *= ((dist_target_cam - threshold_max) / 100.0);
 
 		// Apply to target
-		vector2D_sscalar(&target, 1.0 + camera_scroll_speed);
+		// vector2D_sscalar(&target, 1.0 + camera_scroll_speed);
+        */
 
         // Smoothing
 		if (abs(target.x - this->cam->v.x) > this->champ_settings.threshold)
-			this->cam->v.x += (target.x - this->cam->v.x) * 0.0010;
+			this->cam->v.x += (target.x - this->cam->v.x) * camera_scroll_speed;
 
 		if (abs(target.y - this->cam->v.y) > this->champ_settings.threshold)
-			this->cam->v.y += (target.y - this->cam->v.y) * 0.0010;
+			this->cam->v.y += (target.y - this->cam->v.y) * camera_scroll_speed;
 
 		// Keep this just before camera_set_pos(this->cam->v.x, this->cam->v.y);
         if (camera_mode == NoMove)
@@ -1136,12 +1141,12 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
 
 		case FollowEntity :
 			vector2D_set_pos(target, entity.x, entity.y);
-			mempos_set(this->cam, entity.x, entity.y);
+            camera_set_pos(entity.x, entity.y);
 		break;
 
 		case FocusSelf :
 			vector2D_set_pos(target, champ.x, champ.y);
-			mempos_set(this->cam, champ.x, champ.y);
+			camera_set_pos(champ.x, champ.y);
 		break;
 
 		case Normal:

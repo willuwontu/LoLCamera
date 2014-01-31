@@ -108,7 +108,7 @@ bool event_update (Event *this)
 
     if (this->elapsed > this->ms_max)
     {
-    	event_tick(this, now);
+        event_tick(this, now);
         return true;
     }
 
@@ -119,7 +119,9 @@ bool event_update (Event *this)
     bool res;
 
     if ((res = event_pulse(this)))
+    {
         event_tick(this, now);
+    }
 
     return res;
 }
