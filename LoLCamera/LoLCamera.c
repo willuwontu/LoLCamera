@@ -1450,7 +1450,9 @@ void camera_load_ini ()
 	this->distance_entity_nearby = atof(ini_parser_get_value(parser, "distance_entity_nearby"));
 
 	// Champion Settings
-	camera_load_settings(this->section_settings_name);
+	camera_load_settings("Default");
+	if (!str_equals(this->section_settings_name, "Default"))
+		camera_load_settings(this->section_settings_name);
 
 	// Settings - Input checking
 	struct SettingVal {
