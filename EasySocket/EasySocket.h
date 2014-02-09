@@ -5,14 +5,14 @@
  *  @date		:	2011-04-12-16.51
  *
  *
- *  EasySocket propose un ensemble de méthodes permettant l'utilisation agréable de socket en C.
- *  La librairie permet de faire abstraction de l'utilisation des threads par callback.
+ *  EasySocket offers a set of functions allowing the pleasant use of C sockets.
+ *  The library allows the abstraction of threads by callback.
  *
- *  Exemple :
+ *  Example :
  *  --------------------------------------------------------------------------------------
  *  void callback_client (EasySocketListened *esl)
  *  {
- *      printf("Hi ! You said : %s\n", esl->buffer);
+ *      printf("Hi! You said : %s\n", esl->buffer);
  *  }
  *
  *  void finish_callback (EasySocketListened *esl)
@@ -29,7 +29,7 @@
  *      EasySocketListened *client;
  *      char buffer[100];
  *
- *      // Example de serveur
+ *      // Example of server
  *      sock = es_server_new(1337, 100);
  *
  *      while (1)
@@ -64,10 +64,10 @@
 #include "../Utils/Utils.h"
 #include <windows.h>
 
-#define ES_ERROR_BIND       ((void*)-1)
-#define ES_ERROR_LISTEN     ((void*)-2)
-#define ES_ERROR_CONNECT    ((void*)-3)
-#define ES_ERROR_MALLOC     ((void*)-4)
+#define ES_ERROR_BIND    ((void*)-1)
+#define ES_ERROR_LISTEN  ((void*)-2)
+#define ES_ERROR_CONNECT ((void*)-3)
+#define ES_ERROR_MALLOC  ((void*)-4)
 
 // Working Macros
 #define _es_get_data(esl) \
@@ -139,7 +139,7 @@ int
 es_init(void);
 
 EasySocketListened *
-es_accept(EasySocket *server, int buffer_size_allocated);
+es_accept (EasySocket *server, int buffer_size_allocated);
 
 void
 es_listener (EasySocketListened *esl, void (*recv_callback)(EasySocketListened *sock), void (*finish_callback)(EasySocketListened *sock));
@@ -148,7 +148,7 @@ char *
 es_get_ip_from_hostname (char *addr);
 
 void
-es_send(EasySocket *es, char *msg, int len);
+es_send (EasySocket *es, char *msg, int len);
 
 unsigned char *
 es_recv (EasySocket *es, int *_out_size);
