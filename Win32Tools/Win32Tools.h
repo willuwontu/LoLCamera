@@ -61,7 +61,7 @@
 #define DEBUG_ACTIVATED 1
 #endif
 
-// ----------- Methods ------------
+// ----------- Functions ------------
 
 typedef LONG (WINAPI * NtUnmapViewOfSection)(HANDLE ProcessHandle, PVOID BaseAddress);
 

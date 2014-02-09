@@ -32,7 +32,7 @@
 #define MAP_HEIGHT 15200.0
 
 
-// ------ Class declaration -------
+// ------ Struct declaration -------
 typedef struct _Camera Camera;
 typedef struct _Minimap Minimap;
 
@@ -199,7 +199,7 @@ typedef enum {
 void camera_init (MemProc *mp);
 
 
-// ----------- Methods ------------
+// ----------- Functions ------------
 LoLCameraState camera_main ();
 bool camera_update ();
 void camera_load_ini ();

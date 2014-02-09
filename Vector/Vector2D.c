@@ -87,7 +87,7 @@ vector2D_equal (Vector2D *v1, Vector2D *v2)
 		&&  v1->y == v2->y);
 }
 
-// --- Accessors
+// --- Setters
 inline void
 vector2D_set_pos (Vector2D *v, float x, float y)
 {
@@ -95,6 +95,7 @@ vector2D_set_pos (Vector2D *v, float x, float y)
 	v->y = y;
 }
 
+// --- Getters
 inline void
 vector2D_get_pos (Vector2D *v, float *x, float *y)
 {

@@ -18,7 +18,7 @@
 #define ENTITY_TEAM_PURPLE	0xC8
 
 
-// ------ Class declaration -------
+// ------ Struct declaration -------
 typedef
 struct _Entity
 {
@@ -48,7 +48,7 @@ entity_new (MemProc *mp, DWORD addr);
 bool
 entity_init (Entity *e, MemProc *mp, DWORD addr);
 
-// ----------- Methods ------------
+// ----------- Functions ------------
 
 bool
 entity_is_dead (Entity *e);

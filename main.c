@@ -93,7 +93,7 @@ int main (int argc, char **argv)
 	important("Sources & Hotkeys : https://github.com/Spl3en/LoLCamera");
 	important("Last .exe version : https://sourceforge.net/projects/lolcamera/files");
 	important("------------------------------------------------------------------");
-	important("Keep pressing X in this console to exit safely (strongly recommanded)");
+	important("Keep pressing X in this console to exit safely (strongly recommended)");
 	important("------------------------------------------------------------------");
 
     IniParser *parser = ini_parser_new("LoLCamera.ini");

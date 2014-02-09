@@ -56,7 +56,7 @@ ini_parser_new_internal (char *filename)
 }
 
 /** * * * * * * * *
-*	 @Methods	 *
+*	 @Functions   *
  * * * * * * * * * */
 
 int

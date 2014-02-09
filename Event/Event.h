@@ -4,7 +4,7 @@
 #include <time.h>
 #include "../Utils/Utils.h"
 
-// ------ Class declaration -------
+// ------ Struct declaration -------
 
 typedef struct _Event
 {
@@ -26,7 +26,7 @@ event_new (int min, int max);
 
 Event *event_alloc();
 
-// ----------- Methods ------------
+// ----------- Functions ------------
 void event_init (Event *event, int min, int max);
 void event_start (Event *event, clock_t now);
 void event_start_now (Event *event);

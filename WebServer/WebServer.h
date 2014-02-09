@@ -8,7 +8,7 @@
 // ---------- Defines -------------
 
 
-// ------ Class declaration -------
+// ------ Struct declaration -------
 
 typedef
 struct _WebServer
@@ -35,7 +35,7 @@ enum _WebServerAction
 
 void webserver_connect ();
 
-// ----------- Methods ------------
+// ----------- Functions ------------
 
 char * webserver_do (WebServerAction action, ...);
 
