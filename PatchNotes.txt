@@ -91,7 +91,7 @@
 === 21 / 08 / 13 ===
 
 - From now on, reloading ini with 'R' is possible (press R in console, not in game)
-- The camera doesn't reset immediatly after a minimap click : a short delay before it resets has been introduced (configurable in .ini with "ms_after_minimap_click")
+- The camera doesn't reset immediatly after a minimap click : a short delay before it resets has been introduced (configurable in .ini with "ms_after_minimap_click") (Thanks manbear666!)
 - Fix some annoyance with minimap clicking
 - LMB_weight is disabled by default
 
