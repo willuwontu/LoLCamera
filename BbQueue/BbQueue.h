@@ -245,7 +245,7 @@ void
 bb_queue_init                (BbQueue *q);
 
 	/**=================
-		  @Methods
+		  @Functions
 	===================*/
 
 /* BbChild */
@@ -302,7 +302,7 @@ bb_queue_replace             (BbQueue *queue, void *data1, void *data2);
 
 	/*!
 		- Pick : Same as get, but prevent removing the child from the BbQueue
-		- Accessors of the BbQueue on Read-Only
+		- Getters of the BbQueue on Read-Only
 	*/
 void *
 bb_queue_pick_nth            (BbQueue *queue, int pos);
@@ -313,10 +313,12 @@ bb_queue_pick_first          (BbQueue *queue);
 void *
 bb_queue_pick_last           (BbQueue *queue);
 
-	/*! Child Accessors : For optimizations */
+	/*! Child Setters : For optimizations */
 
 void
 bb_queue_add_child           (BbQueue *queue, BbChild *c);
+
+	/*! Child Getters : For optimizations */
 
 BbChild *
 bb_queue_pick_child          (BbQueue *queue, void *data);

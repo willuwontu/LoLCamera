@@ -7,7 +7,7 @@
 // ---------- Defines -------------
 
 
-// ------ Class declaration -------
+// ------ Struct declaration -------
 typedef
 struct _CameraSettings
 {
@@ -23,7 +23,7 @@ CameraSettings *
 camera_settings_new (float camera_scroll_speed, float threshold);
 
 
-// ----------- Methods ------------
+// ----------- Functions ------------
 
 void
 camera_settings_init(CameraSettings *this, float camera_scroll_speed, float threshold);

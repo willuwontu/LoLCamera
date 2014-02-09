@@ -8,7 +8,7 @@
 #include "Ztring.h"
 
 /**
-*	Private Methods
+*	Private Functions
 */
 static int
 str_sort_by_alpha_ex (char *str1, char *str2, int n)
@@ -69,7 +69,7 @@ is_base64 (char c)
 }
 
 /**
-*	Public Methods
+*	Public Functions
 */
 Ztring *
 ztring_new (void)

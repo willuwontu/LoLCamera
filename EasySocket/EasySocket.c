@@ -47,7 +47,7 @@
 /* Private variables */
 bool wsadata_initialized = FALSE;
 
-/* Private Methods */
+/* Private Functions */
 
 static void
 _ex_es_listener (EasySocketListenerArgs *esla)
@@ -73,7 +73,7 @@ _ex_es_listener (EasySocketListenerArgs *esla)
     CloseHandle(esl->thread);
 }
 
-/* Public Methods */
+/* Public Functions */
 
 /**
  *    @Constructors
@@ -183,7 +183,7 @@ es_client_new_from_host (char *hostname, int port)
 }
 
 /**
- *  @Accessors
+ *  @Setters
  */
 // Existe en macro
 void
@@ -192,6 +192,9 @@ _es_func_set_data (EasySocketListened *esl, void *data)
     esl->_data = data;
 }
 
+/**
+ *  @Getters
+ */
 void *
 _es_func_get_data (EasySocketListened *esl)
 {
@@ -201,7 +204,7 @@ _es_func_get_data (EasySocketListened *esl)
 
 
 /**
- *  @Methods
+ *  @Functions
  */
 
 int

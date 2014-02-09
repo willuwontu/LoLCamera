@@ -14,14 +14,14 @@
 // ---------- Defines -------------
 
 
-// ------ Class declaration -------
+// ------ Struct declaration -------
 
 
 
 // --------- Constructors ---------
 
 
-// ----------- Methods ------------
+// ----------- Functions ------------
 
 
 BbQueue *memscan_search (MemProc *mp, unsigned char *desc, unsigned char *pattern, unsigned char *search_mask, unsigned char *res_mask);

@@ -103,7 +103,7 @@ buffer_new_from_ptr_noalloc (unsigned char *ptr, int size);
 
 
 	/** * * * * * * * *
-	*	 @Methods	*
+	*	 @Functions	*
 	* * * * * * * * * */
 /* * Buffer * */
 

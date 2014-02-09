@@ -132,7 +132,7 @@ EasySocket *
 es_server_new (int port, int max_connection);
 
 	/**=================
-		  @Methods
+		  @Functions
 	===================*/
 
 int
