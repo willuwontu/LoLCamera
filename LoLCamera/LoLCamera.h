@@ -51,25 +51,25 @@ struct _Camera
 	DWORD border_screen_addr;		// Address of the instructions moving the camera
 	DWORD locked_camera_addr;		// Address of the instructions moving the camera on locked camera
 	DWORD camera_movement_addr;		// Address of the instructions moving the camera when the mouse reaches the border of the screen
-	DWORD win_is_opened_ptr;		// Address of the data : address of the pointer to the variable containing "isShopOpen" (different of 0 if its the case)
-	DWORD entities_addr;			// Address of the data : entities array start
-	DWORD entities_addr_end;		// Address of the data : entities array end
-	DWORD players_addr;				// Address of the data : entities array start
-	DWORD players_addr_end;			// Address of the data : entities array end
-	DWORD camx_addr, camy_addr; 	// Address of the data : cameraX, cameray (to write)
-	DWORD camx_val, camy_val; 		// Address of the data : cameraX, cameray (values)
-	DWORD champx_addr, champy_addr;	// Address of the data : championX / championY
-	DWORD mousex_addr, mousey_addr; // Address of the data : mouseX / mouseY
-	DWORD destx_addr, desty_addr;   // Address of the data : destX / destY (right click)
-	DWORD win_is_opened_addr;		// Address of the data : address of the variable containing "isShopOpen" (different of 0 if its the case)
+	DWORD win_is_opened_ptr;		// Address of the data: address of the pointer to the variable containing "isShopOpen" (different of 0 if it is the case)
+	DWORD entities_addr;			// Address of the data: entities array start
+	DWORD entities_addr_end;		// Address of the data: entities array end
+	DWORD players_addr;				// Address of the data: entities array start
+	DWORD players_addr_end;			// Address of the data: entities array end
+	DWORD camx_addr, camy_addr; 	// Address of the data: cameraX, cameray (to write)
+	DWORD camx_val, camy_val; 		// Address of the data: cameraX, cameray (values)
+	DWORD champx_addr, champy_addr;	// Address of the data: championX / championY
+	DWORD mousex_addr, mousey_addr; // Address of the data: mouseX / mouseY
+	DWORD destx_addr, desty_addr;   // Address of the data: destX / destY (right click)
+	DWORD win_is_opened_addr;		// Address of the data: address of the variable containing "isShopOpen" (different of 0 if it is the case)
 
-	DWORD loading_state_addr;		// Adress of the data : loading state
-	DWORD game_info_addr;			// Adress of the data : info of the game
-	DWORD victory_state_addr;		// Adress of the data : Victory or Defeat
+	DWORD loading_state_addr;		// Adress of the data: loading state
+	DWORD game_info_addr;			// Adress of the data: info of the game
+	DWORD victory_state_addr;		// Adress of the data: Victory or Defeat
 
-	DWORD interface_hovered_addr;	// Address of the data : Is the interface hovered ?
+	DWORD interface_hovered_addr;	// Address of the data: Is the interface hovered?
 	DWORD mmsize_addr;              // Address of the array containing the size of the minimap on the screen
-	DWORD ping_state_addr;          // Address of the data : Has ping button been pressed ?
+	DWORD ping_state_addr;          // Address of the data: Has ping button been pressed?
 
 	// Offsets in the game structure
 	DWORD champx_offset;
@@ -99,12 +99,12 @@ struct _Camera
 	CameraSettings all_settings[200]; // Champion specific settings
 	CameraSettings champ_settings;	  // Current champion settings
 	float camera_scroll_speed;		// This controls smoothing, smaller values mean slower camera movement
-	float threshold;				// Minimum threshold before calculations halted because camera is "close enough"
-									// Controls the range at which these factors start falling off :
+	float threshold;				// Minimum threshold before calculations are halted because the camera is "close enough"
+									// Controls the range at which these factors start falling off
 
 	// Camera system settings
-	int sleep_time;					// Sleep time at each start of main loop
-	int poll_data;					// Number of loops required for polling data
+	int sleep_time;					// Sleep time at each start of the main loop
+	int poll_data;					// Number of loops required to poll data
 
 	// List of patchs
 	Patch *camera_movement;			// Disables the behavior "Move the camera"
@@ -119,13 +119,13 @@ struct _Camera
 	Entity *self;					// The player champion
 	char self_name[17];
 	Entity *nearby[10];				// Array of entities nearby the champion
-	Entity *nearby_allies[5];		// Array of allies entities nearby the champion
-	Entity *nearby_ennemies[5];		// Array of ennemies entities nearby the champion
+	Entity *nearby_allies[5];		// Array of ally entities nearby the champion
+	Entity *nearby_ennemies[5];		// Array of ennemy entities nearby the champion
 	float distance_entity_nearby;
 	int nb_allies_nearby;
 	int nb_ennemies_nearby;
 
-	// Weights : Configurable in ini
+	// Weights: Configurable in ini
 	float focus_weight;
 	float hint_weight;
 	float champ_weight;
@@ -139,8 +139,8 @@ struct _Camera
 	int playersCount;				// Size of the entities array
 
 	// Vector positions
-	MemPos *cam;					// Camera ingame position (values only)
-	MemPos *camPos;					// Camera ingame position (real position to write)
+	MemPos *cam;					// Ingame camera position (values only)
+	MemPos *camPos;					// Ingame camera position (real position to write)
 	MemPos *champ;					// User champion position
 	MemPos *dest;					// Last Right mouse button click position
 	MemPos *mouse;					// Mouse position
@@ -148,22 +148,22 @@ struct _Camera
 	Vector2D lmb;					// Last Left mouse button click position
 	Vector2D last_campos;			// Last camera position
 	Vector2D last_champpos;			// Last champion position
-	Vector2D drag_pos;				// Position IG where the drag started
+	Vector2D drag_pos;				// IG position where the drag started
 	Vector2D translate_lmb;			// Translation value from lmb clicking
 
 	// Key states
 	short int last_toggle_state;
 	int mbutton_state;
 	int lbutton_state;
-	int fxstate;						// Fx is pressed ?
+	int fxstate;						// Is Fx pressed?
 
 	// Program state
 	bool restore_tmpcam;				// Request to restore the temporary camera
 	bool drag_request;					// User requested a drag
 	bool active;						// Loop state
 	bool request_polling; 				// Force to poll data the next loop if true
-	int interface_opened;				// Interface state (window focus : shop, chat, etc)
-	bool enabled;						// LoLCamera enabled ?
+	int interface_opened;				// Interface state (window focus: shop, chat, etc)
+	bool enabled;						// Is LoLCamera enabled?
 	bool dbg_mode;						// For unit tests
 	bool wait_loading_screen;			// Wait for the start of the game
 	bool interface_hovered;

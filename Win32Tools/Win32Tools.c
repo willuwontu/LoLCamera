@@ -493,7 +493,7 @@ _debug (char *msg, ...)
 DWORD
 find_pattern_process (HANDLE process, DWORD start, DWORD end, unsigned char *pattern, char* mask)
 /*
-*	Exemple :
+*	Example:
 *	char *pattern = "\x00\xC0\xB7\x44\x00\xC0";
 *	DWORD address = find_pattern_process(process, 0x800000, 0xF00000, (PBYTE) pattern, "xxx??x");
 *	returns 0 on error
@@ -621,7 +621,7 @@ create_mask_from_file (char *filename)
 
 		if (bb_queue_get_length(line1) != bb_queue_get_length(line2))
 		{
-			warning("Pattern lines aren't the same length.");
+			warning("Pattern lines do not have the same length.");
 			return NULL;
 		}
 

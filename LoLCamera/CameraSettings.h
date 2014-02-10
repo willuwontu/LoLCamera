@@ -13,7 +13,7 @@ struct _CameraSettings
 {
 	float camera_scroll_speed;
 	float threshold;
-	float camera_scroll_speed_bottom; // speed for going to the south
+	float camera_scroll_speed_bottom; // speed when going to the south
 
 }	CameraSettings;
 

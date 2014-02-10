@@ -30,7 +30,7 @@ struct _Entity
 	MemProc *ctxt;
 	DWORD entity_data; // <-- ptr to the structure
 
-	char player_name[32]; // max name length = 16
+	char player_name[32]; // max name length = 32
 	char champ_name[32];
 	int team;
 
