@@ -1,9 +1,9 @@
 /**
- *  @author	 :   Spl3en
- *  @file	   :   Ztring.h
- *  @version	:   1.6
+ *  @author  :   Spl3en
+ *  @file    :   Ztring.h
+ *  @version :   1.6
  *
- *  Ztring offre un ensemble de fonctionnalitées de manipulation de chaînes de caractères et de fichiers.
+ *  Ztring offers a set of functionalities to manipulate character strings and files.
  *
  *  Changelog :
  *
@@ -19,18 +19,18 @@
  *		  [ADD]	   str_b64_decode
  *
  *	  [+] 1.2
- *		  [ADD]	   file_is_word_exists (DEPRECATED en 1.5)
+ *		  [ADD]	   file_is_word_exists (DEPRECATED in 1.5)
  *
  *	  [+] 1.3
  *		  [ADD]	   ztring_new, ztring_new_with_text
  *		  [ADD]	   ztring functions
  *
  *	  [+] 1.4
- *		  [FIX]	   Optimisation de str_replace et autres algo de recherches
+ *		  [FIX]	   Optimization of str_replace and other search algorithms
  *
  *	  [+] 1.5
- *		  [RMV]	   file_is_word_exists retirée (buggée)
- *		  [FIX]	   str_pos fonctionne désormais commme la fonction php et non plus comme strstr du C
+ *		  [RMV]	   file_is_word_exists removed (bugged)
+ *		  [FIX]	   str_pos now behaves liek the PHP function and not lik strstr from C anymore
  *		  [ADD]	   str_explode
  *		  [ADD]	   file_get_size
  *

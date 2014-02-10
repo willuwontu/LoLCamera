@@ -1,51 +1,51 @@
 /**
  *  @author	 :   Moreau Cyril <spl3en.contact@gmail.com>
- *  @file	   :   IniParser.c
- *  @version	:   1.4
+ *  @file	 :   IniParser.c
+ *  @version :   1.4
  *
- *  IniParser est un ensemble de méthodes facilitant la lecture d'un fichier de type .ini.
- *  Pour se faire, il faut respecter un certain nombre de conditions :
- *  - Une seule valeur par ligne
- *  - Les valeurs sont définies ainsi : clef = valeur
- *  - Les valeurs numériques et alphabétiques sont acceptées, mais les valeurs numériques doivent être traitées avec atoi() pour être lues.
- *  - Les lignes commencant par un [ seront considérées comme commentaire, et tout ce qui suit le caractère ; sera considéré aussi comme tel : vous pouvez y écrire par la suite ce que vous souhaitez.
+ *  IniParser is a set of functions facilitating the reading of an .ini file
+ *  In order to do this, several conditions have to be respected:
+ *  - A single value per line
+ *  - The values are defined as follows: key = value
+ *  - Numerical and alphabetical values are accepted, but numerical valued have to be handled with atoi() in order to be read.
+ *  - Lines beginning with a [ will be considered as a comment, and everything which follow the character ; will be considered as one as well: anything can then written afterwards.
  *
- *  Pour l'utiliser, il faudra au préalable renseigner au parser l'ensemble des clef du .ini,
- *  via la fonction ini_parser_register_key.
- *  Néanmoins, si vous considérez avoir besoin de toutes les clées du fichier, vous pouvez utiliser ini_parser_reg_and_read qui se chargera
- *  d'enregistrer et de lire le fichier à votre place.
+ *  To use it, the set of keys of the .ini will have to be provided to the parser beforehand, 
+ *  using the function ini_parser_register_key.
+ *  Nevertheless, if all the keys of the file are needed, ini_parser_reg_and_read can be used to
+ *  save and read the file at your place.
  *
- *  Pour récupérer une valeur, il suffira d'un ini_parser_get_value(parser, key) qui retournera un "char *" contenant votre valeur. (sous format ASCII)
- *  N'oubliez pas d'utiliser la fonction atoi() sur vos valeurs numériques.
+ *  To retrieve a value, ini_parser_get_value(parser, key) will suffice. It will return a "char *" containing your value. (in ASCII format)
+ *  The atoi() function should not be forgotten for numerical values.
  *
- *  En comparaison, la méthode de récupèration des valeurs de l'IniParser peut être assimilée à un tableau associatif.
+ *  In comparison, the method of retrival of the values of the IniParser can be assimilated to an associative array.
  *
- *  Exemple :
+ *  Example :
  *	  IniParser *parser = ini_parser_new("config.ini");
  *	  ini_parser_reg_and_read(parser);
  *	  int value = atoi(ini_parser_get_value(parser, "INI_VALUE"));
  *
- *	  * ou avec internal *
+ *	  * or with internal *
  *
  *	  ini_parser_new_internal("config.ini");
  *	  ini_parser_reg_and_read_internal();
  *	  int value = atoi(ini_parser_get_value_internal("INI_VALUE"));
  *
  *	Changelog :
- *		[+] v1.1 :
- *			- [ADD]	 Les variables alphabétiques sont maintenant acceptées
+ *	  [+] v1.1 :
+ *		  - [ADD]	 Alphabetical variables are now accepted
  *
  *	  [+] v1.2 :
- *		  - [ADD]	 Les commentaires sont aussi permis grâce au caractère ';'
- *		  - [BUGFIX]  ini_parser_unref : mémoire libérée fixée
- *		  - [ADD]	 Utilisation des BbQueue au lieu des GQueue
+ *		  - [ADD]	 Comments are also allowed thanks to the ';' character
+ *		  - [BUGFIX] ini_parser_unref : freed memory fixed
+ *		  - [ADD]	 Usage of the BbQueues instead of GQueues
  *
  *	  [+] v1.3 :
- *		  - [ADD]	 ini_parser_reg_and_read : Enregistre et lis le fichier de manière automatisée
+ *		  - [ADD]	 ini_parser_reg_and_read : Saves and reads files in an automated fashion
  *
  *	  [+] v1.4 :
- *		  - [ADD]	 Toutes les fonctions ont maintenant leur version "singleton" :
- *					  On se débarrasse ainsi du pointeur sur IniParser
+ *		  - [ADD]	 Every functions have their "singleton" version:
+ *					  This allows us to get rid of the IniParser pointer
  */
 
 #ifndef INIPARSER_H_INCLUDED

@@ -115,7 +115,7 @@ entity_is_visible (Entity *e)
 void
 entity_debug (Entity *e)
 {
-	debug("Entity DEBUG (0x%.8x) : x=%f / y=%f - hp=%f / hpm=%f - (%s) (%s) - %s - (%d)",
+	debug("Entity DEBUG (0x%.8x): x=%f / y=%f - hp=%f / hpm=%f - (%s) (%s) - %s - (%d)",
 		e->entity_data, e->p.v.x, e->p.v.y, e->hp, e->hp_max, e->player_name, e->champ_name, (e->team == ENTITY_TEAM_BLUE) ? "blue" : "purple", e->isVisible);
 }
 
