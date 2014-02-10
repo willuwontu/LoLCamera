@@ -29,7 +29,7 @@ Contributors of this project :
 - jtjin 
 - MrGoodKill
 - SephirothSG
-- BurningMind
+- Tristan 'BurningMind' Bourvon
 
 
 Demo Video
