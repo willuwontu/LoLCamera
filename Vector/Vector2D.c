@@ -196,7 +196,7 @@ vector2D_set_zero (Vector2D *v)
 void
 vector2D_debug (Vector2D *v)
 {
-	printf("Vector Debug: %p\n"
+	printf("Vector Debug : %p\n"
 		   "-----------------------\n"
 		   "x = %f\n"
 		   "y = %f\n\n",

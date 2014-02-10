@@ -2,7 +2,7 @@
  *	@author		:	Spl3en (Moreau Cyril) <spl3en.contact@gmail.com>
  *	@file		:	EasySocket.c
  *
- *	More information in EasySocket.h
+ *	Furthermore informations in EasySocket.h
 */
 #include "EasySocket.h"
 #include <stdlib.h>
@@ -185,7 +185,7 @@ es_client_new_from_host (char *hostname, int port)
 /**
  *  @Setters
  */
-// Exists as a macro
+// Existe en macro
 void
 _es_func_set_data (EasySocketListened *esl, void *data)
 {

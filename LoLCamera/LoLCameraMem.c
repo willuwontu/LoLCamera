@@ -113,7 +113,7 @@ bool camera_scan_patch (void)
 	);
 
 	camera_get_patch (
-		this->mp, "Lock the camera (value) on locked camera",
+		this->mp, "Lock the camera (value) on camera locked",
 		&this->locked_camera_addr,
 
 		(unsigned char[]) {
@@ -204,7 +204,7 @@ bool camera_scan_camval (void)
 	BbQueue *res = memscan_search(this->mp, description,
 		(unsigned char []) {
 		/*
-			Find Camera_value:
+			Find Camera_value :
 
 			1:
 				68E6D24A    ║·   [1] lea edi, [ecx+5254]
@@ -1465,9 +1465,9 @@ bool camera_refresh_win_is_opened (void)
 	Camera *this = camera_get_instance();
 
 	this->interface_opened = read_memory_as_int(this->mp->proc, this->win_is_opened_addr + 0x244);
-	// Shop opened: 4
-	// Chat opened: 2
-	// Nothing    : 1
+	// Shop opened : 4
+	// Chat opened : 2
+	// Nothing     : 1
 
 	return this->interface_opened != 0;
 }
@@ -1487,10 +1487,10 @@ void camera_save_patch (long int id, DWORD *addr, unsigned char *code, int len)
 	sprintf(patch_path, "./patches/patch_%ld", id);
 	FILE *patch_file = fopen(patch_path, "wb+");
 
-	// 1st try: the folder may not exist
+	// 1st try : the folder maybe doesn't exist
 	if (!patch_file)
 	{
-		// Maybe the patches folder doesn't exit
+		// Maybe patches folder doesn't exit
 		_mkdir("patches");
 		patch_file = fopen(patch_path, "w+");
 	}
@@ -1498,7 +1498,7 @@ void camera_save_patch (long int id, DWORD *addr, unsigned char *code, int len)
 	// 2nd try
 	if (!patch_file)
 	{
-		warning("Cannot save patches. Please exit with X ONLY or it may crash the client.");
+		warning("Cannot save patches. Please exit with X ONLY or it may crashes the client.");
 		return;
 	}
 
@@ -1515,7 +1515,7 @@ unsigned char *camera_read_patch (long int id, int *len, DWORD *addr)
 	sprintf(patch_path, "./patches/patch_%ld", id);
 	FILE *patch_file = fopen(patch_path, "rb");
 
-	// 1st try: the folder may not exist
+	// 1st try : the folder maybe doesn't exist
 	if (!patch_file)
 	{
 		return NULL;
@@ -1541,7 +1541,7 @@ static Patch *camera_get_patch (MemProc *mp, char *description, DWORD *addr, uns
 	// Get the address of the signature
 	if (!camera_search_signature (sig, addr, &code, sig_mask, description))
 	{
-		// Error: Try to restore the former saved patches
+		// Error : Try to restore the former saved patches
 		code = camera_read_patch(patch_id, &len, addr);
 
 		if ((code != NULL)
@@ -1581,7 +1581,7 @@ void camera_get_patches (Patch **patches, int size, MemProc *mp, char *descripti
 			DWORD addr;
 			(void) mb;
 
-			// Error: Try to restore the former saved patches
+			// Error : Try to restore the former saved patches
 			code = camera_read_patch(patch_id, &len, &addr);
 			if ((code != NULL)
 			&&  (write_to_memory(mp->proc, code, addr, len)))
@@ -1646,7 +1646,7 @@ static bool camera_search_signature (unsigned char *pattern, DWORD *addr, unsign
 	if (bb_queue_get_length(results) > 1)
 	{
 		printf("\n");
-		warning("Multiple occurences of \"%s\" found (%d found):", name, bb_queue_get_length(results));
+		warning("Multiple occurences of \"%s\" found (%d found) :", name, bb_queue_get_length(results));
 
 		foreach_bbqueue_item (results, memblock) {
 			debugb(" -> 0x%.8x\n", (int) memblock->addr);

@@ -10,7 +10,7 @@ BbQueue *memscan_search (MemProc *mp, unsigned char *desc, unsigned char *patter
 
 	if (bb_queue_get_length(results) > 1)
 	{
-		debugb("%s: (%d) occurences found: ", desc, bb_queue_get_length(results));
+		debugb("%s : (%d) occurences found : ", desc, bb_queue_get_length(results));
 		foreach_bbqueue_item (results, MemBlock *block)
 			debugb("0x%.8x ", (int) block->addr);
 		debugb("\n");
@@ -18,7 +18,7 @@ BbQueue *memscan_search (MemProc *mp, unsigned char *desc, unsigned char *patter
 
 	if (bb_queue_get_length(results) == 0)
 	{
-		important("\"%s\": Nothing found", desc);
+		important("\"%s\" : Nothing found", desc);
 		return NULL;
 	}
 
@@ -33,7 +33,7 @@ BbQueue *memscan_search (MemProc *mp, unsigned char *desc, unsigned char *patter
 
 	results = scan_search(str, res_mask);
 
-	debug("\"%s\": found at 0x%.8x :", desc, ptr);
+	debug("\"%s\" : found at 0x%.8x :", desc, ptr);
 	str = desc;
 
 	foreach_bbqueue_item (results, Buffer *b)

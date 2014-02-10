@@ -180,7 +180,7 @@ memproc_update (MemProc *mp, BbQueue *memblocks)
 	foreach_bbqueue_item (memblocks, mb)
 	{
 		memblock_read_from_memory (mp, mb);
-		// TODO: impact of the update of the buffer of the mc
+		// TODO : impact de l'update dans le buffer des mc
 	}
 }
 

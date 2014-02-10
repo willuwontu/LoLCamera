@@ -2,7 +2,7 @@
  *  @author	 :   Moreau Cyril - Spl3en
  *  @file	   :   IniParser.c
  *
- *  More information in IniParser.h
+ *  Furthermore informations in IniParser.h
  */
 
 #include "IniParser.h"
@@ -33,7 +33,7 @@ IniParser *
 ini_parser_new (char *filename)
 /**
 *   Instancie un IniParser
-*   @param  filename  : Name of the configuration file to parse
+*   @param  filename  : Nom du fichier de configuration à parser
 *   @return IniParser
 */
 {
@@ -62,9 +62,9 @@ ini_parser_new_internal (char *filename)
 int
 ini_parser_register_key (IniParser *ip, char *field)
 /**
-*   Saves a key in IniParser
-*   @param  field : the key
-*   @return int   : The index of the saved key
+*   Enregistre une clef dans l'iniParser
+*   @param  field : la clef
+*   @return int   : L'index de la clé enregistrée
 */
 {
 	assert(ip != NULL);
@@ -89,7 +89,7 @@ ini_parser_register_key_internal (char *field)
 void
 ini_parser_reg_and_read (IniParser *ip)
 /**
-*   Automatically saves every key and reads the file
+*   Enregistre automatiquement toutes les clés et lis le fichier
 */
 {
 	assert(ip != NULL);
@@ -114,7 +114,7 @@ ini_parser_reg_and_read (IniParser *ip)
 
 	if (!fHandler)
 	{
-		printf("%s: Cannot read the %s file!\n", __FUNCTION__, ip->filename);
+		printf("%s : Cannot read the %s file !\n", __FUNCTION__, ip->filename);
 		exit(0);
 	}
 
@@ -231,12 +231,12 @@ ini_parser_reg_and_read_internal ()
 void
 ini_parser_read (IniParser *ip)
 /**
-*   Parses an .ini file
-*   @param ip : The pointer to IniParser
+*   Parse un fichier .ini.
+*   @param ip : Le pointeur sur IniParser
 *
-*   /!\ Beware!
+*   /!\ Attention !
 *
-*   After this point, the keys must already be saved manually via ini_parser_register_key
+*   A partir de ce point, les clef doivent déja être enregistrées manuellement via ini_parser_register_key
 */
 {
 	assert(ip != NULL);
@@ -261,7 +261,7 @@ ini_parser_read (IniParser *ip)
 
 	if (!fHandler)
 	{
-		printf("%s: Cannot read the ini file!\n", __FUNCTION__);
+		printf("%s : Cannot read the ini file !\n", __FUNCTION__);
 		exit(0);
 	}
 
@@ -373,8 +373,8 @@ ini_parser_read_internal ()
 void
 ini_parser_debug (IniParser *ip)
 /**
-*   Displays the set of keys of the IniParser.
-*   Useful for debugging.
+*   Affiche l'ensemble des clef de l'IniParser.
+*   Utile pour le debuggage.
 */
 {
 	int i, len = bb_queue_get_length(ip->vList);
@@ -400,9 +400,9 @@ ini_parser_debug_internal ()
 char
 ini_parser_get_char (IniParser *ip, char *field)
 /**
-*   Returns the character of the associated key
-*   @param  char *field	 : key we want the value of
-*   @return char		 : associated character or 0 in case the key is missing
+*   Retourne le character de la clef associée
+*   @param  char *field	 : clef dont on veut la valeur
+*   @return char		  : character associé ou 0 en cas d'absence de la clef
 */
 {
 	int index;
@@ -431,9 +431,9 @@ ini_parser_get_char (IniParser *ip, char *field)
 void *
 ini_parser_get_value (IniParser *ip, char *field)
 /**
-*   Returns the value of the associated key
-*   @param  char *field	 : key we want the value of
-*   @return void *		 : generic pointer to the returned value
+*   Retourne la valeur de la clef associée
+*   @param  char *field	 : clef dont on veut la valeur
+*   @return void *		 : pointeur générique sur la valeur retournée
 */
 {
 	int index;
@@ -449,9 +449,9 @@ ini_parser_get_value (IniParser *ip, char *field)
 BbQueue *
 ini_parser_get_section (IniParser *ip, char *section)
 /**
-*   Returns the keys/values of the associated section
-*   @param  char *section : section we want the values of
-*   @return BbQueue *     : Chained list of struct {char *key; void *res};
+*   Retourne les clefs/valeurs de la section associée
+*   @param  char *section : section dont on veut les valeurs
+*   @return BbQueue *     : Liste chaînée de struct {char *key; void *res};
 */
 {
 	BbQueue *res = bb_queue_new();
@@ -534,7 +534,7 @@ _ini_parser_get_index (IniParser *ip, char *buffer)
 void
 ini_parser_free (IniParser *p)
 /**
-*   Frees IniParser from memory
+*   Libère en mémoire un IniParser
 */
 {
 	if (p == NULL)

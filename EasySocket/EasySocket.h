@@ -47,7 +47,7 @@
  *          es_send(sock, "Hello", -1);
  *          es_recv(sock, buffer, 99);
  *
- *          printf("Received: %s\n", buffer);
+ *          printf("Recu : %s\n", buffer);
  *      }
  *
  *      return 0;

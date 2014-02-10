@@ -115,7 +115,7 @@ bool event_update (Event *this)
     if (this->elapsed < this->ms_min)
         return FALSE;
 
-    // If the event emits a signal, resets the start time for the next pulse
+    // If the event emits a signal, reset the start time for the next pulse
     bool res;
 
     if ((res = event_pulse(this)))

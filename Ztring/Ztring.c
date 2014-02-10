@@ -2,7 +2,7 @@
 *	@author 	:	Spl3en
 *	@file 		:	Ztring.c
 *
-*	More information in Ztring.h
+*	Furthermore informations in Ztring.h
 */
 
 #include "Ztring.h"
@@ -393,7 +393,7 @@ str_substring (const char *str, int start, int end, char *res)
 
 	else
 	{
-		printf("Error in substring:\n"
+		printf("Error in substring :\n"
 			   "start = %d - end = %d\n"
 			   "String = %s\n", start, end, str);
 
@@ -775,7 +775,7 @@ file_open (const char *filename, const char *open_mode)
 
 	if (!fp)
 	{
-		printf("%s: cannot be opened\n", filename);
+		printf("%s : cannot be opened\n", filename);
 		return NULL;
 	}
 
@@ -1149,7 +1149,7 @@ str_repeat (char *repeat_pattern, int n)
 void
 str_debug_len (const unsigned char *str, int len)
 {
-	printf("String debug Data:\n");
+	printf("String debug Data :\n");
 
 	for (int i = 0; i < len; i++)
 	{

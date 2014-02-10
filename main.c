@@ -90,8 +90,8 @@ int main (int argc, char **argv)
 	LoLCameraState state = PLAY;
 	MemProc *mp = NULL;
 
-	important("Sources & Hotkeys: https://github.com/Spl3en/LoLCamera");
-	important("Last .exe version: https://sourceforge.net/projects/lolcamera/files");
+	important("Sources & Hotkeys : https://github.com/Spl3en/LoLCamera");
+	important("Last .exe version : https://sourceforge.net/projects/lolcamera/files");
 	important("------------------------------------------------------------------");
 	important("Keep pressing X in this console to exit safely (strongly recommended)");
 	important("------------------------------------------------------------------");
@@ -128,7 +128,7 @@ int main (int argc, char **argv)
                       "    +-------------------------------------------------------------------+\n"
                       "    |                   A NEW UPDATE IS AVAILABLE                       |\n"
                       "    |             New version = %.3f, current version = %.3f          |\n"
-                      "    |    Download: %s    |\n"
+                      "    |    Download : %s    |\n"
                       "    +-------------------------------------------------------------------+",
                         last_version, LOLCAMERA_VERSION, download_link);
 
@@ -156,7 +156,7 @@ int main (int argc, char **argv)
                     ptr = &ptr[pos];
             }
 
-            readable("LoLCamera Patch %.3f Notes:\n%s", last_version, patchnotes);
+            readable("LoLCamera Patch %.3f Notes :\n%s", last_version, patchnotes);
             free(patchnotes);
         }
 
@@ -165,7 +165,7 @@ int main (int argc, char **argv)
         info("Checking executable integrity...");
         if (!str_equals(get_own_md5(argv[0]), webserver_do(GET_MD5, LOLCAMERA_VERSION)))
         {
-            error("Integrity error: Please download the last version here: \n\t%s", download_link);
+            error("Integrity error : Please download the last version here : \n\t%s", download_link);
             system("pause");
             exit(EXIT_FAILURE);
         }
@@ -239,7 +239,7 @@ int main (int argc, char **argv)
 			camera_export_to_cheatengine();
 		#endif
 
-		info("LoLCamera is ready and running!");
+		info("LoLCamera is ready and running !");
 
 		state = camera_main();
 		camera_unload();
@@ -251,6 +251,6 @@ int main (int argc, char **argv)
         }
 	}
 
-	// Force an exit event
+	// Force atexit event
 	exit(0);
 }

@@ -223,7 +223,7 @@ static bool camera_left_click ()
 			break;
 
 			case 2:
-				// On release click on minimap:
+				// On release click on minimap :
 				if (camera_mouse_in_minimap())
                 {
                     if (!this->dead_mode)
@@ -240,7 +240,7 @@ static bool camera_left_click ()
                         }
                         else
                         {
-                            // We refresh the camera position to the current view
+                            // We actualize the camera position to the current view
                             camera_save_state(&this->cam->v);
                             this->restore_tmpcam = true;
                             this->lbutton_state = 0;
@@ -255,7 +255,7 @@ static bool camera_left_click ()
 			break;
 
 			case 3:
-				// Wait for the end of the event before reseting
+				// Wait the end of the event before reseting
 				if (event_update(&this->reset_after_minimap_click))
                 {
 					event_stop(&this->reset_after_minimap_click);
@@ -414,7 +414,7 @@ static CameraTrackingMode camera_get_mode ()
 	if (camera_center_requested())
 		return CenterCam;
 
-	// A temporary camera has been saved, now the time has come to restore it
+	// A temporary camera has been saved, now is coming the time to restore it
 	if (camera_restore_requested())
 		return RestoreCam;
 
@@ -431,7 +431,7 @@ static CameraTrackingMode camera_get_mode ()
 	if (camera_left_click() || this->interface_opened == LOLCAMERA_SHOP_OPENED_VALUE)
 		return NoMove;
 
-	// Following ally & ennemy champions
+	// Following ally & ennemies champions
 	if (camera_follow_champion_requested ())
 		return FollowEntity;
 
@@ -500,7 +500,7 @@ void camera_init (MemProc *mp)
 
 	// Allocation error
 	if (this == NULL)
-		fatal_error("Not enough memory to start LoLCamera.");
+		fatal_error("Not enough memory for starting LoLCamera.");
 
 	this->mp = mp;
 	this->drag_pos = vector2D_new();
@@ -591,7 +591,7 @@ bool camera_ingame_conditions ()
         }
 	}
 
-    // Check for the IG position of the mouse
+    // Check from mouse IG position
 	if (!this->mouse)
     {
         if (camera_scan_cursor_champ())
@@ -686,7 +686,7 @@ static void camera_entity_manager ()
 	{
 		this->hint_entity = this->entity_hovered;
 
-		// Left click on the entity: focus it
+		// Left click on the entity : focus it
 		if (camera_getkey(VK_LBUTTON) < 0)
 			this->focused_entity = this->entity_hovered;
 	}
@@ -786,7 +786,7 @@ bool camera_update ()
 			{
 				warning("\"%s\" : Refresh failed", desc);
 
-				//  Detect if the client is disconnected
+				//  Detect if client is disconnected
 				if (!memproc_refresh_handle(this->mp))
 				{
 					info("Client not detected anymore.");
@@ -888,7 +888,7 @@ short int camera_getkey (int key)
 	if ((this->interface_opened == LOLCAMERA_CHAT_OPENED_VALUE)
 	&&  (key >= 0x33 && key <= 0x126))
 	{
-		// Chat opened, printable character pressed: nothing happens
+		// Chat opened, printable character pressed : nothing happens
 		return 1;
 	}
 
@@ -909,7 +909,7 @@ bool global_key_pressed ()
 	if (last_global_key == -1)
 		last_global_key = global_key_state;
 
-	// Listen to translated toggle key
+	// Listen for translate toggle key
 	if (global_key_state != last_global_key && global_key_state < 0)
 	{
 		last_global_key = global_key_state;
@@ -1018,7 +1018,7 @@ LoLCameraState camera_main ()
         if (camera_mode == NoMove)
             continue;
 
-        // update the ingame camera position
+        // update the ingame gamera position
 		camera_set_pos(this->cam->v.x, this->cam->v.y);
 
 		// Save last positions
@@ -1128,7 +1128,7 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
     // Fix the perspective
     if (mouse_weight)
     {
-        // The camera goes further when the camera is moving to the south
+        // The camera goes farther when the camera is moving to the south
         float distance_mouse_cam_y = cam.y - mouse.y;
         if (distance_mouse_cam_y > 0.0) {
             mouse.y -= (distance_mouse_cam_y * this->champ_settings.camera_scroll_speed_bottom); // <-- arbitrary value
@@ -1371,7 +1371,7 @@ void camera_load_settings (char *section)
 					break;
 
 					case 1: // threshold
-						this->champ_settings.threshold = atof (value); // minimum threshold before calculations are halted because the camera is "close enough"
+						this->champ_settings.threshold = atof (value); // minimum threshold before calculations halted because camera is "close enough"
 						info("%s threshold = %f", section, this->champ_settings.threshold);
 					break;
 
@@ -1395,7 +1395,7 @@ void camera_load_ini ()
 {
 	IniParser *parser = this->parser;
 
-	// Loading parameters from .ini file:
+	// Loading parameters from .ini file :
 	parser = ini_parser_new("./LoLCamera.ini");
 	this->parser = parser;
 
@@ -1445,7 +1445,7 @@ void camera_load_ini ()
 		union {float *f; int *i;} p;
 		union {float  f; int  i;} v;
 	} tabSet [] = {
-		// If the setting is not found in the .ini, set the value to its default value:
+		// If the settings is not found in the .ini, set the value to its default value :
 		{ .p.i = &this->sleep_time,	.v.i = 1.0},
 		{ .p.i = &this->poll_data,	.v.i = 5.0},
 	};
