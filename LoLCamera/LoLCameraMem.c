@@ -1,5 +1,7 @@
 #include "LoLCamera.h"
 
+#define SELF_NAME_OFFSET 0x70
+
 static bool 	 camera_search_signatures (unsigned char *pattern, char *mask, char *name, DWORD **addr, int size, BbQueue *addresses);
 static bool      camera_search_signature  (unsigned char *pattern, DWORD *addr, unsigned char **code_ptr, char *mask, char *name);
 static Patch *   camera_get_patch         (MemProc *mp, char *description, DWORD *addr, unsigned char *sig, char *sig_mask, unsigned char *patch, char *patch_mask);
@@ -503,42 +505,31 @@ bool camera_scan_game_info (void)
 
 	BbQueue *res = memscan_search (this->mp, "gameState",
 	/*
-		017F9295   ║·  57                 push edi                                          ; ╓hDC = 005B1F20
-		017F9296   ║·  8945 CC            mov [dword ss:local.13], eax                      ; ║
-		017F9299   ║·  FF15 88D0ED01      call [dword ds:<&GDI32.DeleteDC>]                 ; └GDI32.DeleteDC
-		017F929F   ║·  8B75 C4            mov esi, [dword ss:local.15]
-		017F92A2   ║·  8B7D CC            mov edi, [dword ss:local.13]                      ; ASCII "SUSU"
-		017F92A5   ║►  8B0D 64E0D603      mov ecx, [dword ds:League_of_Legends.3D6E064]
-		017F92AB   ║·  85C9               test ecx, ecx
-		017F92AD   ║·▼ 75 0B              jnz short League_of_Legends.017F92BA
+			004773DB  ║·  803D F00EDA0200 cmp [byte ds:League_of_Legends.2DA0EF0], 0
+			004773E2  ║·  A3 E413DA02     mov [dword ds:League_of_Legends.2DA13E4], eax
+			004773E7  ║·▼ 75 0D           jne short League_of_Legends.004773F6
+			004773E9  ║·  68 000E4800     push League_of_Legends.00480E00                      ; ╓Arg1 = League_of_Legends.480E00
+			004773EE  ║·  E8 52187700     call League_of_Legends.00BE8C45                      ; └League_of_Legends.00BE8C45
 	*/
 		(unsigned char[]) {
-			0x57,
-			0x89,0x45,0xCC,
-			0xFF,0x15,0x88,0xD0,0xED,0x01,
-			0x8B,0x75,0xC4,
-			0x8B,0x7D,0xCC,
-			0x8B,0x0D,0x64,0xE0,0xD6,0x03,
-			0x85,0xC9,
-			0x75,0x0B
+			0x80,0x3D,0xF0,0x0E,0xDA,0x02,0x00,
+			0xA3,0xE4,0x13,0xDA,0x02,
+			0x75,0x0D,
+			0x68,0x00,0x0E,0x48,0x00,
+			0xE8,0x52,0x18,0x77,0x00
 		},
-			"x"
-			"xx?"
-			"xx????"
-			"xx?"
-			"xx?"
-			"xx????"
-			"xx"
-			"xx",
 
-			"x"
-			"xxx"
-			"xxxxxx"
-			"xxx"
-			"xxx"
-			"xx????"
+			"xxx????"
+			"x????"
 			"xx"
+			"x????"
+			"x????",
+
+			"xxxxxxx"
+			"x????"
 			"xx"
+			"xxxxx"
+			"xxxxx"
 	);
 
 	if (!res)
@@ -558,7 +549,8 @@ bool camera_scan_game_info (void)
 		return FALSE;
 	}
 
-	read_from_memory(this->mp->proc, this->self_name, this->game_info_addr + 0x140, sizeof(this->self_name) - 1);
+	this->game_info_addr = read_memory_as_int(this->mp->proc, this->game_info_addr);
+	read_from_memory(this->mp->proc, this->self_name, this->game_info_addr + SELF_NAME_OFFSET, sizeof(this->self_name) - 1);
 
 	if (strlen(this->self_name) <= 0)
 	{
@@ -567,7 +559,7 @@ bool camera_scan_game_info (void)
 	}
 
 	else
-		debug("Self name (%p) : <%s>", this->game_info_addr + 0x140, this->self_name);
+		debug("Self name (%p) : <%s>", this->game_info_addr + SELF_NAME_OFFSET, this->self_name);
 
 	return true;
 }
@@ -648,7 +640,6 @@ bool camera_scan_dest (void)
 
 	BbQueue *res = memscan_search(this->mp, "DestPos",
 		/*
-			0107EFDF  ║·  D91D F89A4803                    fstp [dword ds:League_of_Legends.3489AF8]                        ; float 3.000000
 			0107EFE5  ║·  C605 FC9A4803 01                 mov [byte ds:League_of_Legends.3489AFC], 1
 			0107EFEC  ║·  C705 009B4803 00000000           mov [dword ds:League_of_Legends.3489B00], 0
 			0107EFF6  ║·  C705 289B4803 000000FF           mov [dword ds:League_of_Legends.3489B28], FF000000
@@ -657,7 +648,6 @@ bool camera_scan_dest (void)
 			0107F014  ║·  C705 309B4803 00000000           mov [dword ds:League_of_Legends.<<<3489B30>>>], 0
 		*/
 		(unsigned char []) {
-			0xD9,0x1D,0xF8,0x9A,0x48,0x03,
 			0xC6,0x05,0xFC,0x9A,0x48,0x03,0x01,
 			0xC7,0x05,0x00,0x9B,0x48,0x03,0x00,0x00,0x00,0x00,
 			0xC7,0x05,0x28,0x9B,0x48,0x03,0x00,0x00,0x00,0xFF,
@@ -666,7 +656,6 @@ bool camera_scan_dest (void)
 			0xC7,0x05,0x30,0x9B,0x48,0x03,0x00,0x00,0x00,0x00
 		},
 
-			"xx????"
 			"xx????x"
 			"xx????xxxx"
 			"xx????xxxx"
@@ -674,7 +663,6 @@ bool camera_scan_dest (void)
 			"xx????xxxx"
 			"xx????xxxx",
 
-			"xxxxxx"
 			"xxxxxxx"
 			"xxxxxxxxxx"
 			"xxxxxxxxxx"
@@ -749,7 +737,7 @@ bool camera_refresh_self (void)
 	    if (strcmp(this->self_name, this->champions[i]->player_name) == 0)
 		{
 			this->self = this->champions[i];
-			return true;
+			return (this->self != NULL);
 		}
 	}
 
@@ -1726,9 +1714,13 @@ static bool camera_search_signatures (unsigned char *pattern, char *mask, char *
 
 void camera_export_to_cheatengine (void)
 {
-	Camera *this = camera_get_instance();
+	#ifdef DEBUG
+		Camera *this = camera_get_instance();
 
-	char *out = str_dup_printf (
+		if (!this)
+			return;
+
+		char *out = str_dup_printf (
 		"<?xml version=\"1.0\"?>\n"
 		"<CheatTable CheatEngineTableVersion=\"12\">\n"
 		"  <CheatEntries>\n"
@@ -2196,25 +2188,57 @@ void camera_export_to_cheatengine (void)
 		"  <UserdefinedSymbols/>\n"
 		"</CheatTable>\n",
 
-		this->camPos->addrX,
-		this->camPos->addrY,
-		this->cam->addrX,
-		this->cam ->addrY,
-		this->champ->addrX,
-		this->champ->addrY,
-		this->mouse->addrX,
-		this->mouse->addrY,
-		this->dest->addrX,
-		this->dest->addrY,
-		this->entity_hovered_addr,
-		this->win_is_opened_ptr,
-		this->entities_addr, this->entities_addr, this->entities_addr, this->entities_addr,	this->entities_addr, this->entities_addr, this->entities_addr,
-		this->entities_addr, this->entities_addr, this->entities_addr, this->entities_addr,	this->entities_addr, this->entities_addr, this->entities_addr,
-		this->entities_addr, this->entities_addr, this->entities_addr, this->entities_addr,	this->entities_addr, this->entities_addr, this->entities_addr,
-		this->entities_addr, this->entities_addr, this->entities_addr, this->entities_addr,	this->entities_addr, this->entities_addr, this->entities_addr,
-		this->entities_addr, this->entities_addr, this->entities_addr, this->entities_addr,	this->entities_addr, this->entities_addr, this->entities_addr,
-		this->game_info_addr
-	);
+		(this->camPos) ? this->camPos->addrX : 0,
+		(this->camPos) ? this->camPos->addrY : 0,
+		(this->cam) ? this->cam->addrX : 0,
+		(this->cam) ? this->cam ->addrY : 0,
+		(this->champ) ? this->champ->addrX : 0,
+		(this->champ) ? this->champ->addrY : 0,
+		(this->mouse) ? this->mouse->addrX : 0,
+		(this->mouse) ? this->mouse->addrY : 0,
+		(this->dest) ? this->dest->addrX : 0,
+		(this->dest) ? this->dest->addrY : 0,
+		(this->entity_hovered_addr) ? this->entity_hovered_addr : 0,
+		(this->win_is_opened_ptr) ? this->win_is_opened_ptr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->game_info_addr : 0
+		);
 
-	file_put_contents("out.ct", out, NULL);
+		file_put_contents("out.ct", out, NULL);
+
+	#endif
 }

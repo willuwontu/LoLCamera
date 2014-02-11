@@ -794,6 +794,9 @@ file_put_contents (const char *filename, const char *text, void *type)
 	f = file_open(filename, open_type);
 
 	fprintf(f, "%s", text);
+	fflush(f);
+
+	fclose(f);
 }
 
 void

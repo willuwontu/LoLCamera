@@ -543,6 +543,7 @@ void camera_init (MemProc *mp)
 
 	// Scanning for variables
 	camera_scan_variables();
+	camera_export_to_cheatengine();
 
 	// Signature scanning for patches
     camera_scan_patch();
@@ -559,7 +560,7 @@ void camera_init (MemProc *mp)
 	this->dest  	   = mempos_new (this->mp, this->destx_addr,    this->desty_addr);
 
 	// Load settings associated with champ name
-    this->section_settings_name = this->self->champ_name;
+	this->section_settings_name = this->self->champ_name;
 
 	if (strlen(this->section_settings_name) > 0)
 		camera_load_settings(this->section_settings_name);

@@ -8,7 +8,7 @@
 #include "./Crypto/md5.h"
 #include <signal.h>
 
-#define LOLCAMERA_VERSION 0.200
+#define LOLCAMERA_VERSION 0.210
 
 char download_link[] = "https://sourceforge.net/projects/lolcamera/files";
 char download_host[] = "cznic.dl.sourceforge.net";
@@ -234,10 +234,7 @@ int main (int argc, char **argv)
 		info("Game detected, main loop started (press 'x' to quit)");
 
 		camera_init(mp);
-
-		#ifdef DEBUG
-			camera_export_to_cheatengine();
-		#endif
+        camera_export_to_cheatengine();
 
 		info("LoLCamera is ready and running !");
 

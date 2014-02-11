@@ -11,7 +11,7 @@
 #define EOFF_CTXT			0x154
 
 // Offset in champion structure
-#define EOFF_CHAMP_NAME		0x20
+#define EOFF_CHAMP_NAME		0x34
 
 // Offset in champion context
 #define EOFF_IS_VISIBLE		0x24
@@ -52,6 +52,9 @@ entity_init (Entity *e, MemProc *mp, DWORD addr)
 	read_from_memory(e->ctxt->proc, e->player_name, e->entity_data + EOFF_PLAYER_NAME, sizeof(e->player_name) - 1);
 	DWORD champ_struct = read_memory_as_int(e->ctxt->proc, e->entity_data + EOFF_CHAMP_STRUCT);
 	read_from_memory(e->ctxt->proc, e->champ_name, champ_struct + EOFF_CHAMP_NAME, sizeof(e->champ_name) - 1);
+
+	if (!e->champ_name)
+		important("Champ name has not been found.");
 
 	return true;
 }
