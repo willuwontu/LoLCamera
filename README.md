@@ -25,12 +25,17 @@ Mouse
 
 Contributors of this project :
 --------------------------------
+
+Coders
 - Spl3en <spl3en.contact@gmail.com>
-- jtjin 
-- MrGoodKill
-- SephirothSG
+- jtjin
 - Tristan 'BurningMind' Bourvon
 
+Testers
+- MrGoodKill
+- SephirothSG
+- Penteano
+- Fazy
 
 Demo Video
 ----------
