@@ -19,6 +19,7 @@ BbQueue *memscan_search (MemProc *mp, unsigned char *desc, unsigned char *patter
 	if (bb_queue_get_length(results) == 0)
 	{
 		important("\"%s\" : Nothing found", desc);
+		bb_queue_free(results);
 		return NULL;
 	}
 
