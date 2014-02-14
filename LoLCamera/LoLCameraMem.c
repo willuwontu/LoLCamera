@@ -1,6 +1,6 @@
 #include "LoLCamera.h"
 
-#define SELF_NAME_OFFSET 0x70
+#define SELF_NAME_OFFSET 0x88
 
 static bool 	 camera_search_signatures (unsigned char *pattern, char *mask, char *name, DWORD **addr, int size, BbQueue *addresses);
 static bool      camera_search_signature  (unsigned char *pattern, DWORD *addr, unsigned char **code_ptr, char *mask, char *name);
@@ -134,9 +134,9 @@ bool camera_scan_patch (void)
 				01698515  ║· │8B4D F4                 mov ecx, [dword ss:ebp-0C]
 				0107FE8C  ║· │64:890D 00000000        mov [dword fs:0], ecx                                ; ASCII "H\xF4+"
 		*/
-			0x74,0x49,
-			0x85,0xFF,
-			0x74,0x45,
+			//0x74,0x49,
+			//0x85,0xFF,
+			//0x74,0x45,
 			0x80,0x3D,0xCC,0x9B,0x48,0x03,0x00,
 			0x0F,0x84,0x7D,0x02,0x00,0x00,
 			0xF3,0x0F,0x10,0x47,0x64,
@@ -146,11 +146,11 @@ bool camera_scan_patch (void)
 			0xF3,0x0F,0x10,0x47,0x6C,
 			0xF3,0x0F,0x11,0x05,0x2F,0x99,0x48,0x03,
 			0x8B,0x4D,0xF4,
-			0x64,0x89,0x0D,0x00,0x00,0x00,0x00
+			//0x64,0x89,0x0D,0x00,0x00,0x00,0x00
 		},
-			"xx"
-			"xx"
-			"xx"
+			//"xx"
+			//"xx"
+			//"xx"
 			"xx????x"
 			"xx????"
 			"xxxx?"
@@ -159,13 +159,13 @@ bool camera_scan_patch (void)
 			"xxxx????"
 			"xxxx?"
 			"xxxx????"
-			"xx?"
-			"xxxxxxx",
+			"xx?",
+			//"xxxxxxx",
 
 		(unsigned char[]) {
-			0x74,0x49,
-			0x85,0xFF,
-			0x74,0x45,
+			//0x74,0x49,
+			//0x85,0xFF,
+			//0x74,0x45,
 			0x80,0x3D,0xCC,0x9B,0x48,0x03,0x00,
 			0x0F,0x84,0x7D,0x02,0x00,0x00,
 			0xF3,0x0F,0x10,0x47,0x64,
@@ -175,11 +175,11 @@ bool camera_scan_patch (void)
 			0xF3,0x0F,0x10,0x47,0x6C,
 			0x90,0x90,0x90,0x90,0x90,0x90,0x90,0x90,
 			0x8B,0x4D,0xF4,
-			0x64,0x89,0x0D,0x00,0x00,0x00,0x00
+			//0x64,0x89,0x0D,0x00,0x00,0x00,0x00
 		},
-			"??"
-			"??"
-			"??"
+			//"??"
+			//"??"
+			//"??"
 			"???????"
 			"??????"
 			"?????"
@@ -189,7 +189,7 @@ bool camera_scan_patch (void)
 			"?????"
 			"xxxxxxxx"
 			"???"
-			"???????"
+			//"???????"
 
 	);
 
@@ -505,31 +505,43 @@ bool camera_scan_game_info (void)
 
 	BbQueue *res = memscan_search (this->mp, "gameState",
 	/*
-			004773DB  ║·  803D F00EDA0200 cmp [byte ds:League_of_Legends.2DA0EF0], 0
-			004773E2  ║·  A3 E413DA02     mov [dword ds:League_of_Legends.2DA13E4], eax
-			004773E7  ║·▼ 75 0D           jne short League_of_Legends.004773F6
-			004773E9  ║·  68 000E4800     push League_of_Legends.00480E00                      ; ╓Arg1 = League_of_Legends.480E00
-			004773EE  ║·  E8 52187700     call League_of_Legends.00BE8C45                      ; └League_of_Legends.00BE8C45
+		00477293  ║·  833D FC13DA02 00   cmp [dword ds:League_of_Legends.2DA13FC], 0
+		0047729A  ║·▼ 75 4A              jne short League_of_Legends.004772E6
+		0047729C  ║·  803D CB13DA02 00   cmp [byte ds:League_of_Legends.2DA13CB], 0
+		004772A3  ║·▼ 74 0E              je short League_of_Legends.004772B3
+		004772A5  ║·  C605 CB13DA02 00   mov [byte ds:League_of_Legends.2DA13CB], 0
+		004772AC  ║·  C605 080FDA02 01   mov [byte ds:League_of_Legends.2DA0F08], 1
+		004772B3      C745 F0 F00CDA02   mov [dword ss:ebp-10], offset League_of_Legends.02DA0CF0
+		004772BA  ║·  B9 F00CDA02        mov ecx, offset League_of_Legends.02DA0CF0
 	*/
 		(unsigned char[]) {
-			0x80,0x3D,0xF0,0x0E,0xDA,0x02,0x00,
-			0xA3,0xE4,0x13,0xDA,0x02,
-			0x75,0x0D,
-			0x68,0x00,0x0E,0x48,0x00,
-			0xE8,0x52,0x18,0x77,0x00
+			0x83,0x3D,0xFC,0x13,0xDA,0x02,0x00,
+			0x75,0x4A,
+			0x80,0x3D,0xCB,0x13,0xDA,0x02,0x00,
+			0x74,0x0E,
+			0xC6,0x05,0xCB,0x13,0xDA,0x02,0x00,
+			0xC6,0x05,0x08,0x0F,0xDA,0x02,0x01,
+			0xC7,0x45,0xF0,0xF0,0x0C,0xDA,0x02,
+			0xB9,0xF0,0x0C,0xDA,0x02
 		},
 
-			"xxx????"
-			"x????"
-			"xx"
-			"x????"
+			"xx????x"
+			"x?"
+			"xx????x"
+			"x?"
+			"xx????x"
+			"xx????x"
+			"xx?????"
 			"x????",
 
 			"xxxxxxx"
-			"x????"
 			"xx"
-			"xxxxx"
-			"xxxxx"
+			"xxxxxxx"
+			"xx"
+			"xxxxxxx"
+			"xxxxxxx"
+			"xxx????"
+			"x????"
 	);
 
 	if (!res)
@@ -538,7 +550,28 @@ bool camera_scan_game_info (void)
 		return 0;
 	}
 
-	Buffer *game_info_addr = bb_queue_pick_nth(res, 1);
+	int start = 1;
+	int looping = 1;
+	Buffer *game_info_addr = NULL;
+	while (looping)
+	{
+		DWORD addr[2];
+		game_info_addr = bb_queue_pick_nth(res, start);
+		Buffer *game_info_addr_same = bb_queue_pick_nth(res, start+1);
+
+		memcpy(&addr[0], game_info_addr->data, game_info_addr->size);
+		memcpy(&addr[1], game_info_addr_same->data, game_info_addr_same->size);
+
+		if ((addr[0] == addr[1]) && (addr[0] != 0))
+			looping = false;
+
+		if (++start > (bb_queue_get_length(res) + 1))
+			break;
+	}
+
+	if (looping)
+		fatal_error("gameState not found.");
+
 	memcpy(&this->game_info_addr, game_info_addr->data, game_info_addr->size);
 
 	bb_queue_free_all(res, buffer_free);
@@ -549,7 +582,6 @@ bool camera_scan_game_info (void)
 		return FALSE;
 	}
 
-	this->game_info_addr = read_memory_as_int(this->mp->proc, this->game_info_addr);
 	read_from_memory(this->mp->proc, this->self_name, this->game_info_addr + SELF_NAME_OFFSET, sizeof(this->self_name) - 1);
 
 	if (strlen(this->self_name) <= 0)
