@@ -545,6 +545,12 @@ void camera_init (MemProc *mp)
 	camera_scan_variables();
 	camera_export_to_cheatengine();
 
+	// Checks
+	if (this->self == NULL) {
+		fatal_error("LoLCamera failed to read client variables.\n"
+		            "Please wait for a fix.");
+	}
+
 	// Signature scanning for patches
     camera_scan_patch();
 
