@@ -253,4 +253,5 @@ int main (int argc, char **argv)
 
 	// Force an exit event
 	exit(0);
+	return 0;
 }
