@@ -28,15 +28,8 @@ Contributors of this project :
 
 Coders
 - Spl3en <spl3en.contact@gmail.com>
-<<<<<<< HEAD
-- jtjin 
-- MrGoodKill
-- SephirothSG
-- BurningMind
-=======
 - jtjin
 - Tristan 'BurningMind' Bourvon
->>>>>>> origin/dev
 
 Testers
 - MrGoodKill
