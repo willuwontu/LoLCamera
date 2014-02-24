@@ -444,6 +444,9 @@ static CameraTrackingMode camera_get_mode ()
 
 static bool camera_follow_champion_requested ()
 {
+	if (this->disable_fx_keys)
+		return TRUE;
+
 	bool fx_pressed = FALSE;
 	int keys[] = {VK_F1, VK_F2, VK_F3, VK_F4, VK_F5, VK_F6, VK_F7, VK_F8, VK_F9, VK_F10};
 
@@ -1437,6 +1440,7 @@ void camera_load_ini ()
 	this->sleep_time  = strtol(ini_parser_get_value(parser, "sleep_time"), NULL, 10); // Time slept between two camera updates (in ms)
 	this->poll_data	  = strtol(ini_parser_get_value(parser, "poll_data"), NULL, 10); // Retrieve data from client every X loops
 
+	this->disable_fx_keys = strtol(ini_parser_get_value(parser, "disable_fx_keys"), NULL, 10);
 	this->wait_loading_screen = strtol(ini_parser_get_value(parser, "wait_loading_screen"), NULL, 10);
 	this->ms_after_minimap_click = strtol(ini_parser_get_value(parser, "ms_after_minimap_click"), NULL, 10);
 	this->patch_border_screen_moving = strtol(ini_parser_get_value(parser, "patch_border_screen_moving"), NULL, 10);

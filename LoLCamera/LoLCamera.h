@@ -167,6 +167,7 @@ struct _Camera
 	bool dbg_mode;						// For unit tests
 	bool wait_loading_screen;			// Wait for the start of the game
 	bool interface_hovered;
+	bool disable_fx_keys;
 	int victory_state;
 	int ms_after_minimap_click;
 	char *section_settings_name;
