@@ -1,12 +1,14 @@
 #include "LoLCamera.h"
 
-static BOOL 	 camera_search_signatures (unsigned char *pattern, char *mask, char *name, DWORD **addr, int size, BbQueue *addresses);
-static BOOL      camera_search_signature  (unsigned char *pattern, DWORD *addr, unsigned char **code_ptr, char *mask, char *name);
-static Patch *   camera_get_patch         (MemProc *mp, char *description, DWORD *addr, unsigned char *sig, char *sig_mask, unsigned char *patch, char *patch_mask);
-void     		 camera_get_patches       (Patch **patches, int size, MemProc *mp, char *description, DWORD **addrs, unsigned char *sig, char *sig_mask, unsigned char *patch, char *patch_mask);
+#define SELF_NAME_OFFSET 0x28
+#define WIN_IS_OPENED_OFFSET   0x3E8
+#define WIN_IS_OPENED_OFFSET_2 0x54
 
-BOOL camera_scan_patch ()
-/// FIXED
+static bool      camera_search_signature  (unsigned char *pattern, DWORD *addr, unsigned char **code_ptr, char *mask, char *name);
+static Patch *   camera_get_patch         (MemProc *mp, char *description, DWORD *addr, unsigned char *sig, char *sig_mask, unsigned char *patch, char *patch_mask);
+bool camera_scan_win_is_opened_offset (void);
+
+bool camera_scan_patch (void)
 {
 	Camera *this = camera_get_instance();
 
@@ -20,47 +22,42 @@ BOOL camera_scan_patch ()
 
 		(unsigned char[]) {
 		/*
-			01011E07   ·  F30F1005 189C4103       movss xmm0, [dword ds:League_of_Legends.3419C18]      ; float 50.00000
-			01011E0F   ·  F30F1146 2C             movss [dword ds:esi+2C], xmm0
-			01011E14   ·  F30F1116                movss [dword ds:esi], xmm2
-			01011E18   ·  F30F1166 04             movss [dword ds:esi+4], xmm4
-			01011E1D   ·  F30F115E 08             movss [dword ds:esi+8], xmm3
-			016A6A15      F30F114D D0        	  movss [dword ss:ebp-30], xmm1
-			01011E28   ·  F30F5CF3                subss xmm6, xmm3
+			016A0991  ║·  F30F580D 6FCF3402       addss xmm1, [dword ds:League_of_Legends.234CF6F]                                            ; float 1293.950
+			016A0999  ║·  F30F581D 73CF3402       addss xmm3, [dword ds:League_of_Legends.234CF73]                                            ; float 0.0
+			016A09A1  ║·  F30F5825 77CF3402       addss xmm4, [dword ds:League_of_Legends.234CF77]                                            ; float 733.0612
+			016A09A9  ║·  F30F110D 6FCF3402       movss [dword ds:League_of_Legends.234CF6F], xmm1                                            ; float 1293.950
+			016A09B1  ║·  F30F111D 73CF3402       movss [dword ds:League_of_Legends.234CF73], xmm3                                            ; float 0.0
+			016A09B9  ║·  F30F1125 77CF3402       movss [dword ds:League_of_Legends.234CF77], xmm4                                            ; float 733.0612
 		*/
-			0xF3,0x0F,0x10,0x05,0x18,0x9C,0x41,0x03,
-			0xF3,0x0F,0x11,0x46,0x2C,
-			0xF3,0x0F,0x11,0x16,
-			0xF3,0x0F,0x11,0x66,0x04,
-			0xF3,0x0F,0x11,0x5E,0x08,
-			0xF3,0x0F,0x11,0x4D,0xD0,
-			0xF3,0x0F,0x5C,0xF3
+			0xF3,0x0F,0x58,0x0D,0x6F,0xCF,0x34,0x02,
+			0xF3,0x0F,0x58,0x1D,0x73,0xCF,0x34,0x02,
+			0xF3,0x0F,0x58,0x25,0x77,0xCF,0x34,0x02,
+			0xF3,0x0F,0x11,0x0D,0x6F,0xCF,0x34,0x02,
+			0xF3,0x0F,0x11,0x1D,0x73,0xCF,0x34,0x02,
+			0xF3,0x0F,0x11,0x25,0x77,0xCF,0x34,0x02
 		},
 
 			"xxxx????"
-			"xxxxx"
-			"xxx?" // << nop
-			"xxx?x"
-			"xxx?x" // << nop
-			"xxxxx"
-			"xxxx",
+			"xxxx????"
+			"xxxx????"
+			"xxxx????"
+			"xxxx????"
+			"xxxx????",
 
 		(unsigned char[]) {
-			0xF3,0x0F,0x10,0x05,0x18,0x9C,0x41,0x03,
-			0xF3,0x0F,0x11,0x46,0x2C,
-			0x90,0x90,0x90,0x90,
-			0xF3,0x0F,0x11,0x66,0x04,
-			0x90,0x90,0x90,0x90,0x90,
-			0xF3,0x0F,0x11,0x4D,0xD0,
-			0xF3,0x0F,0x5C,0xF3
+			0xF3,0x0F,0x58,0x0D,0x6F,0xCF,0x34,0x02,
+			0xF3,0x0F,0x58,0x1D,0x73,0xCF,0x34,0x02,
+			0xF3,0x0F,0x58,0x25,0x77,0xCF,0x34,0x02,
+			0x90,0x90,0x90,0x90,0x90,0x90,0x90,0x90,
+			0x90,0x90,0x90,0x90,0x90,0x90,0x90,0x90,
+			0x90,0x90,0x90,0x90,0x90,0x90,0x90,0x90
 		},
 			"????????"
-			"?????"
-			"xxxx"
-			"?????"
-			"xxxxx"
-			"?????"
-			"????"
+			"????????"
+			"????????"
+			"xxxxxxxx"
+			"xxxxxxxx"
+			"xxxxxxxx"
 	);
 
 
@@ -86,10 +83,9 @@ BOOL camera_scan_patch ()
 			0x83,0xF9,0x04,
 			0x74,0x12
 		},
-
-			"xxxx????"
-			"xxxx????"
-			"xxxx????"
+			"xxx?????"
+			"xxx?????"
+			"xxx?????"
 			"xxx"
 			"xx"
 			"xxx"
@@ -119,9 +115,6 @@ BOOL camera_scan_patch ()
 
 		(unsigned char[]) {
 		/*
-				0107FE4E  ║·▼┌74 49                   jz short League_of_Legends.0107FE99
-				0107FE50  ║· │85FF                    test edi, edi
-				0107FE52  ║·▼│74 45                   jz short League_of_Legends.0107FE99
 				0107FE54  ║· │803D CC9B4803 00        cmp [byte ds:League_of_Legends.3489BCC], 0
 				0107FE5B  ║·▼│0F84 7D020000           je League_of_Legends.010800DE
 				0107FE61  ║► │F30F1047 64             movss xmm0, [dword ds:edi+64]                        ; float 0.0004092904
@@ -131,11 +124,7 @@ BOOL camera_scan_patch ()
 				0107FE7B  ║· │F30F1047 6C             movss xmm0, [dword ds:edi+6C]                        ; float 0.0004054068
 				0107FE80  ║· │F30F1105 2F994803       movss [dword ds:League_of_Legends.348992F], xmm0     ; float 0.0, 0.0, 0.0, 3036.157
 				01698515  ║· │8B4D F4                 mov ecx, [dword ss:ebp-0C]
-				0107FE8C  ║· │64:890D 00000000        mov [dword fs:0], ecx                                ; ASCII "H\xF4+"
 		*/
-			0x74,0x49,
-			0x85,0xFF,
-			0x74,0x45,
 			0x80,0x3D,0xCC,0x9B,0x48,0x03,0x00,
 			0x0F,0x84,0x7D,0x02,0x00,0x00,
 			0xF3,0x0F,0x10,0x47,0x64,
@@ -145,11 +134,7 @@ BOOL camera_scan_patch ()
 			0xF3,0x0F,0x10,0x47,0x6C,
 			0xF3,0x0F,0x11,0x05,0x2F,0x99,0x48,0x03,
 			0x8B,0x4D,0xF4,
-			0x64,0x89,0x0D,0x00,0x00,0x00,0x00
 		},
-			"xx"
-			"xx"
-			"xx"
 			"xx????x"
 			"xx????"
 			"xxxx?"
@@ -158,27 +143,19 @@ BOOL camera_scan_patch ()
 			"xxxx????"
 			"xxxx?"
 			"xxxx????"
-			"xx?"
-			"xxxxxxx",
+			"xx?",
 
 		(unsigned char[]) {
-			0x74,0x49,
-			0x85,0xFF,
-			0x74,0x45,
 			0x80,0x3D,0xCC,0x9B,0x48,0x03,0x00,
 			0x0F,0x84,0x7D,0x02,0x00,0x00,
 			0xF3,0x0F,0x10,0x47,0x64,
-			0x90,0x90,0x90,0x90,0x90,0x90,0x90,0x90,
+			0x90,0x90,0x90,0x90,0x90,0x90,0x90,0x90, // < nop
 			0xF3,0x0F,0x10,0x47,0x68,
-			0x90,0x90,0x90,0x90,0x90,0x90,0x90,0x90,
+			0x90,0x90,0x90,0x90,0x90,0x90,0x90,0x90, // < nop
 			0xF3,0x0F,0x10,0x47,0x6C,
-			0x90,0x90,0x90,0x90,0x90,0x90,0x90,0x90,
-			0x8B,0x4D,0xF4,
-			0x64,0x89,0x0D,0x00,0x00,0x00,0x00
+			0x90,0x90,0x90,0x90,0x90,0x90,0x90,0x90, // < nop
+			0x8B,0x4D,0xF4
 		},
-			"??"
-			"??"
-			"??"
 			"???????"
 			"??????"
 			"?????"
@@ -188,16 +165,14 @@ BOOL camera_scan_patch ()
 			"?????"
 			"xxxxxxxx"
 			"???"
-			"???????"
-
 	);
 
 	this->patchlist = patch_list_get();
 
-	return TRUE;
+	return true;
 }
 
-BOOL camera_scan_camval ()
+bool camera_scan_camval (void)
 {
 	Camera *this = camera_get_instance();
 	unsigned char *description = "CameraX_Value/CameraY_Value";
@@ -275,7 +250,7 @@ BOOL camera_scan_camval ()
 	if (!res)
 	{
 		warning("Cannot find %s address", description);
-		return FALSE;
+		return false;
 	}
 
 	DWORD camx_addr_ptr, camy_addr_ptr;
@@ -289,64 +264,84 @@ BOOL camera_scan_camval ()
 	if (!camx_addr_ptr || !camy_addr_ptr)
 	{
 		warning("Cannot find camera position");
-		return FALSE;
+		return false;
 	}
 
 	this->camx_val = camx_addr_ptr - this->mp->base_addr;
 	this->camy_val = camy_addr_ptr - this->mp->base_addr;
 
-	return TRUE;
+	return true;
 }
 
-BOOL camera_scan_campos ()
-/// FIXED
+bool camera_posmemory_cond (MemProc *mp, BbQueue *results)
+{
+	Buffer *b[3];
+	DWORD ptr[3];
+
+	b[0] = bb_queue_pick_nth(results, 1);
+	b[1] = bb_queue_pick_nth(results, 2);
+	b[2] = bb_queue_pick_nth(results, 3);
+
+	memcpy(&ptr[0], b[0]->data, sizeof(DWORD));
+	memcpy(&ptr[1], b[1]->data, sizeof(DWORD));
+	memcpy(&ptr[2], b[2]->data, sizeof(DWORD));
+
+	if ((ptr[0] + 4 != ptr[1])
+	||  (ptr[0] + 8 != ptr[2]))
+		return false;
+
+	float x = read_memory_as_float(mp->proc, ptr[0]);
+	float y = read_memory_as_float(mp->proc, ptr[2]);
+
+	if (x == 0.0 || y == 0.0)
+		return false;
+
+	return true;
+}
+
+bool camera_scan_campos (void)
 {
 	Camera *this = camera_get_instance();
 	unsigned char *description = "CameraX_Memory/CameraY_Memory";
 
-	BbQueue *res = memscan_search(this->mp, description,
+	BbQueue *res = memscan_search_cond (this->mp, description,
 		(unsigned char []) {
 		/*
-			00C87EC9  ║►  F30F1015 44A89701       movss xmm2, [dword ds:League_of_Legends.197A844]                      ; float 0.0
-			00C87ED1  ║·  F30F101D 605D8301       movss xmm3, [dword ds:League_of_Legends.1835D60]                      ; float 2000.000
-			00C87ED9  ║·  F30F100D 4CA89701       movss xmm1, [dword ds:League_of_Legends.197A84C]                      ; float 0.5591928
-			00C87EE1  ║·  F30F1000                movss xmm0, [dword ds:eax]                                            ; float 3.704317
-			00C87EE5  ║·  F30F59D3                mulss xmm2, xmm3                                                      ; float 0.0, 0.0, 0.0, 0.0
-			00C87EE9  ║·  F30F59CB                mulss xmm1, xmm3                                                      ; float 0.0, 0.0, 0.0, 0.0
-			00C87EED  ║·  F30F5815 30A89701       addss xmm2, [dword ds:League_of_Legends.197A830]                      ; float 5000.000
-
+			015325C4  ║·  F30F1006                movss xmm0, [dword ds:esi]
+			015325C8  ║·  F30F1105 6FCF4602       movss [dword ds:League_of_Legends.246CF6F], xmm0  ; float 300.0000
+			015325D0  ║·  F30F1046 04             movss xmm0, [dword ds:esi+4]
+			015325D5  ║·  F30F1105 73CF4602       movss [dword ds:League_of_Legends.246CF73], xmm0  ; float 0.0
+			015325DD  ║·  F30F1046 08             movss xmm0, [dword ds:esi+8]
+			015325E2  ║·  F30F1105 77CF4602       movss [dword ds:League_of_Legends.246CF77], xmm0  ; float 475.0000
 		*/
-			0xF3,0x0F,0x10,0x15,0x44,0xA8,0x97,0x01,
-			0xF3,0x0F,0x10,0x1D,0x60,0x5D,0x83,0x01,
-			0xF3,0x0F,0x10,0x0D,0x4C,0xA8,0x97,0x01,
-			0xF3,0x0F,0x10,0x00,
-			0xF3,0x0F,0x59,0xD3,
-			0xF3,0x0F,0x59,0xCB,
-			0xF3,0x0F,0x58,0x15,0x30,0xA8,0x97,0x01
+			0xF3,0x0F,0x10,0x06,
+			0xF3,0x0F,0x11,0x05,0x6F,0xCF,0x46,0x02,
+			0xF3,0x0F,0x10,0x46,0x04,
+			0xF3,0x0F,0x11,0x05,0x73,0xCF,0x46,0x02,
+			0xF3,0x0F,0x10,0x46,0x08,
+			0xF3,0x0F,0x11,0x05,0x77,0xCF,0x46,0x02
 		},
-			"xxxx????"
-			"xxxx????"
-			"xxxx????"
+
 			"xxxx"
-			"xxxx"
-			"xxxx"
+			"xxxx????"
+			"xxxxx"
+			"xxxx????"
+			"xxxxx"
 			"xxxx????",
 
-			"xxxxxxxx"
-			"xxxxxxxx"
-			"xxxxxxxx"
-			"xxxx"
-			"xxxx"
 			"xxxx"
 			"xxxx????"
+			"xxxxx"
+			"xxxx????"
+			"xxxxx"
+			"xxxx????",
 
-
-	);
+			camera_posmemory_cond);
 
 	if (!res)
 	{
 		warning("Cannot find %s address", description);
-		return FALSE;
+		return false;
 	}
 
 	DWORD camx_addr_ptr, camy_addr_ptr;
@@ -359,17 +354,16 @@ BOOL camera_scan_campos ()
 	if (!camx_addr_ptr || !camy_addr_ptr)
 	{
 		warning("Cannot find camera position");
-		return FALSE;
+		return false;
 	}
 
 	this->camx_addr  = camx_addr_ptr  - this->mp->base_addr;
 	this->camy_addr  = camy_addr_ptr  - this->mp->base_addr;
 
-	return TRUE;
+	return true;
 }
 
-BOOL camera_scan_hover_interface ()
-/// FIXED
+bool camera_scan_hover_interface (void)
 {
 	Camera *this = camera_get_instance();
 
@@ -416,7 +410,7 @@ BOOL camera_scan_hover_interface ()
 	if (!res)
 	{
 		warning("Cannot find HoverInterface address");
-		return FALSE;
+		return false;
 	}
 
 	Buffer *interface_hovered_addr = bb_queue_pick_first(res);
@@ -427,131 +421,86 @@ BOOL camera_scan_hover_interface ()
 	if (!this->interface_hovered_addr)
 	{
 		warning("Cannot scan HoverInterface");
-		return FALSE;
+		return false;
 	}
 
 	camera_refresh_hover_interface();
 
-	return TRUE;
+	return true;
 }
 
-BOOL camera_scan_loading ()
-/// FIXED
+bool camera_scan_game_info (void)
 {
 	Camera *this = camera_get_instance();
 
-	BbQueue *res = memscan_search (this->mp, "loadingState",
 	/*
-			000CE371  ║·  8B35 40D1B002           mov esi, [dword ds:League_of_Legends.2B0D140]
-			000CE377  ║·  85F6                    test esi, esi
-			000CE379  ║·▼ 74 38                   jz short League_of_Legends.000CE3B3
-			000CE37B  ║·  8B06                    mov eax, [dword ds:esi]
-			000CE37D  ║·  85C0                    test eax, eax
-			000CE37F  ║·▼ 74 28                   jz short League_of_Legends.000CE3A9
-			000CE381  ║·  FF76 04                 push [dword ds:esi+4]                                  ; ╓Arg2
-			000CE384  ║·  50                      push eax                                               ; ║Arg1 = ASCII "themewnd"
-			000CE385  ║·  E8 36F2FAFF             call League_of_Legends.0007D5C0                        ; └League_of_Legends.0007D5C0
-			000CE38A  ║·  FF36                    push [dword ds:esi]
-			000CE38C  ║·  FF15 5CB6B800           call [dword ds:<&MSVCR110.operator delete>]
-	*/
-		(unsigned char[]) {
-			0x8B,0x35,0x40,0xD1,0xB0,0x02,
-			0x85,0xF6,
-			0x74,0x38,
-			0x8B,0x06,
-			0x85,0xC0,
-			0x74,0x28,
-			0xFF,0x76,0x04,
-			0x50,
-			0xE8,0x36,0xF2,0xFA,0xFF,
-			0xFF,0x36,
-			0xFF,0x15,0x5C,0xB6,0xB8,0x00
-		},
-
-			"xx????"
-			"xx"
-			"x?"
-			"xx",
-
-			"xx????"
-			"xx"
-			"xx"
-			"xx"
-
-
-	);
-
-	if (!res)
-	{
-		warning("Cannot find loading state address");
-		return FALSE;
-	}
-
-	Buffer *loading_state_addr = bb_queue_pick_first(res);
-	memcpy(&this->loading_state_addr, loading_state_addr->data, loading_state_addr->size);
-
-	bb_queue_free_all(res, buffer_free);
-
-	if (!this->loading_state_addr)
-	{
-		warning("Cannot scan loading state");
-		return FALSE;
-	}
-
-	return TRUE;
-}
-
-BOOL camera_scan_game_info ()
-{
-	Camera *this = camera_get_instance();
-
 	BbQueue *res = memscan_search (this->mp, "gameState",
-	/*
-		017F9295   ║·  57                 push edi                                          ; ╓hDC = 005B1F20
-		017F9296   ║·  8945 CC            mov [dword ss:local.13], eax                      ; ║
-		017F9299   ║·  FF15 88D0ED01      call [dword ds:<&GDI32.DeleteDC>]                 ; └GDI32.DeleteDC
-		017F929F   ║·  8B75 C4            mov esi, [dword ss:local.15]
-		017F92A2   ║·  8B7D CC            mov edi, [dword ss:local.13]                      ; ASCII "SUSU"
-		017F92A5   ║►  8B0D 64E0D603      mov ecx, [dword ds:League_of_Legends.3D6E064]
-		017F92AB   ║·  85C9               test ecx, ecx
-		017F92AD   ║·▼ 75 0B              jnz short League_of_Legends.017F92BA
-	*/
+		00477293  ║·  833D FC13DA02 00   cmp [dword ds:League_of_Legends.2DA13FC], 0
+		0047729A  ║·▼ 75 4A              jne short League_of_Legends.004772E6
+		0047729C  ║·  803D CB13DA02 00   cmp [byte ds:League_of_Legends.2DA13CB], 0
+		004772A3  ║·▼ 74 0E              je short League_of_Legends.004772B3
+		004772A5  ║·  C605 CB13DA02 00   mov [byte ds:League_of_Legends.2DA13CB], 0
+		004772AC  ║·  C605 080FDA02 01   mov [byte ds:League_of_Legends.2DA0F08], 1
+		004772B3      C745 F0 F00CDA02   mov [dword ss:ebp-10], offset League_of_Legends.02DA0CF0
+		004772BA  ║·  B9 F00CDA02        mov ecx, offset League_of_Legends.02DA0CF0
 		(unsigned char[]) {
-			0x57,
-			0x89,0x45,0xCC,
-			0xFF,0x15,0x88,0xD0,0xED,0x01,
-			0x8B,0x75,0xC4,
-			0x8B,0x7D,0xCC,
-			0x8B,0x0D,0x64,0xE0,0xD6,0x03,
-			0x85,0xC9,
-			0x75,0x0B
+			0x83,0x3D,0xFC,0x13,0xDA,0x02,0x00,
+			0x75,0x4A,
+			0x80,0x3D,0xCB,0x13,0xDA,0x02,0x00,
+			0x74,0x0E,
+			0xC6,0x05,0xCB,0x13,0xDA,0x02,0x00,
+			0xC6,0x05,0x08,0x0F,0xDA,0x02,0x01,
+			0xC7,0x45,0xF0,0xF0,0x0C,0xDA,0x02,
+			0xB9,0xF0,0x0C,0xDA,0x02
 		},
-			"x"
-			"xx?"
-			"xx????"
-			"xx?"
-			"xx?"
-			"xx????"
-			"xx"
-			"xx",
 
-			"x"
-			"xxx"
-			"xxxxxx"
-			"xxx"
-			"xxx"
-			"xx????"
+			"xx????x"
+			"x?"
+			"xx????x"
+			"x?"
+			"xx????x"
+			"xx????x"
+			"xx?????"
+			"x????",
+
+			"xxxxxxx"
 			"xx"
+			"xxxxxxx"
 			"xx"
+			"xxxxxxx"
+			"xxxxxxx"
+			"xxx????"
+			"x????"
 	);
 
 	if (!res)
 	{
 		warning("Cannot find game state address");
-		return 0;
+		return false;
 	}
 
-	Buffer *game_info_addr = bb_queue_pick_nth(res, 1);
+	int start = 1;
+	bool looping = true;
+	Buffer *game_info_addr = NULL;
+	while (looping)
+	{
+		DWORD addr[2];
+		game_info_addr = bb_queue_pick_nth(res, start);
+		Buffer *game_info_addr_same = bb_queue_pick_nth(res, start+1);
+
+		memcpy(&addr[0], game_info_addr->data, game_info_addr->size);
+		memcpy(&addr[1], game_info_addr_same->data, game_info_addr_same->size);
+
+		if ((addr[0] == addr[1]) && (addr[0] != 0))
+			looping = false;
+
+		else if (++start > (bb_queue_get_length(res) + 1))
+		{
+			fatal_error("gameState not found.");
+			looping = false;
+		}
+	}
+
 	memcpy(&this->game_info_addr, game_info_addr->data, game_info_addr->size);
 
 	bb_queue_free_all(res, buffer_free);
@@ -559,25 +508,83 @@ BOOL camera_scan_game_info ()
 	if (!this->game_info_addr)
 	{
 		warning("Cannot scan game state");
-		return FALSE;
+		return false;
 	}
 
-	read_from_memory(this->mp->proc, this->self_name, this->game_info_addr + 0xE4, sizeof(this->self_name) - 1);
+	read_from_memory(this->mp->proc, this->self_name, this->game_info_addr + SELF_NAME_OFFSET, sizeof(this->self_name) - 1);
 
-	if (strlen(this->self_name) <= 0)
+	if (str_is_empty(this->self_name))
 	{
 		warning("Cannot find self name");
-		return FALSE;
+		return false;
+	}
+	else
+		debug("Self name (%p) : <%s>", this->game_info_addr + SELF_NAME_OFFSET, this->self_name);
+
+	return true;
+	*/
+
+	BbQueue *res = memscan_search (this->mp, "gameInfo",
+	/*
+		0046FAD2  ║·  64A3 00000000           mov [dword fs:0], eax
+		0046FAD8  ║·  833D ACEFC702 00        cmp [dword ds:League_of_Legends.2C7EFAC], 0
+		0046FADF  ║·▼ 0F84 DA000000           je League_of_Legends.0046FBBF
+		0046FAE5  ║·  A1 9CA0C802             mov eax, [dword ds:League_of_Legends.2C8A09C]
+		0046FAEA  ║·  A8 01                   test al, 01
+	*/
+		(unsigned char[]) {
+			0x64,0xA3,0x00,0x00,0x00,0x00,
+			0x83,0x3D,0xAC,0xEF,0xC7,0x02,0x00,
+			0x0F,0x84,0xDA,0x00,0x00,0x00,
+			0xA1,0x9C,0xA0,0xC8,0x02,
+			0xA8,0x01
+		},
+
+			"xxxxxx"
+			"xx????x"
+			"xx??xx"
+			"x????"
+			"xx",
+
+			"xxxxxx"
+			"xx????x"
+			"xxxxxx"
+			"xxxxx"
+			"xx"
+	);
+
+	if (!res)
+	{
+		warning("Cannot find game info address");
+		return false;
 	}
 
-	else
-		debug("Self name : <%s>", this->self_name);
+	DWORD addr;
+	Buffer *buffer = bb_queue_pick_first(res);
+	memcpy(&addr, buffer->data, buffer->size);
+	bb_queue_free_all(res, buffer_free);
 
-	return TRUE;
+	if (!addr)
+	{
+		warning("Cannot scan game info");
+		return false;
+	}
+
+	this->game_info_addr = read_memory_as_int (this->mp->proc, addr);
+	read_from_memory (this->mp->proc, this->self_name, this->game_info_addr + SELF_NAME_OFFSET, sizeof(this->self_name) - 1);
+
+	if (str_is_empty(this->self_name))
+	{
+		warning("Cannot find self name");
+		return false;
+	}
+	else
+		debug("Self name (%p) : <%s>", this->game_info_addr + SELF_NAME_OFFSET, this->self_name);
+
+	return true;
 }
 
-BOOL camera_scan_cursor_champ ()
-/// FIXED
+bool camera_scan_cursor_champ (void)
 {
 	Camera *this = camera_get_instance();
 
@@ -621,7 +628,7 @@ BOOL camera_scan_cursor_champ ()
 	if (!res)
 	{
 		warning("Cannot find mouse or champion structure");
-		return FALSE;
+		return false;
 	}
 
 	Buffer *cursorX = bb_queue_pick_first(res);
@@ -635,7 +642,7 @@ BOOL camera_scan_cursor_champ ()
 	if (!this->mousex_addr || !this->champx_addr)
 	{
 		warning("Cannot scan mouse or champion position");
-		return FALSE;
+		return false;
 	}
 
 	this->champx_addr -= this->mp->base_addr;
@@ -644,17 +651,15 @@ BOOL camera_scan_cursor_champ ()
 	this->mousex_addr -= this->mp->base_addr;
 	this->mousey_addr  = this->mousex_addr + 8;
 
-	return TRUE;
+	return true;
 }
 
-BOOL camera_scan_dest ()
-/// FIXED
+bool camera_scan_dest (void)
 {
 	Camera *this = camera_get_instance();
 
 	BbQueue *res = memscan_search(this->mp, "DestPos",
 		/*
-			0107EFDF  ║·  D91D F89A4803                    fstp [dword ds:League_of_Legends.3489AF8]                        ; float 3.000000
 			0107EFE5  ║·  C605 FC9A4803 01                 mov [byte ds:League_of_Legends.3489AFC], 1
 			0107EFEC  ║·  C705 009B4803 00000000           mov [dword ds:League_of_Legends.3489B00], 0
 			0107EFF6  ║·  C705 289B4803 000000FF           mov [dword ds:League_of_Legends.3489B28], FF000000
@@ -663,7 +668,6 @@ BOOL camera_scan_dest ()
 			0107F014  ║·  C705 309B4803 00000000           mov [dword ds:League_of_Legends.<<<3489B30>>>], 0
 		*/
 		(unsigned char []) {
-			0xD9,0x1D,0xF8,0x9A,0x48,0x03,
 			0xC6,0x05,0xFC,0x9A,0x48,0x03,0x01,
 			0xC7,0x05,0x00,0x9B,0x48,0x03,0x00,0x00,0x00,0x00,
 			0xC7,0x05,0x28,0x9B,0x48,0x03,0x00,0x00,0x00,0xFF,
@@ -672,7 +676,6 @@ BOOL camera_scan_dest ()
 			0xC7,0x05,0x30,0x9B,0x48,0x03,0x00,0x00,0x00,0x00
 		},
 
-			"xx????"
 			"xx????x"
 			"xx????xxxx"
 			"xx????xxxx"
@@ -680,7 +683,6 @@ BOOL camera_scan_dest ()
 			"xx????xxxx"
 			"xx????xxxx",
 
-			"xxxxxx"
 			"xxxxxxx"
 			"xxxxxxxxxx"
 			"xxxxxxxxxx"
@@ -692,7 +694,7 @@ BOOL camera_scan_dest ()
 	if (!res)
 	{
 		warning("Cannot find Dest offsets\n");
-		return FALSE;
+		return false;
 	}
 
 	Buffer *dest = bb_queue_pick_first(res);
@@ -704,46 +706,44 @@ BOOL camera_scan_dest ()
 
 	bb_queue_free_all(res, buffer_free);
 
-	return TRUE;
+	return true;
 }
 
-BOOL camera_scan_variables ()
-/// OK
+bool camera_scan_variables (void)
 {
-	BOOL res = TRUE;
+	bool res = true;
+
 
 	info("------------------------------------------------------------------");
 	info("Searching for static variables address ...");
 
-	BOOL (*scan_funcs[])(void) = {
+	bool (*scan_funcs[])(void) = {
 		camera_scan_campos,
 		camera_scan_camval,
-		camera_scan_loading,
 		camera_scan_dest,
 		camera_scan_cursor_champ,
 		camera_scan_game_info,
 		camera_scan_win_is_opened,
-		camera_scan_hovered_champ,
-		// camera_scan_victory,
+		camera_scan_minimap_size,
+		camera_scan_ping_or_skill_waiting,
 		camera_scan_hover_interface
 	};
 
-	for (int i = 0; i < (sizeof(scan_funcs) / sizeof(BOOL (*)())); i++)
+	for (int i = 0; i < sizeof_array(scan_funcs); i++)
 	{
 		if (!scan_funcs[i]())
-			res = FALSE;
+			res = false;
 	}
 
 	info("------------------------------------------------------------------");
 	info("Reading the content of pointers...");
-	camera_scan_champions(TRUE);
+	camera_scan_champions(true);
 	camera_refresh_self();
 
 	return res;
 }
 
-BOOL camera_refresh_self ()
-/// OK
+bool camera_refresh_self (void)
 {
 	Camera *this = camera_get_instance();
 
@@ -752,71 +752,45 @@ BOOL camera_refresh_self ()
 
 	for (int i = 0; cur != end && i < 10; cur += 4, i++)
 	{
-		if (strcmp(this->self_name, this->champions[i]->player_name) == 0)
+	    if (strcmp(this->self_name, this->champions[i]->player_name) == 0)
 		{
 			this->self = this->champions[i];
-			return TRUE;
+			return (this->self != NULL);
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
-BOOL camera_scan_win_is_opened ()
-/// FIXED
+bool camera_scan_win_is_opened (void)
 {
 	Camera *this = camera_get_instance();
 
 	BbQueue *res = memscan_search (this->mp, "winIsOpened",
 	/*
-		0145D640  ╓·  56                      push esi
-		0145D641  ║·  8BF1                    mov esi, ecx
-		0145D643  ║·  8B0D 4063E203           mov ecx, [dword ds:League_of_Legends.3E26340]
-		0145D649  ║·  8B01                    mov eax, [dword ds:ecx]
-		0145D64B  ║·  FF50 04                 call [dword ds:eax+4]
-		0145D64E  ║·  8B10                    mov edx, [dword ds:eax]
-		0145D650  ║·  6A 01                   push 1
-		0145D652  ║·  8BC8                    mov ecx, eax
-		0145D654  ║·  FF52 2C                 call [dword ds:edx+2C]
+		01540C29                    ║·  8B0D E0D34602           ║mov ecx, [dword ds:League_of_Legends.246D3E0]
+		01540C2F                    ║·  8B01                    ║mov eax, [dword ds:ecx]
+		01540C31                    ║·  FF50 04                 ║call [dword ds:eax+4]
 	*/
 		(unsigned char[]) {
-			0x56,
-			0x8B,0xF1,
-			0x8B,0x0D,0x40,0x63,0xE2,0x03,
+			0x8B,0x0D,0xE0,0xD3,0x46,0x02,
 			0x8B,0x01,
-			0xFF,0x50,0x04,
-			0x8B,0x10,
-			0x6A,0x01,
-			0x8B,0xC8,
-			0xFF,0x52,0x2C
+			0xFF,0x50,0x04
 		},
 
-			"x"
-			"xx"
 			"xx????"
-			"xx"
-			"xxx"
-			"xx"
-			"xx"
 			"xx"
 			"xxx",
 
-			"x"
-			"xx"
 			"xx????"
 			"xx"
 			"xxx"
-			"xx"
-			"xx"
-			"xx"
-			"xxx"
-
 	);
 
 	if (!res)
 	{
 		warning("Cannot find win_is_opened_ptr address");
-		return FALSE;
+		return false;
 	}
 
 	Buffer *win_is_opened_ptr = bb_queue_pick_first(res);
@@ -827,101 +801,173 @@ BOOL camera_scan_win_is_opened ()
 	if (!this->win_is_opened_ptr)
 	{
 		warning("Cannot scan win_is_opened_ptr");
-		return FALSE;
+		return false;
 	}
 
 	DWORD win_is_opened_addr;
 	win_is_opened_addr = read_memory_as_int(this->mp->proc, this->win_is_opened_ptr);
 
 	if (!win_is_opened_addr)
-		return FALSE;
+		return false;
 
-	this->win_is_opened_addr = win_is_opened_addr + 0x54;
+	win_is_opened_addr = win_is_opened_addr + WIN_IS_OPENED_OFFSET + 0x4;
 
-	return TRUE;
+	this->win_is_opened_addr = read_memory_as_int(this->mp->proc, win_is_opened_addr) + WIN_IS_OPENED_OFFSET_2;
+
+	return true;
 }
 
-BOOL camera_scan_hovered_champ ()
-/// FIXED
+bool camera_win_offset_cond (MemProc *mp, BbQueue *results)
+{
+	(void) mp;
+
+	Buffer *b[2];
+	DWORD off[2];
+
+	b[0] = bb_queue_pick_first(results);
+	b[1] = bb_queue_pick_last(results);
+
+	memcpy(&off[0], b[0]->data, sizeof(DWORD));
+	memcpy(&off[1], b[1]->data, sizeof(DWORD));
+
+	// offset 1 = offset 2
+	if (off[0] != off[1])
+		return false;
+
+	return true;
+}
+
+bool camera_scan_minimap_size (void)
 {
 	Camera *this = camera_get_instance();
+	unsigned char *description = "minimapSize";
 
-	BbQueue *res = memscan_search (this->mp, "entityHovered",
+	BbQueue *res = memscan_search (this->mp, description,
 	/*
-		012CEC1D  ║·▲└E9 B8FAFFFF                       jmp League_of_Legends.012CE6DA
-		012CEC22  ║►  8A15 92D57203                     mov dl, [byte ds:League_of_Legends.372D592]
-		012CEC28  ║►  B9 A0D57203                       mov ecx, offset League_of_Legends.0372D5A0
-		012CEC2D  ║·  C705 A0D57203 00000000            mov [dword ds:League_of_Legends.372D5A0], 0
-		012CEC37  ║·  C705 A4D57203 00000000            mov [dword ds:League_of_Legends.372D5A4], 0
-		012CEC41  ║·  C705 A8D57203 00000000            mov [dword ds:League_of_Legends.372D5A8], 0
-		012CEC4B  ║·  890D 94D57203                     mov [dword ds:League_of_Legends.372D594], ecx
-		012CEC51  ║·  84D2                              test dl, dl
-		012CEC53  ║·▲ 75 1A                             jnz short League_of_Legends.012CEC6F
-		012CEC55  ║·  68 A018D600                       push League_of_Legends.00D618A0  ; ╓Arg1 = League_of_Legends.0D618A0
-		012CEC5A  ║·  E8 6C2DE0FF                       call League_of_Legends.010D19CB  ; └League_of_Legends.010D19CB
+        0168CC87  ║·  E8 44751000   call League_of_Legends.017941D0                      ; └League_of_Legends.017941D0
+        0168CC8C  ║►  E8 EF6DFEFF   call League_of_Legends.01673A80                      ; [League_of_Legends.01673A80
+        0168CC91  ║·  8B0D 3CD04102 [3] mov ecx, [dword ds:League_of_Legends.241D03C]
+        0168CC97  ║·  85C9          test ecx, ecx
+        0168CC99  ║·▼ 74 05         jz short League_of_Legends.0168CCA0
+        0168CC9B  ║·  E8 C093F5FF   call League_of_Legends.015E6060                      ; [League_of_Legends.015E6060
+        0168CCA0  ║►  E8 7BB3E4FF   call League_of_Legends.014D8020                      ; [League_of_Legends.014D8020
 	*/
-
 		(unsigned char []) {
-			0xE9,0xB8,0xFA,0xFF,0xFF,
-			0x8A,0x15,0x92,0xD5,0x72,0x03,
-			0xB9,0xA0,0xD5,0x72,0x03,
-			0xC7,0x05,0xA0,0xD5,0x72,0x03,0x00,0x00,0x00,0x00,
-			0xC7,0x05,0xA4,0xD5,0x72,0x03,0x00,0x00,0x00,0x00,
-			0xC7,0x05,0xA8,0xD5,0x72,0x03,0x00,0x00,0x00,0x00,
-			0x89,0x0D,0x94,0xD5,0x72,0x03,
-			0x84,0xD2,
-			0x75,0x1A,
-			0x68,0xA0,0x18,0xD6,0x00,
-			0xE8,0x6C,0x2D,0xE0,0xFF
+		    0xE8,0x44,0x75,0x10,0x00,
+		    0xE8,0xEF,0x6D,0xFE,0xFF,
+		    0x8B,0x0D,0x3C,0xD0,0x41,0x02,
+		    0x85,0xC9,
+            0x74,0x05,
+            0xE8,0xC0,0x93,0xF5,0xFF,
+            0xE8,0x7B,0xB3,0xE4,0xFF
 		},
+		"x????"
+        "x????"
+        "xx????"
+        "xx"
+        "x?"
+        "x????"
+        "x????",
 
-			"x????"
-			"xx????"
-			"x????"
-			"xx????xxxx"
-			"xx????xxxx"
-			"xx????xxxx"
-			"xx????"
-			"xx"
-			"x?"
-			"x????"
-			"x????",
-
-
-			"xxxxx"
-			"xxxxxx"
-			"x????"
-			"xxxxxxxxxx"
-			"xxxxxxxxxx"
-			"xxxxxxxxxx"
-			"xxxxxx"
-			"xx"
-			"xx"
-			"xxxxx"
-			"xxxxx"
-
+        "xxxxx"
+        "xxxxx"
+        "xx????"
+        "xx"
+        "xx"
+        "xxxxx"
+        "xxxxx"
 	);
 
 	if (!res)
 	{
-		warning("Cannot find entity hovered address");
-		return FALSE;
+		warning("Cannot find %s address", description);
+		return false;
 	}
 
-	Buffer *entityHovered = bb_queue_pick_first(res);
+	Buffer *minimapSize = bb_queue_pick_first(res);
 
-	memcpy(&this->entity_hovered_addr, entityHovered->data, entityHovered->size);
+	memcpy(&this->mmsize_addr, minimapSize->data, minimapSize->size);
 
-	if (!this->entity_hovered_addr)
-	{
-		warning("Cannot scan entity hovered");
-		return FALSE;
+    // Cleaning
+    bb_queue_free_all(res, buffer_free);
+
+	// TODO : Get offsets properly
+	DWORD ptr[3];
+	DWORD offset[2] = {0xC4, 0xDC};
+
+    // Get the final value
+	ptr[0] = read_memory_as_int(this->mp->proc, this->mmsize_addr);
+	ptr[1] = read_memory_as_int(this->mp->proc, ptr[0] + offset[0]);
+	this->mmsize_addr = ptr[1] + offset[1];
+
+	if (!this->mmsize_addr) {
+		warning("Cannot scan %s array", description);
+		return false;
 	}
 
-	return TRUE;
+    // Get window position
+    RECT wrect;
+    GetWindowRect(this->mp->hwnd, &wrect);
+
+    // Get minimap information
+	this->minimap.xLeft  = wrect.left          + read_memory_as_int(this->mp->proc, this->mmsize_addr);
+	this->minimap.yTop   = wrect.top           + read_memory_as_int(this->mp->proc, this->mmsize_addr + 4);
+	this->minimap.xRight = this->minimap.xLeft + read_memory_as_int(this->mp->proc, this->mmsize_addr + 8);
+	this->minimap.yBot   = this->minimap.yTop  + read_memory_as_int(this->mp->proc, this->mmsize_addr + 12);
+
+	debug("Minimap Size = LT = [%d:%d] / RB = [%d:%d]",
+		this->minimap.xLeft, this->minimap.yTop,
+		this->minimap.xRight, this->minimap.yBot);
+
+	return true;
 }
 
-BOOL camera_scan_victory ()
+bool camera_scan_ping_or_skill_waiting (void)
+{
+	Camera *this = camera_get_instance();
+	unsigned char * description = "pingWaiting";
+
+	BbQueue *res = memscan_search (this->mp, description,
+    /*
+        0145F1E9   ·  E8 F20D1F00   call League_of_Legends.0164FFE0
+        0145F1EE   ·  A1 20CC2D02   mov eax, [dword ds:League_of_Legends.22DCC20]
+        0145F1F3   ·  A3 08CC2D02   mov [dword ds:League_of_Legends.22DCC08], eax
+    */
+
+		(unsigned char []) {
+            0xE8,0xF2,0x0D,0x1F,0x00,
+            0xA1,0x20,0xCC,0x2D,0x02,
+            0xA3,0x08,0xCC,0x2D,0x02
+		},
+
+        "x????"
+        "x????"
+        "x????",
+
+        "xxxxx"
+        "xxxxx"
+        "x????"
+    );
+
+	if (!res)
+	{
+		warning("Cannot find %s", description);
+		return false;
+	}
+
+	Buffer *pingWaiting = bb_queue_pick_first(res);
+	memcpy(&this->ping_state_addr, pingWaiting->data, pingWaiting->size);
+
+	if (!this->ping_state_addr)
+	{
+		warning("Cannot scan %s", description);
+		return false;
+	}
+
+	return true;
+}
+
+bool camera_scan_victory (void)
 {
 	Camera *this = camera_get_instance();
 
@@ -977,7 +1023,7 @@ BOOL camera_scan_victory ()
 	if (!res)
 	{
 		warning("Cannot find VictoryState address");
-		return FALSE;
+		return false;
 	}
 
 	Buffer *victory_state_addr = bb_queue_pick_first(res);
@@ -988,7 +1034,7 @@ BOOL camera_scan_victory ()
 	if (!this->victory_state_addr)
 	{
 		warning("Cannot scan victory_state_addr");
-		return FALSE;
+		return false;
 	}
 
 	int victory_state = read_memory_as_int(this->mp->proc, this->victory_state_addr);
@@ -1001,45 +1047,83 @@ BOOL camera_scan_victory ()
 	return (victory_state != 0);
 }
 
-BOOL camera_scan_champions (BOOL display_error)
-/// FIXED :)
+bool camera_cond_champions (MemProc *mp, BbQueue *results)
+{
+	Buffer *b[2];
+	DWORD ptr[2];
+
+	b[0] = bb_queue_pick_first(results);
+	b[1] = bb_queue_pick_last(results);
+
+	memcpy(&ptr[0], b[0]->data, sizeof(DWORD));
+	memcpy(&ptr[1], b[1]->data, sizeof(DWORD));
+
+	// Address end = address start + 4
+	if (!(ptr[0] + 4 == ptr[1]))
+		return false;
+
+	if (ptr[0] < 0x00010000) // we need an adress here
+		return false;
+
+	ptr[0] = read_memory_as_int(mp->proc, ptr[0]);
+	ptr[1] = read_memory_as_int(mp->proc, ptr[1]);
+
+	if ((ptr[1] - ptr[0]) / 4 > 12) // Support 6v6
+		return false;
+
+	if (ptr[0] == 0)
+		return false;
+
+	if (ptr[0] == (DWORD) -1)
+		return false;
+
+	Entity *dummy = entity_new(mp, ptr[0]);
+
+	if (dummy == NULL)
+		return false;
+
+	if (str_pos(dummy->player_name, "Turret_") != -1)
+		return false;
+
+	if (dummy->hp_max == 4000.0) // Barracks HP = 4000.0
+		return false;
+
+	if (dummy->movement_speed > 0) // Buildings ms = 0
+		return false;
+
+	entity_free(dummy);
+
+	return true;
+}
+
+bool camera_scan_champions (bool display_error)
 {
 	Camera *this = camera_get_instance();
 
-	BbQueue *res = memscan_search (this->mp, "entityArrayStart/entityArrayEnd",
+	BbQueue *res = memscan_search_cond (this->mp, "entityArrayStart/entityArrayEnd",
 	/*
 		013EE469   ║► ┌8B35 9C9CD203      ╓mov esi, [dword ds:League_of_Legends.3D29C9C]
 		013EE46F   ║· │8B3D A09CD203      ║mov edi, [dword ds:League_of_Legends.3D29CA0]
-		013EE475   ║· │3BF7               ║cmp esi, edi
-		013EE477   ║·▼│74 31              ║je short League_of_Legends.013EE4AA
-		013EE479   ║► │8B0E               ║╓mov ecx, [dword ds:esi]
 	*/
 		(unsigned char[]) {
 			0x8B,0x35,0x9C,0x9C,0xD2,0x03,
-			0x8B,0x3D,0xA0,0x9C,0xD2,0x03,
-			0x3B,0xF7,
-			0x74,0x31,
-			0x8B,0x0E
+			0x8B,0x3D,0xA0,0x9C,0xD2,0x03
 		},
 
-			"xx????"
-			"xx????"
-			"xx"
-			"xx"
-			"xx",
+		"xx????"
+		"xx????",
 
-			"xx????"
-			"xx????"
-			"xx"
-			"xx"
-			"xx"
+		"xx????"
+		"xx????",
+
+		camera_cond_champions
 	);
 
 	if (!res)
 	{
 		if (display_error)
 			warning("Cannot find entities array address");
-		return FALSE;
+		return false;
 	}
 
 	Buffer *eArrStart = bb_queue_pick_first(res),
@@ -1047,74 +1131,56 @@ BOOL camera_scan_champions (BOOL display_error)
 
 	memcpy(&this->entities_addr, eArrStart->data, eArrStart->size);
 	memcpy(&this->entities_addr_end, eArrEnd->data, eArrEnd->size);
-
-	bb_queue_free_all(res, buffer_free);
-
-	if (!this->entities_addr || !this->entities_addr_end)
-	{
-		if (display_error)
-			warning("Cannot scan entities");
-		return FALSE;
+	if (!this->entities_addr || !this->entities_addr_end) {
+		warning("Cannot find entities 1");
+		return false;
 	}
 
 	this->entity_ptr     = read_memory_as_int(this->mp->proc, this->entities_addr);
 	this->entity_ptr_end = read_memory_as_int(this->mp->proc, this->entities_addr_end);
-
-	if (!this->entity_ptr || !this->entity_ptr_end)
-	{
-		if (display_error)
-			warning("Cannot read entity array boundaries");
-		return FALSE;
+	if (!this->entity_ptr || !this->entity_ptr_end) {
+		warning("Cannot find entities 2");
+		return false;
 	}
 
-	DWORD cur = this->entity_ptr;
-	DWORD end = this->entity_ptr_end;
+	if (entity_address_to_array(this->mp, this->entity_ptr, this->entity_ptr_end, this->champions))
+		camera_refresh_self();
 
-	for (int i = 0; cur != end && i < 10; cur += 4, i++)
-	{
-		Entity *e = this->champions[i];
-
-		if (e == NULL)
-			this->champions[i] = e = entity_new(this->mp, cur);
-		else
-			entity_init(e, this->mp, cur);
-
-		if (e == NULL)
-			debug("  --> Ally %d not found", i);
-		else
-			debug(" - Entity %d found -> "
-				  "%16s : pos={%5.0f,%5.0f} hp={%4.0f/%4.0f} team=%6s "
-				  "pname=\"%16s\" - 0x%.8x)",
-				  i, e->champ_name, e->p.v.x, e->p.v.y, e->hp, e->hp_max, (e->team == ENTITY_TEAM_BLUE) ? "blue" : "purple",
-				  e->player_name, cur
-			);
-	}
-
-	return TRUE;
+	return true;
 }
 
 
 /** Refreshers **/
-
-BOOL camera_refresh_victory ()
-/// OK
+bool camera_refresh_victory (void)
 {
 	Camera *this = camera_get_instance();
 
 	this->victory_state = read_memory_as_int(this->mp->proc, this->victory_state_addr);
 
-	return TRUE;
+	return true;
 }
 
-BOOL camera_refresh_champions ()
-/// OK
+bool camera_refresh_mouse_screen (void)
+{
+	Camera *this = camera_get_instance();
+    return GetCursorPos(&this->mouse_screen);
+}
+
+bool camera_refresh_ping_state (void)
+{
+    Camera *this = camera_get_instance();
+    this->ping_state = read_memory_as_int(this->mp->proc, this->ping_state_addr);
+    return true;
+}
+
+bool camera_refresh_champions (void)
 {
 	Camera *this = camera_get_instance();
 
-	DWORD entity_ptr     = read_memory_as_int(this->mp->proc, this->entities_addr);
-	DWORD entity_ptr_end = read_memory_as_int(this->mp->proc, this->entities_addr_end);
+	DWORD entity_ptr     = this->entity_ptr     = read_memory_as_int(this->mp->proc, this->entities_addr);
+	DWORD entity_ptr_end = this->entity_ptr_end = read_memory_as_int(this->mp->proc, this->entities_addr_end);
 
-	this->team_size = (entity_ptr_end - entity_ptr) / 4;
+	this->playersCount = (entity_ptr_end - entity_ptr) / 4;
 
 	for (int i = 0; entity_ptr != entity_ptr_end && i < 10; entity_ptr+=4, i++)
 	{
@@ -1123,61 +1189,47 @@ BOOL camera_refresh_champions ()
 			if (this->champions[i])
 			{
 				warning("Entity 0x%.8x cannot be refreshed", this->champions[i]->entity_data);
-				return FALSE;
+				return false;
 			}
 		}
 	}
 
-	return TRUE;
+	return true;
 }
 
-BOOL camera_refresh_entity_hovered ()
-/// FIXED
+bool camera_refresh_entity_hovered (void)
 {
 	Camera *this = camera_get_instance();
 
-	DWORD entity_hovered = read_memory_as_int(this->mp->proc, this->entity_hovered_addr);
+	DWORD cur = this->entity_ptr;
+	DWORD end = this->entity_ptr_end;
 
-	if (entity_hovered != 0)
+	for (int i = 0; cur != end && i < 10; cur += 4, i++)
 	{
-		char name[32] = {};
+		Entity *e = this->champions[i];
 
-		entity_hovered = read_memory_as_int(this->mp->proc, entity_hovered);
-
-		read_from_memory(this->mp->proc, name, entity_hovered + 0x28, 16);
-
-		DWORD cur = this->entity_ptr;
-		DWORD end = this->entity_ptr_end;
-
-		for (int i = 0; cur != end && i < 10; cur += 4, i++)
+		if (e->isHovered)
 		{
-			Entity *e = this->champions[i];
-
-			if (strcmp(e->player_name, name) == 0)
+			if (strcmp(e->player_name, this->self_name) != 0)
 			{
-				if (strcmp(name, this->self_name) == 0)
+				if (vector2D_distance(&this->cam->v, &e->p.v) < 3000.0)
 				{
-					// We don't want to share the view with ourself, dont hover self
-					break;
+					this->entity_hovered = e;
+					return true;
 				}
-
-				// Entity hovered
-				this->entity_hovered = e;
-				break;
 			}
 		}
 	}
-	else
-		this->entity_hovered = NULL;
 
-	return TRUE;
+	this->entity_hovered = NULL;
+
+	return true;
 }
 
-BOOL camera_refresh_entities_nearby ()
-/// OK
+bool camera_refresh_entities_nearby (void)
 {
 	Camera *this = camera_get_instance();
-	float in_screen = 2000.0;
+	float in_screen = this->distance_entity_nearby;
 
 	float distance;
 	int index = 0;
@@ -1220,24 +1272,23 @@ BOOL camera_refresh_entities_nearby ()
 		}
 	}
 
-	return TRUE;
+	return true;
 }
 
-BOOL camera_refresh_win_is_opened ()
-/// FIXED
+bool camera_refresh_win_is_opened (void)
 {
 	Camera *this = camera_get_instance();
 
-	this->interface_opened = read_memory_as_int(this->mp->proc, this->win_is_opened_addr + 0x244);
+	// this->interface_opened = read_memory_as_int(this->mp->proc, this->win_is_opened_addr + 0x244);
 	// Shop opened : 4
 	// Chat opened : 2
 	// Nothing     : 1
 
+	return true;
 	return this->interface_opened != 0;
 }
 
-BOOL camera_refresh_hover_interface ()
-/// OK
+bool camera_refresh_hover_interface (void)
 {
 	Camera *this = camera_get_instance();
 	this->interface_hovered = read_memory_as_int(this->mp->proc, this->interface_hovered_addr);
@@ -1296,7 +1347,7 @@ unsigned char *camera_read_patch (long int id, int *len, DWORD *addr)
 }
 
 // ------------ Scanners ------------
-static long int patch_id = 0;
+static unsigned long int patch_id = 0;
 
 static Patch *camera_get_patch (MemProc *mp, char *description, DWORD *addr, unsigned char *sig, char *sig_mask, unsigned char *patch, char *patch_mask)
 {
@@ -1333,67 +1384,7 @@ static Patch *camera_get_patch (MemProc *mp, char *description, DWORD *addr, uns
 	return patch_new (description, mp, *addr, code, sig, patch, patch_mask);
 }
 
-void camera_get_patches (Patch **patches, int size, MemProc *mp, char *description, DWORD **addrs, unsigned char *sig, char *sig_mask, unsigned char *patch, char *patch_mask)
-{
-	BbQueue *addresses = bb_queue_new();
-	unsigned char *code = NULL;
-	int len;
-
-	if (!camera_search_signatures (sig, sig_mask, description, addrs, size, addresses))
-	{
-		foreach_bbqueue_item (addresses, MemBuffer *mb)
-		{
-			DWORD addr;
-			(void) mb;
-
-			// Error : Try to restore the former saved patches
-			code = camera_read_patch(patch_id, &len, &addr);
-			if ((code != NULL)
-			&&  (write_to_memory(mp->proc, code, addr, len)))
-			{
-				// Phew ... it worked
-				info("Patch %d restored", patch_id);
-				patch_id++;
-			}
-
-			else
-			{
-				important("Cannot load patch %d... Please restart the League of Legends client. Sorry :(", patch_id);
-				return;
-			}
-		}
-	}
-
-	else
-	{
-		foreach_bbqueue_item (addresses, MemBuffer *mb)
-		{
-			DWORD addr = mb->addr;
-			unsigned char *code = mb->buffer->data;
-			camera_save_patch(patch_id, &addr, code, strlen(patch_mask));
-			patch_id++;
-		}
-	}
-
-	int loop = 0;
-
-	foreach_bbqueue_item (addresses, MemBuffer *mb)
-	{
-		DWORD addr = mb->addr;
-		unsigned char *code = mb->buffer->data;
-
-		char *newdesc = str_dup_printf("%s (%d)", description, loop);
-		patches[loop++] = patch_new (newdesc, mp, addr, sig, code, patch, patch_mask);
-		free(newdesc);
-
-		if (loop > size)
-			break;
-	}
-
-	bb_queue_free_all(addresses, membuffer_free);
-}
-
-static BOOL camera_search_signature (unsigned char *pattern, DWORD *addr, unsigned char **code_ptr, char *mask, char *name)
+static bool camera_search_signature (unsigned char *pattern, DWORD *addr, unsigned char **code_ptr, char *mask, char *name)
 {
 	Camera *this = camera_get_instance();
 	debug("Looking for \"%s\" ...", name);
@@ -1405,7 +1396,7 @@ static BOOL camera_search_signature (unsigned char *pattern, DWORD *addr, unsign
 	if (bb_queue_get_length(results) <= 0)
 	{
 		warning("\"%s\" not found (already patched ?)", name);
-		return FALSE;
+		return false;
 	}
 
 	if (bb_queue_get_length(results) > 1)
@@ -1427,73 +1418,18 @@ static BOOL camera_search_signature (unsigned char *pattern, DWORD *addr, unsign
 
 	bb_queue_free_all(results, memblock_free);
 
-	return TRUE;
+	return true;
 }
 
-static BOOL camera_search_signatures (unsigned char *pattern, char *mask, char *name, DWORD **addr, int size, BbQueue *addresses)
+void camera_export_to_cheatengine (void)
 {
-	Camera *this = camera_get_instance();
-	debugb("Looking for \"%s\" ...", name);
+	#ifdef DEBUG
+		Camera *this = camera_get_instance();
 
-	memproc_search(this->mp, pattern, mask, NULL, SEARCH_TYPE_BYTES);
-	BbQueue *results = memproc_get_res(this->mp);
-	MemBlock *memblock;
+		if (!this)
+			return;
 
-	if (bb_queue_get_length(results) <= 0)
-	{
-		warning("\"%s\" not found (already patched ?)", name);
-		for (int i = 0; i < size; i++)
-		{
-			MemBuffer *mb = membuffer_new(*(addr[i]), pattern, size);
-			bb_queue_add(addresses, mb);
-			debugb("  --> [%d] - 0x%.8x\n", i, (int) *(addr[i]));
-		}
-
-		return FALSE;
-	}
-
-	if (bb_queue_get_length(results) != size)
-	{
-		printf("\n");
-		warning("Occurences excepted was %d, %d found.", size, bb_queue_get_length(results));
-
-		if (bb_queue_get_length(results) < size)
-		{
-			for (int i = bb_queue_get_length(results); i < size; i++)
-			{
-				MemBuffer *mb = membuffer_new(*(addr[i]), pattern, size);
-				bb_queue_add(addresses, mb);
-				debugb("  --> [%d] - 0x%.8x\n", i, (int) *(addr[i]));
-			}
-		}
-	}
-
-	int loop = 0;
-
-	debugb(" ->");
-
-	foreach_bbqueue_item (results, memblock) {
-		MemBuffer *mb = membuffer_new(memblock->addr, memblock->data, memblock->size);
-		bb_queue_add(addresses, mb);
-		*(addr[loop++]) = memblock->addr;
-		debugb(" 0x%.8x ", (int) memblock->addr);
-
-		if (!is_last_bbqueue_item(results))
-			debugb("-");
-	}
-
-	debugb("\n");
-
-	bb_queue_free_all(results, memblock_free);
-
-	return TRUE;
-}
-
-void camera_export_to_cheatengine ()
-{
-	Camera *this = camera_get_instance();
-
-	char *out = str_dup_printf (
+		char *out = str_dup_printf (
 		"<?xml version=\"1.0\"?>\n"
 		"<CheatTable CheatEngineTableVersion=\"12\">\n"
 		"  <CheatEntries>\n"
@@ -1600,7 +1536,7 @@ void camera_export_to_cheatengine ()
 		"      <CheatEntries>\n"
 		"        <CheatEntry>\n"
 		"          <ID>35</ID>\n"
-		"          <Description>\"EntityChampF1\"</Description>\n"
+		"          <Description>\"EntityF1\"</Description>\n"
 		"          <ShowAsHex>1</ShowAsHex>\n"
 		"          <Color>80000008</Color>\n"
 		"          <VariableType>4 Bytes</VariableType>\n"
@@ -1610,8 +1546,19 @@ void camera_export_to_cheatengine ()
 		"          </Offsets>\n"
 		"          <CheatEntries>\n"
 		"            <CheatEntry>\n"
+		"              <ID>290</ID>\n"
+		"              <Description>\"isHovered\"</Description>\n"
+		"              <Color>80000008</Color>\n"
+		"              <VariableType>Byte</VariableType>\n"
+		"              <Address>%.8x</Address>\n"
+		"              <Offsets>\n"
+		"                <Offset>231</Offset>\n"
+		"                <Offset>0</Offset>\n"
+		"              </Offsets>\n"
+		"            </CheatEntry>\n"
+		"            <CheatEntry>\n"
 		"              <ID>29</ID>\n"
-		"              <Description>\"ChampF1_HP\"</Description>\n"
+		"              <Description>\"HP\"</Description>\n"
 		"              <Color>80000008</Color>\n"
 		"              <VariableType>Float</VariableType>\n"
 		"              <Address>%.8x</Address>\n"
@@ -1622,7 +1569,7 @@ void camera_export_to_cheatengine ()
 		"            </CheatEntry>\n"
 		"            <CheatEntry>\n"
 		"              <ID>46</ID>\n"
-		"              <Description>\"ChampF1_HPmax\"</Description>\n"
+		"              <Description>\"HPmax\"</Description>\n"
 		"              <Color>80000008</Color>\n"
 		"              <VariableType>Float</VariableType>\n"
 		"              <Address>%.8x</Address>\n"
@@ -1633,7 +1580,7 @@ void camera_export_to_cheatengine ()
 		"            </CheatEntry>\n"
 		"            <CheatEntry>\n"
 		"              <ID>45</ID>\n"
-		"              <Description>\"ChampF1_posX\"</Description>\n"
+		"              <Description>\"posX\"</Description>\n"
 		"              <Color>80000008</Color>\n"
 		"              <VariableType>Float</VariableType>\n"
 		"              <Address>%.8x</Address>\n"
@@ -1644,7 +1591,7 @@ void camera_export_to_cheatengine ()
 		"            </CheatEntry>\n"
 		"            <CheatEntry>\n"
 		"              <ID>54</ID>\n"
-		"              <Description>\"ChampF1_posY\"</Description>\n"
+		"              <Description>\"posY\"</Description>\n"
 		"              <Color>80000008</Color>\n"
 		"              <VariableType>Float</VariableType>\n"
 		"              <Address>%.8x</Address>\n"
@@ -1655,7 +1602,7 @@ void camera_export_to_cheatengine ()
 		"            </CheatEntry>\n"
 		"            <CheatEntry>\n"
 		"              <ID>1154</ID>\n"
-		"              <Description>\"ChampF1_isVisible\"</Description>\n"
+		"              <Description>\"isVisible\"</Description>\n"
 		"              <ShowAsHex>1</ShowAsHex>\n"
 		"              <Color>80000008</Color>\n"
 		"              <VariableType>4 Bytes</VariableType>\n"
@@ -1670,7 +1617,7 @@ void camera_export_to_cheatengine ()
 		"        </CheatEntry>\n"
 		"        <CheatEntry>\n"
 		"          <ID>36</ID>\n"
-		"          <Description>\"EntityAllyF2\"</Description>\n"
+		"          <Description>\"EntityF2\"</Description>\n"
 		"          <ShowAsHex>1</ShowAsHex>\n"
 		"          <Color>80000008</Color>\n"
 		"          <VariableType>4 Bytes</VariableType>\n"
@@ -1680,8 +1627,19 @@ void camera_export_to_cheatengine ()
 		"          </Offsets>\n"
 		"          <CheatEntries>\n"
 		"            <CheatEntry>\n"
+		"              <ID>300</ID>\n"
+		"              <Description>\"isHovered\"</Description>\n"
+		"              <Color>80000008</Color>\n"
+		"              <VariableType>Byte</VariableType>\n"
+		"              <Address>%.8x</Address>\n"
+		"              <Offsets>\n"
+		"                <Offset>231</Offset>\n"
+		"                <Offset>4</Offset>\n"
+		"              </Offsets>\n"
+		"            </CheatEntry>\n"
+		"            <CheatEntry>\n"
 		"              <ID>30</ID>\n"
-		"              <Description>\"AllyF2_HP\"</Description>\n"
+		"              <Description>\"HP\"</Description>\n"
 		"              <Color>80000008</Color>\n"
 		"              <VariableType>Float</VariableType>\n"
 		"              <Address>%.8x</Address>\n"
@@ -1692,7 +1650,7 @@ void camera_export_to_cheatengine ()
 		"            </CheatEntry>\n"
 		"            <CheatEntry>\n"
 		"              <ID>40</ID>\n"
-		"              <Description>\"AllyF2_HPmax\"</Description>\n"
+		"              <Description>\"HPmax\"</Description>\n"
 		"              <Color>80000008</Color>\n"
 		"              <VariableType>Float</VariableType>\n"
 		"              <Address>%.8x</Address>\n"
@@ -1703,7 +1661,7 @@ void camera_export_to_cheatengine ()
 		"            </CheatEntry>\n"
 		"            <CheatEntry>\n"
 		"              <ID>48</ID>\n"
-		"              <Description>\"AllyF2_posY\"</Description>\n"
+		"              <Description>\"posY\"</Description>\n"
 		"              <Color>80000008</Color>\n"
 		"              <VariableType>Float</VariableType>\n"
 		"              <Address>%.8x</Address>\n"
@@ -1714,7 +1672,7 @@ void camera_export_to_cheatengine ()
 		"            </CheatEntry>\n"
 		"            <CheatEntry>\n"
 		"              <ID>47</ID>\n"
-		"              <Description>\"AllyF2_posX\"</Description>\n"
+		"              <Description>\"posX\"</Description>\n"
 		"              <Color>80000008</Color>\n"
 		"              <VariableType>Float</VariableType>\n"
 		"              <Address>%.8x</Address>\n"
@@ -1725,7 +1683,7 @@ void camera_export_to_cheatengine ()
 		"            </CheatEntry>\n"
 		"            <CheatEntry>\n"
 		"              <ID>1155</ID>\n"
-		"              <Description>\"ChampF2_isVisible\"</Description>\n"
+		"              <Description>\"isVisible\"</Description>\n"
 		"              <ShowAsHex>1</ShowAsHex>\n"
 		"              <Color>80000008</Color>\n"
 		"              <VariableType>4 Bytes</VariableType>\n"
@@ -1740,7 +1698,7 @@ void camera_export_to_cheatengine ()
 		"        </CheatEntry>\n"
 		"        <CheatEntry>\n"
 		"          <ID>37</ID>\n"
-		"          <Description>\"EntityAllyF3\"</Description>\n"
+		"          <Description>\"EntityF3\"</Description>\n"
 		"          <ShowAsHex>1</ShowAsHex>\n"
 		"          <Color>80000008</Color>\n"
 		"          <VariableType>4 Bytes</VariableType>\n"
@@ -1750,8 +1708,19 @@ void camera_export_to_cheatengine ()
 		"          </Offsets>\n"
 		"          <CheatEntries>\n"
 		"            <CheatEntry>\n"
+		"              <ID>490</ID>\n"
+		"              <Description>\"isHovered\"</Description>\n"
+		"              <Color>80000008</Color>\n"
+		"              <VariableType>Byte</VariableType>\n"
+		"              <Address>%.8x</Address>\n"
+		"              <Offsets>\n"
+		"                <Offset>231</Offset>\n"
+		"                <Offset>8</Offset>\n"
+		"              </Offsets>\n"
+		"            </CheatEntry>\n"
+		"            <CheatEntry>\n"
 		"              <ID>49</ID>\n"
-		"              <Description>\"AllyF3_HP\"</Description>\n"
+		"              <Description>\"HP\"</Description>\n"
 		"              <Color>80000008</Color>\n"
 		"              <VariableType>Float</VariableType>\n"
 		"              <Address>%.8x</Address>\n"
@@ -1762,7 +1731,7 @@ void camera_export_to_cheatengine ()
 		"            </CheatEntry>\n"
 		"            <CheatEntry>\n"
 		"              <ID>50</ID>\n"
-		"              <Description>\"AllyF3_HPmax\"</Description>\n"
+		"              <Description>\"HPmax\"</Description>\n"
 		"              <Color>80000008</Color>\n"
 		"              <VariableType>Float</VariableType>\n"
 		"              <Address>%.8x</Address>\n"
@@ -1773,7 +1742,7 @@ void camera_export_to_cheatengine ()
 		"            </CheatEntry>\n"
 		"            <CheatEntry>\n"
 		"              <ID>31</ID>\n"
-		"              <Description>\"AllyF3_posX\"</Description>\n"
+		"              <Description>\"posX\"</Description>\n"
 		"              <Color>80000008</Color>\n"
 		"              <VariableType>Float</VariableType>\n"
 		"              <Address>%.8x</Address>\n"
@@ -1784,7 +1753,7 @@ void camera_export_to_cheatengine ()
 		"            </CheatEntry>\n"
 		"            <CheatEntry>\n"
 		"              <ID>41</ID>\n"
-		"              <Description>\"AllyF3_posY\"</Description>\n"
+		"              <Description>\"posY\"</Description>\n"
 		"              <Color>80000008</Color>\n"
 		"              <VariableType>Float</VariableType>\n"
 		"              <Address>%.8x</Address>\n"
@@ -1795,7 +1764,7 @@ void camera_export_to_cheatengine ()
 		"            </CheatEntry>\n"
 		"            <CheatEntry>\n"
 		"              <ID>1156</ID>\n"
-		"              <Description>\"ChampF3_isVisible\"</Description>\n"
+		"              <Description>\"isVisible\"</Description>\n"
 		"              <ShowAsHex>1</ShowAsHex>\n"
 		"              <Color>80000008</Color>\n"
 		"              <VariableType>4 Bytes</VariableType>\n"
@@ -1810,7 +1779,7 @@ void camera_export_to_cheatengine ()
 		"        </CheatEntry>\n"
 		"        <CheatEntry>\n"
 		"          <ID>38</ID>\n"
-		"          <Description>\"EntityAllyF4\"</Description>\n"
+		"          <Description>\"EntityF4\"</Description>\n"
 		"          <ShowAsHex>1</ShowAsHex>\n"
 		"          <Color>80000008</Color>\n"
 		"          <VariableType>4 Bytes</VariableType>\n"
@@ -1820,8 +1789,19 @@ void camera_export_to_cheatengine ()
 		"          </Offsets>\n"
 		"          <CheatEntries>\n"
 		"            <CheatEntry>\n"
+		"              <ID>290</ID>\n"
+		"              <Description>\"isHovered\"</Description>\n"
+		"              <Color>80000008</Color>\n"
+		"              <VariableType>Byte</VariableType>\n"
+		"              <Address>%.8x</Address>\n"
+		"              <Offsets>\n"
+		"                <Offset>231</Offset>\n"
+		"                <Offset>C</Offset>\n"
+		"              </Offsets>\n"
+		"            </CheatEntry>\n"
+		"            <CheatEntry>\n"
 		"              <ID>51</ID>\n"
-		"              <Description>\"AllyF4_HP\"</Description>\n"
+		"              <Description>\"HP\"</Description>\n"
 		"              <Color>80000008</Color>\n"
 		"              <VariableType>Float</VariableType>\n"
 		"              <Address>%.8x</Address>\n"
@@ -1832,7 +1812,7 @@ void camera_export_to_cheatengine ()
 		"            </CheatEntry>\n"
 		"            <CheatEntry>\n"
 		"              <ID>52</ID>\n"
-		"              <Description>\"AllyF4_HPmax\"</Description>\n"
+		"              <Description>\"HPmax\"</Description>\n"
 		"              <Color>80000008</Color>\n"
 		"              <VariableType>Float</VariableType>\n"
 		"              <Address>%.8x</Address>\n"
@@ -1843,7 +1823,7 @@ void camera_export_to_cheatengine ()
 		"            </CheatEntry>\n"
 		"            <CheatEntry>\n"
 		"              <ID>32</ID>\n"
-		"              <Description>\"AllyF4_posX\"</Description>\n"
+		"              <Description>\"posX\"</Description>\n"
 		"              <Color>80000008</Color>\n"
 		"              <VariableType>Float</VariableType>\n"
 		"              <Address>%.8x</Address>\n"
@@ -1854,7 +1834,7 @@ void camera_export_to_cheatengine ()
 		"            </CheatEntry>\n"
 		"            <CheatEntry>\n"
 		"              <ID>42</ID>\n"
-		"              <Description>\"AllyF4_posY\"</Description>\n"
+		"              <Description>\"posY\"</Description>\n"
 		"              <Color>80000008</Color>\n"
 		"              <VariableType>Float</VariableType>\n"
 		"              <Address>%.8x</Address>\n"
@@ -1865,7 +1845,7 @@ void camera_export_to_cheatengine ()
 		"            </CheatEntry>\n"
 		"            <CheatEntry>\n"
 		"              <ID>1157</ID>\n"
-		"              <Description>\"ChampF4_isVisible\"</Description>\n"
+		"              <Description>\"isVisible\"</Description>\n"
 		"              <ShowAsHex>1</ShowAsHex>\n"
 		"              <Color>80000008</Color>\n"
 		"              <VariableType>4 Bytes</VariableType>\n"
@@ -1880,7 +1860,7 @@ void camera_export_to_cheatengine ()
 		"        </CheatEntry>\n"
 		"        <CheatEntry>\n"
 		"          <ID>39</ID>\n"
-		"          <Description>\"EntityAllyF5\"</Description>\n"
+		"          <Description>\"EntityF5\"</Description>\n"
 		"          <ShowAsHex>1</ShowAsHex>\n"
 		"          <Color>80000008</Color>\n"
 		"          <VariableType>4 Bytes</VariableType>\n"
@@ -1890,8 +1870,19 @@ void camera_export_to_cheatengine ()
 		"          </Offsets>\n"
 		"          <CheatEntries>\n"
 		"            <CheatEntry>\n"
+		"              <ID>530</ID>\n"
+		"              <Description>\"isHovered\"</Description>\n"
+		"              <Color>80000008</Color>\n"
+		"              <VariableType>Byte</VariableType>\n"
+		"              <Address>%.8x</Address>\n"
+		"              <Offsets>\n"
+		"                <Offset>231</Offset>\n"
+		"                <Offset>10</Offset>\n"
+		"              </Offsets>\n"
+		"            </CheatEntry>\n"
+		"            <CheatEntry>\n"
 		"              <ID>53</ID>\n"
-		"              <Description>\"AllyF5_HP\"</Description>\n"
+		"              <Description>\"HP\"</Description>\n"
 		"              <Color>80000008</Color>\n"
 		"              <VariableType>Float</VariableType>\n"
 		"              <Address>%.8x</Address>\n"
@@ -1902,7 +1893,7 @@ void camera_export_to_cheatengine ()
 		"            </CheatEntry>\n"
 		"            <CheatEntry>\n"
 		"              <ID>54</ID>\n"
-		"              <Description>\"AllyF5_HPmax\"</Description>\n"
+		"              <Description>\"HPmax\"</Description>\n"
 		"              <Color>80000008</Color>\n"
 		"              <VariableType>Float</VariableType>\n"
 		"              <Address>%.8x</Address>\n"
@@ -1913,7 +1904,7 @@ void camera_export_to_cheatengine ()
 		"            </CheatEntry>\n"
 		"            <CheatEntry>\n"
 		"              <ID>33</ID>\n"
-		"              <Description>\"AllyF5_posX\"</Description>\n"
+		"              <Description>\"posX\"</Description>\n"
 		"              <Color>80000008</Color>\n"
 		"              <VariableType>Float</VariableType>\n"
 		"              <Address>%.8x</Address>\n"
@@ -1924,7 +1915,7 @@ void camera_export_to_cheatengine ()
 		"            </CheatEntry>\n"
 		"            <CheatEntry>\n"
 		"              <ID>43</ID>\n"
-		"              <Description>\"AllyF5_posX\"</Description>\n"
+		"              <Description>\"posX\"</Description>\n"
 		"              <Color>80000008</Color>\n"
 		"              <VariableType>Float</VariableType>\n"
 		"              <Address>%.8x</Address>\n"
@@ -1935,7 +1926,7 @@ void camera_export_to_cheatengine ()
 		"            </CheatEntry>\n"
 		"            <CheatEntry>\n"
 		"              <ID>1157</ID>\n"
-		"              <Description>\"ChampF5_isVisible\"</Description>\n"
+		"              <Description>\"isVisible\"</Description>\n"
 		"              <ShowAsHex>1</ShowAsHex>\n"
 		"              <Color>80000008</Color>\n"
 		"              <VariableType>4 Bytes</VariableType>\n"
@@ -1961,25 +1952,62 @@ void camera_export_to_cheatengine ()
 		"  <UserdefinedSymbols/>\n"
 		"</CheatTable>\n",
 
-		this->camPos->addrX,
-		this->camPos->addrY,
-		this->cam->addrX,
-		this->cam ->addrY,
-		this->champ->addrX,
-		this->champ->addrY,
-		this->mouse->addrX,
-		this->mouse->addrY,
-		this->dest->addrX,
-		this->dest->addrY,
-		this->entity_hovered_addr,
-		this->win_is_opened_ptr,
-		this->entities_addr, this->entities_addr, this->entities_addr, this->entities_addr,	this->entities_addr, this->entities_addr, this->entities_addr,
-		this->entities_addr, this->entities_addr, this->entities_addr, this->entities_addr,	this->entities_addr, this->entities_addr, this->entities_addr,
-		this->entities_addr, this->entities_addr, this->entities_addr, this->entities_addr,	this->entities_addr, this->entities_addr, this->entities_addr,
-		this->entities_addr, this->entities_addr, this->entities_addr, this->entities_addr,	this->entities_addr, this->entities_addr, this->entities_addr,
-		this->entities_addr, this->entities_addr, this->entities_addr, this->entities_addr,	this->entities_addr, this->entities_addr, this->entities_addr,
-		this->game_info_addr
-	);
+		(this->camPos) ? this->camPos->addrX : 0,
+		(this->camPos) ? this->camPos->addrY : 0,
+		(this->cam) ? this->cam->addrX : 0,
+		(this->cam) ? this->cam ->addrY : 0,
+		(this->champ) ? this->champ->addrX : 0,
+		(this->champ) ? this->champ->addrY : 0,
+		(this->mouse) ? this->mouse->addrX : 0,
+		(this->mouse) ? this->mouse->addrY : 0,
+		(this->dest) ? this->dest->addrX : 0,
+		(this->dest) ? this->dest->addrY : 0,
+		(this->entity_hovered_addr) ? this->entity_hovered_addr : 0,
+		(this->win_is_opened_ptr) ? this->win_is_opened_ptr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->entities_addr : 0,
+		(this->entities_addr) ? this->game_info_addr : 0
+		);
 
-	file_put_contents("out.ct", out, NULL);
+		file_put_contents("out.ct", out, NULL);
+
+	#endif
 }
