@@ -1,14 +1,4 @@
-// --- Author	: Moreau Cyril - Spl3en
-// --- File		: Win32Tools.h
-// --- Date		: 2012-03-02-03.09.54
-// --- Version	: 1.0
-/*
-	A lot of the implementation has not been written by me - specially those manipulating PE format deeply :)
-	Please apologize for the lake of references and credits
-*/
-
-#ifndef Win32Tools_H_INCLUDED
-#define Win32Tools_H_INCLUDED
+#pragma once
 
 // ---------- Includes ------------
 #include <stdlib.h>
@@ -24,6 +14,7 @@
 #include <wincon.h>
 
 #include "../Ztring/Ztring.h"
+#include "../Utils/Utils.h"
 
 // ---------- Defines -------------
 #define make_ptr(cast, ptr, offset) (cast)((DWORD)(ptr) + (DWORD)(offset))
@@ -38,13 +29,16 @@
 	do {_error("[!] (%s) " msg "\n", __FUNCTION__, ##__VA_ARGS__); system("pause");} while(0)
 
 #define fatal_error(msg, ...) \
-	do {_error("[!] (%s) " msg "\n", __FUNCTION__, ##__VA_ARGS__); exit(-1);} while(0)
+	do {_error("[!] (%s) " msg "\n", __FUNCTION__, ##__VA_ARGS__); system("pause"); exit(-1);} while(0)
 
 #define important(msg, ...) \
 	do {_error("[!] " msg "\n", ##__VA_ARGS__);} while(0)
 
 #define info(msg, ...) \
 	do {_info("[+] " msg "\n", ##__VA_ARGS__);} while(0)
+
+#define readable(msg, ...) \
+	do {_readable("[+] " msg "\n", ##__VA_ARGS__);} while(0)
 
 #define debug(msg, ...) \
 	do {_debug("[+] " msg "\n", ##__VA_ARGS__);} while(0)
@@ -58,33 +52,16 @@
 #define infobn(msg, ...) \
 	do {_info(msg, ##__VA_ARGS__);} while(0)
 
-
-#ifdef BOOL
-#define bool BOOL
-#endif
-
-#ifndef bool
-#define bool char
-#endif
-
-#ifdef TRUE
-#define true TRUE
-#endif
-
-#ifdef FALSE
-#define false FALSE
-#endif
-
 #define PUSH_POS 	0
 #define POP_POS 	1
 
-#define COMPILE_GDI 0
+#define COMPILE_GDI 1
 
 #ifdef DEBUG
 #define DEBUG_ACTIVATED 1
 #endif
 
-// ----------- Methods ------------
+// ----------- Functions ------------
 
 typedef LONG (WINAPI * NtUnmapViewOfSection)(HANDLE ProcessHandle, PVOID BaseAddress);
 
@@ -104,7 +81,7 @@ get_handle_from_pid (DWORD pid);
 HANDLE
 get_handle_by_name (char *proc_name);
 
-BOOL enable_debug_privileges ();
+bool enable_debug_privileges ();
 
 int
 set_privilege (HANDLE hToken, LPCTSTR lpszPrivilege, int bEnablePrivilege);
@@ -169,6 +146,9 @@ read_memory_as_float (HANDLE process, DWORD address);
 int
 write_memory_as_float (HANDLE process, DWORD address, float value);
 
+char
+read_memory_as_byte (HANDLE process, DWORD address);
+
 int
 bytes_to_int32 (unsigned char *bytes);
 
@@ -207,6 +187,9 @@ _info (char *msg, ...);
 
 void
 _debug (char *msg, ...);
+
+void
+_readable (char *msg, ...);
 
 void
 console_stack_pos (int todo);
@@ -248,5 +231,3 @@ get_hwnd_from_title (char *title);
 
 
 
-
-#endif // Win32Tools_INCLUDED

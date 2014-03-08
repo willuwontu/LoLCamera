@@ -30,7 +30,7 @@ void event_init (Event *this, int ms_min, int ms_max)
 	this->ms_min = ms_min;
 	this->ms_max = ms_max;
 
-	this->state = FALSE;
+	this->state = false;
 }
 
 void event_restart (Event *this, int ms_min, int ms_max, clock_t now)
@@ -108,25 +108,27 @@ bool event_update (Event *this)
 
     if (this->elapsed > this->ms_max)
     {
-    	event_tick(this, now);
-        return TRUE;
+        event_tick(this, now);
+        return true;
     }
 
     if (this->elapsed < this->ms_min)
-        return FALSE;
+        return false;
 
     // If the event emits a signal, reset the start time for the next pulse
     bool res;
 
     if ((res = event_pulse(this)))
+    {
         event_tick(this, now);
+    }
 
     return res;
 }
 
 void event_set_done (Event *this)
 {
-    this->state = TRUE;
+    this->state = true;
 }
 
 bool event_done (Event *this)

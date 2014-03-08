@@ -2,19 +2,9 @@
 
 // ---------- Includes ------------
 #include <time.h>
-#ifndef WIN32
-#endif
+#include "../Utils/Utils.h"
 
-// ---------- Defines -------------
-#ifndef TRUE
-#define TRUE 1
-#define FALSE 0
-#endif
-#ifndef bool
-#define bool char
-#endif
-
-// ------ Class declaration -------
+// ------ Struct declaration -------
 
 typedef struct _Event
 {
@@ -36,7 +26,7 @@ event_new (int min, int max);
 
 Event *event_alloc();
 
-// ----------- Methods ------------
+// ----------- Functions ------------
 void event_init (Event *event, int min, int max);
 void event_start (Event *event, clock_t now);
 void event_start_now (Event *event);

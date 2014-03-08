@@ -9,9 +9,10 @@
 #define EOFF_PLAYER_NAME 	0x28
 #define EOFF_CHAMP_STRUCT 	0x40
 #define EOFF_CTXT			0x154
+#define EOFF_HOVERED		0x231
 
 // Offset in champion structure
-#define EOFF_CHAMP_NAME		0x1C
+#define EOFF_CHAMP_NAME		0x24
 
 // Offset in champion context
 #define EOFF_IS_VISIBLE		0x24
@@ -34,12 +35,45 @@ entity_new (MemProc *mp, DWORD addr)
 	return e;
 }
 
-BOOL
+bool
+entity_address_to_array (MemProc *mp, DWORD cur, DWORD end, Entity **champions)
+{
+	/* TODO :
+		Décider si on stocke l'array des champions ici
+		ou autre part ?
+	*/
+
+	for (int i = 0; cur != end && i < 10; cur += 4, i++)
+	{
+		Entity *e = champions[i];
+
+		if (e == NULL)
+			champions[i] = e = entity_new(mp, cur);
+		else
+			entity_init(e, mp, cur);
+
+		if (e == NULL)
+			debug("  --> Ally %d not found", i);
+		else
+			debug(" - Entity %d found -> "
+				  "%16s : pos={%5.0f,%5.0f} hp={%4.0f/%4.0f} team=%6s "
+				  "pname=\"%16s\" - 0x%.8x)",
+				  i, e->champ_name, e->p.v.x, e->p.v.y, e->hp, e->hp_max, (e->team == ENTITY_TEAM_BLUE) ? "blue" : "purple",
+				  e->player_name, cur
+			);
+	}
+
+	return true;
+}
+
+bool
 entity_init (Entity *e, MemProc *mp, DWORD addr)
 {
 	e->ctxt = mp;
 	e->addr = addr;
 	e->entity_data = read_memory_as_int(mp->proc, addr);
+	e->isHovered = 0;
+	e->isVisible = 0;
 
 	memset(e->player_name, 0, sizeof(e->player_name));
 	memset(e->champ_name,  0, sizeof(e->champ_name));
@@ -47,13 +81,32 @@ entity_init (Entity *e, MemProc *mp, DWORD addr)
 	mempos_init(&e->p, mp, e->entity_data + EOFF_POSX - mp->base_addr, e->entity_data + EOFF_POSY - mp->base_addr);
 
 	if (!entity_refresh(e))
-		return FALSE;
+		return false;
 
 	read_from_memory(e->ctxt->proc, e->player_name, e->entity_data + EOFF_PLAYER_NAME, sizeof(e->player_name) - 1);
 	DWORD champ_struct = read_memory_as_int(e->ctxt->proc, e->entity_data + EOFF_CHAMP_STRUCT);
 	read_from_memory(e->ctxt->proc, e->champ_name, champ_struct + EOFF_CHAMP_NAME, sizeof(e->champ_name) - 1);
 
-	return TRUE;
+	if (!e->champ_name)
+		important("Champ name has not been found.");
+
+	{
+		// "Object" name = extended object, read the pointer in the first 4 bytes
+		char buffer[8];
+		memcpy(buffer, &e->player_name[4], sizeof(buffer));
+		buffer[strlen("Object")] = '\0';
+
+		if (str_equals(buffer, "Object"))
+		{
+			DWORD addr;
+			memcpy(&addr, &e->player_name, sizeof(DWORD));
+
+			if (addr)
+				read_from_memory (e->ctxt->proc, e->player_name, addr, sizeof(e->player_name) - 1);
+		}
+	}
+
+	return true;
 }
 
 int
@@ -72,6 +125,7 @@ entity_refresh (Entity *e)
 	e->hp_max			= read_memory_as_float(e->ctxt->proc, e->entity_data + EOFF_HPM);
 	e->movement_speed	= read_memory_as_float(e->ctxt->proc, e->entity_data + EOFF_MS);
 	e->team				= read_memory_as_int  (e->ctxt->proc, e->entity_data + EOFF_TEAM);
+	e->isHovered		= read_memory_as_byte (e->ctxt->proc, e->entity_data + EOFF_HOVERED);
 
 	DWORD entityCtxt    = read_memory_as_int  (e->ctxt->proc, e->entity_data + EOFF_CTXT);
 	e->isVisible        = read_memory_as_int  (e->ctxt->proc, entityCtxt     + EOFF_IS_VISIBLE);
@@ -79,26 +133,35 @@ entity_refresh (Entity *e)
 	return (!(e->hp == 0.0 && e->hp_max == 0.0));
 }
 
-inline BOOL
+inline bool
 entity_is_dead (Entity *e)
 {
 	return !entity_is_alive(e);
 }
 
-inline BOOL
+inline bool
 entity_is_alive (Entity *e)
 {
 	if (e == NULL)
-		return FALSE;
+		return false;
 
 	return e->hp != 0 && e->hp_max != 0;
+}
+
+int
+entity_ally_with (Entity *e1, Entity *e2)
+{
+    if (!e1 || !e2)
+        return 0;
+
+    return e1->team == e2->team;
 }
 
 int
 entity_is_visible (Entity *e)
 {
 	if (e == NULL)
-		return FALSE;
+		return false;
 
 	return e->isVisible != 0;
 }

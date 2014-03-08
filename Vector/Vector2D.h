@@ -67,7 +67,7 @@
 
 
 
-// ------ Class declaration -------
+// ------ Struct declaration -------
 typedef struct Vector2D Vector2D;
 
 struct Vector2D
@@ -86,7 +86,7 @@ Vector2D
 vector2D_pos_new (float x, float y);
 
 
-// ----------- Methods ------------
+// ----------- Functions ------------
 
 Vector2D
 vector2D_normalize 	(Vector2D *v);
@@ -146,10 +146,12 @@ vector2D_sdiv 		(Vector2D *v1, Vector2D *v2);
 int
 vector2D_equal 		(Vector2D *v1, Vector2D *v2);
 
-// --- Accessors
+// --- Getters
 
 void
 vector2D_get_pos 	(Vector2D *v, float *x, float *y);
+
+// --- Setters
 
 void
 vector2D_set_pos 	(Vector2D *v, float x, float y);
