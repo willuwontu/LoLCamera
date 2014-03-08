@@ -1082,7 +1082,13 @@ bool camera_cond_champions (MemProc *mp, BbQueue *results)
 	if (dummy == NULL)
 		return false;
 
-	if (dummy->hp_max == 4000.0) // Barracks
+	if (str_pos(dummy->player_name, "Turret_") != -1)
+		return false;
+
+	if (dummy->hp_max == 4000.0) // Barracks HP = 4000.0
+		return false;
+
+	if (dummy->movement_speed > 0) // Buildings ms = 0
 		return false;
 
 	entity_free(dummy);
