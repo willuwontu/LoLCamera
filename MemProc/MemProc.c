@@ -29,7 +29,7 @@ void
 memproc_dump_details (MemProc *mp, int start, int end, int (*boolean_function) (MEMORY_BASIC_INFORMATION *, void *), void *arg)
 {
 	MEMORY_BASIC_INFORMATION meminfo;
-	DWORD addr = start;
+	int addr = start;
 
 	if (!mp->proc)
 	{
@@ -70,6 +70,9 @@ memproc_dump_details (MemProc *mp, int start, int end, int (*boolean_function) (
 static int
 memproc_dump_helper (MEMORY_BASIC_INFORMATION *meminfo, void *arg)
 {
+    (void) meminfo;
+    (void) arg;
+
 	return 1;
 }
 
@@ -100,7 +103,7 @@ memproc_refresh_handle (MemProc *mp)
 	}
 
 	// Get the process handle
-	if ((mp->proc = OpenProcess (PROCESS_ALL_ACCESS, FALSE, mp->pid)) == 0)
+	if ((mp->proc = OpenProcess (PROCESS_ALL_ACCESS, false, mp->pid)) == 0)
 	{
 		warning ("Process is unable to be opened with all access.");
 		return false;
@@ -109,8 +112,8 @@ memproc_refresh_handle (MemProc *mp)
 	// Get the base address
 	if ((mp->base_addr = get_baseaddr (mp->process_name)) == 0)
 	{
-		warning ("Base address of the process %s not found. Using the default value 0x%x.", mp->process_name, mp->default_baseaddr);
-		mp->base_addr  = mp->default_baseaddr;
+		info ("Process %s not found.", mp->process_name);
+		mp->base_addr = mp->default_baseaddr;
 	}
 
 	// Get the window handle
@@ -185,6 +188,9 @@ BbQueue *
 memblock_get_change (MemProc *mp, BbQueue *res)
 {
 	// TODO
+	(void) mp;
+	(void) res;
+
 	return NULL;
 }
 

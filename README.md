@@ -23,12 +23,22 @@ Mouse
 
 
 
-Authors
--------
-- Spl3en (data mining & patching) <spl3en.contact@gmail.com>
-- jtjin (camera behavior coding)
+Contributors of this project :
+--------------------------------
+
+Coders
+- Spl3en <spl3en.contact@gmail.com>
+- jtjin
+- Tristan 'BurningMind' Bourvon
 
 Testers
--------
 - MrGoodKill
 - SephirothSG
+- Penteano
+- Fazy
+
+Demo Video
+----------
+- https://www.youtube.com/watch?v=P_foO5KO-PI - Current features introduced separately 
+- http://www.youtube.com/watch?v=-odVS4q-GEM - Lux ARAM Game with LoLCamera activated
+- http://www.youtube.com/watch?v=gvRECqAWTHY - Kayle Dominion game

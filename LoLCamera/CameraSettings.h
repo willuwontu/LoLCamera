@@ -7,15 +7,12 @@
 // ---------- Defines -------------
 
 
-// ------ Class declaration -------
+// ------ Struct declaration -------
 typedef
 struct _CameraSettings
 {
 	float camera_scroll_speed;
 	float threshold;
-	float mouse_range_max;
-	float dest_range_max;
-	float mouse_dest_range_max;
 	float camera_scroll_speed_bottom; // speed for going to the south
 
 }	CameraSettings;
@@ -23,13 +20,13 @@ struct _CameraSettings
 // --------- Constructors ---------
 
 CameraSettings *
-camera_settings_new (float camera_scroll_speed, float threshold, float mouse_range_max, float dest_range_max, float mouse_dest_range_max);
+camera_settings_new (float camera_scroll_speed, float threshold);
 
 
-// ----------- Methods ------------
+// ----------- Functions ------------
 
 void
-camera_settings_init(CameraSettings *this, float camera_scroll_speed, float threshold, float mouse_range_max, float dest_range_max, float mouse_dest_range_max);
+camera_settings_init(CameraSettings *this, float camera_scroll_speed, float threshold);
 
 void
 camera_settings_debug (CameraSettings *this);

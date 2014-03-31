@@ -44,7 +44,7 @@ mempos_init (MemPos *p, MemProc *mp, DWORD addrX, DWORD addrY)
 	mempos_refresh(p);
 }
 
-int
+bool
 mempos_refresh (MemPos *p)
 {
 	p->v.x = -1.0;
@@ -59,7 +59,7 @@ mempos_refresh (MemPos *p)
 	return (!(p->v.x == -1.0 && p->v.y == -1.0));
 }
 
-int
+bool
 mempos_int_refresh (MemPos *p)
 {
 	p->v.x = -1;

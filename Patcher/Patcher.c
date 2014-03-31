@@ -24,7 +24,7 @@ patch_new (char *description, MemProc *mp, DWORD addr, unsigned char *code, unsi
 	bb_queue_add(patch_list, p);
 
 	// Init
-	p->activated = FALSE;
+	p->activated = false;
 	p->addr = addr;
 	p->patch = patch;
 	p->mask = mask;
@@ -44,7 +44,7 @@ patch_new (char *description, MemProc *mp, DWORD addr, unsigned char *code, unsi
 }
 
 void
-patch_set_activated (Patch *p, BOOL activated)
+patch_set_activated (Patch *p, bool activated)
 {
 	if (!p)
 	{
@@ -112,7 +112,7 @@ patch_list_get ()
 }
 
 void
-patch_list_set (BbQueue *patchlist, BOOL enabled)
+patch_list_set (BbQueue *patchlist, bool enabled)
 {
 	if (patchlist == NULL)
 		return;

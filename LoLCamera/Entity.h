@@ -7,6 +7,7 @@
 // ---------- Includes ------------
 #include <stdlib.h>
 #include <windows.h>
+#include "../Utils/Utils.h"
 
 #include "../MemProc/MemProc.h"
 #include "../Vector/Vector2D.h"
@@ -17,7 +18,7 @@
 #define ENTITY_TEAM_PURPLE	0xC8
 
 
-// ------ Class declaration -------
+// ------ Struct declaration -------
 typedef
 struct _Entity
 {
@@ -34,6 +35,7 @@ struct _Entity
 	int team;
 
 	bool isVisible;
+	bool isHovered;
 
 }	Entity;
 
@@ -44,15 +46,15 @@ struct _Entity
 Entity *
 entity_new (MemProc *mp, DWORD addr);
 
-BOOL
+bool
 entity_init (Entity *e, MemProc *mp, DWORD addr);
 
-// ----------- Methods ------------
+// ----------- Functions ------------
 
-BOOL
+bool
 entity_is_dead (Entity *e);
 
-BOOL
+bool
 entity_is_alive (Entity *e);
 
 int
@@ -64,7 +66,11 @@ entity_refresh (Entity *e);
 void
 entity_debug (Entity *e);
 
+int
+entity_ally_with (Entity *e1, Entity *e2);
 
+bool
+entity_address_to_array (MemProc *mp, DWORD entities_addr_start, DWORD entities_addr_end, Entity **champions);
 
 
 // --------- Destructors ----------
