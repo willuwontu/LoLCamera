@@ -34,7 +34,7 @@ entity_new (MemProc *mp, DWORD addr)
 	return e;
 }
 
-BOOL
+bool
 entity_init (Entity *e, MemProc *mp, DWORD addr)
 {
 	e->ctxt = mp;
@@ -79,13 +79,13 @@ entity_refresh (Entity *e)
 	return (!(e->hp == 0.0 && e->hp_max == 0.0));
 }
 
-inline BOOL
+inline bool
 entity_is_dead (Entity *e)
 {
 	return !entity_is_alive(e);
 }
 
-inline BOOL
+inline bool
 entity_is_alive (Entity *e)
 {
 	if (e == NULL)

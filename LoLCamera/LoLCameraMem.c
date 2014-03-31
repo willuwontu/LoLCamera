@@ -7,6 +7,8 @@
 static bool      camera_search_signature  (unsigned char *pattern, DWORD *addr, unsigned char **code_ptr, char *mask, char *name);
 static Patch *   camera_get_patch         (MemProc *mp, char *description, DWORD *addr, unsigned char *sig, char *sig_mask, unsigned char *patch, char *patch_mask);
 bool camera_scan_win_is_opened_offset (void);
+bool camera_scan_minimap_size (void);
+bool camera_scan_ping_or_skill_waiting (void);
 
 bool camera_scan_patch (void)
 {

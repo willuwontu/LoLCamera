@@ -34,6 +34,7 @@ struct _Entity
 	int team;
 
 	bool isVisible;
+	bool isHovered;
 
 }	Entity;
 
@@ -44,15 +45,15 @@ struct _Entity
 Entity *
 entity_new (MemProc *mp, DWORD addr);
 
-BOOL
+bool
 entity_init (Entity *e, MemProc *mp, DWORD addr);
 
 // ----------- Methods ------------
 
-BOOL
+bool
 entity_is_dead (Entity *e);
 
-BOOL
+bool
 entity_is_alive (Entity *e);
 
 int

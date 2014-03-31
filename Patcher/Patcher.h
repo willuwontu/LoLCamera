@@ -37,7 +37,7 @@ struct _Patch
 	char *mask;
 	int size; // = strlen(mask)
 
-	BOOL activated;
+	bool activated;
 	MemProc *ctxt;
 
 	BbQueue *patch_items;
@@ -57,7 +57,7 @@ patch_list_get ();
 // ----------- Methods ------------
 
 void
-patch_set_activated (Patch *p, BOOL activated);
+patch_set_activated (Patch *p, bool activated);
 
 
 void
@@ -68,7 +68,7 @@ patch_debug (Patch *p);
 // --------- Destructors ----------
 
 void
-patch_list_set (BbQueue *patchlist, BOOL enabled);
+patch_list_set (BbQueue *patchlist, bool enabled);
 
 void
 patch_free (Patch *patch);

@@ -7,7 +7,7 @@
 #include "./Crypto/md5.h"
 #include <signal.h>
 
-#define LOLCAMERA_VERSION 0.190
+#define LOLCAMERA_VERSION 0.191
 
 float get_version ()
 {

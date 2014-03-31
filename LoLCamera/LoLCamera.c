@@ -23,15 +23,15 @@ typedef enum {
 // Static functions declaration
 static void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode);
 static void camera_compute_camera_scroll_speed (float *camera_scroll_speed, CameraTrackingMode camera_mode);
-BOOL camera_entity_is_near (Entity *e, float limit);
-static BOOL camera_follow_champion_requested ();
-static BOOL camera_restore_requested ();
-static void camera_toggle (BOOL enable);
-static BOOL camera_is_translated ();
-static void camera_translate_toggle (BOOL enable);
-BOOL camera_interface_is_hovered ();
+bool camera_entity_is_near (Entity *e, float limit);
+static bool camera_follow_champion_requested ();
+static bool camera_restore_requested ();
+static void camera_toggle (bool enable);
+static bool camera_is_translated ();
+static void camera_translate_toggle (int state);
+bool camera_interface_is_hovered ();
 
-static void camera_toggle (BOOL enable)
+static void camera_toggle (bool enable)
 {
 	this->enabled = !enable;
 
@@ -41,7 +41,7 @@ static void camera_toggle (BOOL enable)
 	info("LoLCamera %s.", (this->enabled) ? "enabled" : "disabled");
 }
 
-static BOOL camera_is_enabled ()
+static bool camera_is_enabled ()
 {
 	short toggle_state = camera_getkey(this->toggle_key);
 
@@ -79,7 +79,7 @@ static void camera_sensor_reset (bool reset_translation)
 	this->wait_for_end_of_pause = FALSE;
 }
 
-static BOOL camera_center_requested ()
+static bool camera_center_requested ()
 {
 	// Disable when center_key or F1 is pressed
 	if ((camera_getkey(this->center_key) < 0 || (camera_getkey(VK_F1) < 0))
@@ -92,7 +92,7 @@ static BOOL camera_center_requested ()
     return FALSE;
 }
 
-static BOOL camera_restore_requested ()
+static bool camera_restore_requested ()
 {
 	if (this->restore_tmpcam)
 	{
@@ -154,7 +154,7 @@ void camera_reset ()
 	this->section_settings_name = "Default";
 }
 
-static BOOL camera_left_click ()
+static bool camera_left_click ()
 {
 	if (camera_getkey(VK_LBUTTON) < 0)
 	{
@@ -279,7 +279,7 @@ static void camera_translate_toggle (int state)
 	}
 }
 
-static BOOL camera_translate ()
+static bool camera_translate ()
 {
 	short translate_state = camera_getkey(this->translate_key);
 
@@ -294,7 +294,7 @@ static BOOL camera_translate ()
 	return this->translate_request;
 }
 
-static BOOL camera_is_translated ()
+static bool camera_is_translated ()
 {
 	return (
 		this->distance_translation.x != 0.0
@@ -319,7 +319,7 @@ static void camera_debug_mode ()
 		{
 			info("------ Tests ------");
 			// On release
-			struct { char *str; BOOL (*fct)(); } unit_tests [] = {
+			struct { char *str; bool (*fct)(); } unit_tests [] = {
 				{"Camera Position",   camera_ut_campos},
 				{"Champion Position", camera_ut_champos},
 				{"Mouse position",    camera_ut_mousepos},
@@ -338,27 +338,27 @@ static void camera_debug_mode ()
 	}
 }
 
-static BOOL camera_window_is_active ()
+static bool camera_window_is_active ()
 {
 	return (this->mp->hwnd == GetForegroundWindow());
 }
 
-BOOL camera_victory_state ()
+bool camera_victory_state ()
 {
 	return (this->victory_state == 3);
 }
 
-BOOL camera_interface_is_hovered ()
+bool camera_interface_is_hovered ()
 {
 	return (this->interface_hovered == 1);
 }
 
-BOOL camera_is_freezing ()
+bool camera_is_freezing ()
 {
 	return (this->wait_for_end_of_pause == TRUE);
 }
 
-BOOL camera_reset_conditions ()
+bool camera_reset_conditions ()
 {
 	float distance_traveled = vector2D_distance(&this->champ->v, &this->last_champpos);
 
@@ -420,9 +420,9 @@ static CameraTrackingMode camera_get_mode ()
     return Normal;
 }
 
-static BOOL camera_follow_champion_requested ()
+static bool camera_follow_champion_requested ()
 {
-	BOOL fx_pressed = FALSE;
+	bool fx_pressed = FALSE;
 	int keys[] = {VK_F1, VK_F2, VK_F3, VK_F4, VK_F5, VK_F6, VK_F7, VK_F8, VK_F9, VK_F10};
 
 	for (int i = 1; i < 10; i++)
@@ -501,7 +501,7 @@ void camera_init (MemProc *mp)
 
 	info("Dumping process...");
 	memproc_dump(this->mp, text_section, text_section + text_size);
-	camera_scan_loading();
+	// camera_scan_loading();
 
 	// Wait for client ingame
 	if (camera_wait_for_ingame())
@@ -543,12 +543,12 @@ void camera_init (MemProc *mp)
 	this->active = TRUE;
 }
 
-BOOL bypass_login_screen_request (int key)
+bool bypass_login_screen_request (int key)
 {
 	return (key == 'p' || key == 'P');
 }
 
-BOOL camera_ingame_conditions ()
+bool camera_ingame_conditions ()
 {
 	if (!camera_scan_champions(FALSE))
 		return FALSE;
@@ -556,7 +556,7 @@ BOOL camera_ingame_conditions ()
 	DWORD cur = this->entity_ptr;
 	DWORD end = this->entity_ptr_end;
 
-	BOOL valid = TRUE;
+	bool valid = TRUE;
 
 	for (int i = 0; cur != end && i < 10; cur += 4, i++)
 	{
@@ -572,9 +572,9 @@ BOOL camera_ingame_conditions ()
 	return valid;
 }
 
-BOOL camera_wait_for_ingame ()
+bool camera_wait_for_ingame ()
 {
-	BOOL waited = FALSE;
+	bool waited = FALSE;
 
 	if (!this->wait_loading_screen)
 		return TRUE;
@@ -616,7 +616,7 @@ BOOL camera_wait_for_ingame ()
 	return waited;
 }
 
-inline void camera_set_active (BOOL active)
+inline void camera_set_active (bool active)
 {
 	this->active = active;
 }
@@ -689,7 +689,7 @@ static void camera_middle_click ()
 	}
 }
 
-BOOL camera_update ()
+bool camera_update ()
 {
 	static unsigned int frame_count = 0;
 
@@ -699,7 +699,7 @@ BOOL camera_update ()
 	camera_left_click();
 	camera_debug_mode();
 
-	struct refreshFunctions { BOOL (*func)(); void *arg; char *desc; } refresh_funcs [] =
+	struct refreshFunctions { bool (*func)(); void *arg; char *desc; } refresh_funcs [] =
 	{
 		{.func = mempos_refresh, 				.arg = this->cam,  			.desc = "this->cam MemPos"},
 		{.func = mempos_refresh, 				.arg = this->champ,			.desc = "this->champ MemPos"},
@@ -718,7 +718,7 @@ BOOL camera_update ()
 	{
 		for (int i = 0; i < sizeof(refresh_funcs) / sizeof(struct refreshFunctions); i++)
 		{
-			BOOL (*func)() = refresh_funcs[i].func;
+			bool (*func)() = refresh_funcs[i].func;
 			void *arg = refresh_funcs[i].arg;
 			char *desc = refresh_funcs[i].desc;
 
@@ -799,12 +799,12 @@ int get_kb ()
 	return -1;
 }
 
-BOOL exit_request (int c)
+bool exit_request (int c)
 {
 	return (c == 'X' || c == 'x');
 }
 
-BOOL reload_ini_request (int c)
+bool reload_ini_request (int c)
 {
 	return (c == 'R' || c == 'r');
 }
@@ -1002,7 +1002,7 @@ static void camera_compute_camera_scroll_speed (float *camera_scroll_speed, Came
 	*camera_scroll_speed = local_camera_scroll_speed;
 }
 
-BOOL camera_is_near (MemPos *pos, float limit)
+bool camera_is_near (MemPos *pos, float limit)
 {
 	if (pos == NULL)
 		return FALSE;
@@ -1012,7 +1012,7 @@ BOOL camera_is_near (MemPos *pos, float limit)
 	return (distance_cam_pos < limit);
 }
 
-BOOL camera_entity_is_near (Entity *e, float limit)
+bool camera_entity_is_near (Entity *e, float limit)
 {
 	return camera_is_near(&e->p, limit);
 }

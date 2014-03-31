@@ -59,8 +59,8 @@
 	do {_info(msg, ##__VA_ARGS__);} while(0)
 
 
-#ifdef BOOL
-#define bool BOOL
+#ifdef bool
+#define bool bool
 #endif
 
 #ifndef bool
@@ -104,7 +104,7 @@ get_handle_from_pid (DWORD pid);
 HANDLE
 get_handle_by_name (char *proc_name);
 
-BOOL enable_debug_privileges ();
+bool enable_debug_privileges ();
 
 int
 set_privilege (HANDLE hToken, LPCTSTR lpszPrivilege, int bEnablePrivilege);

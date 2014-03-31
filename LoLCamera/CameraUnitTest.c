@@ -3,7 +3,7 @@
 #define MAP_WIDTH  15000.0
 #define MAP_HEIGHT 15200.0
 
-BOOL camera_ut_campos ()
+bool camera_ut_campos ()
 {
 	Camera *this = camera_get_instance();
 	float x, y;
@@ -14,7 +14,7 @@ BOOL camera_ut_campos ()
 	&&		x <= MAP_WIDTH && y <= MAP_HEIGHT);
 }
 
-BOOL camera_ut_champos ()
+bool camera_ut_champos ()
 {
 	Camera *this = camera_get_instance();
 	float x, y;
@@ -25,7 +25,7 @@ BOOL camera_ut_champos ()
 	&&		x <= MAP_WIDTH && y <= MAP_HEIGHT);
 }
 
-BOOL camera_ut_mousepos ()
+bool camera_ut_mousepos ()
 {
 	Camera *this = camera_get_instance();
 	float x, y;
@@ -36,7 +36,7 @@ BOOL camera_ut_mousepos ()
 	&&		x <= MAP_WIDTH && y <= MAP_HEIGHT);
 }
 
-BOOL camera_ut_destpos ()
+bool camera_ut_destpos ()
 {
 	Camera *this = camera_get_instance();
 	float x, y;
@@ -47,7 +47,7 @@ BOOL camera_ut_destpos ()
 	&&		x <= MAP_WIDTH && y <= MAP_HEIGHT);
 }
 
-BOOL camera_ut_is_win_opened ()
+bool camera_ut_is_win_opened ()
 {
 	Camera *this = camera_get_instance();
 
@@ -55,7 +55,7 @@ BOOL camera_ut_is_win_opened ()
 	&& 		this->interface_opened <  7);
 }
 
-BOOL camera_ut_loading_state ()
+bool camera_ut_loading_state ()
 {
 	Camera *this = camera_get_instance();
 

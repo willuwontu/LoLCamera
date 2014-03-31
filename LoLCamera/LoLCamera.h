@@ -29,11 +29,16 @@
 #define SMALL_BOX 		   1000.0
 
 // ------ Class declaration -------
+typedef struct _Minimap {
+	int xLeft, xRight, yBot, yTop;
+} Minimap;
+
 typedef struct _Camera Camera;
 
 struct _Camera
 {
 	MemProc *mp;					// Process context
+	Minimap minimap;
 
 	// From .ini
 	DWORD border_screen_addr;		// Address of the instructions moving the camera
@@ -55,6 +60,8 @@ struct _Camera
 	DWORD loading_state_addr;		// Adress of the data : loading state
 	DWORD game_info_addr;			// Adress of the data : info of the game
 	DWORD victory_state_addr;		// Adress of the data : Victory or Defeat
+	DWORD mmsize_addr;
+	DWORD ping_state_addr;
 
 	DWORD interface_hovered_addr;	// Address of the data : Is the interface hovered ?
 
@@ -148,23 +155,26 @@ struct _Camera
 	int fxstate;						// Fx is pressed ?
 
 	// Program state
-	BOOL restore_tmpcam;				// Request to restore the temporary camera
-	BOOL drag_request;					// User requested a drag
-	BOOL active;						// Loop state
-	BOOL request_polling; 				// Force to poll data the next loop if TRUE
+	bool restore_tmpcam;				// Request to restore the temporary camera
+	bool drag_request;					// User requested a drag
+	bool active;						// Loop state
+	bool request_polling; 				// Force to poll data the next loop if TRUE
 	int interface_opened;				// Interface state (window focus : shop, chat, etc)
-	BOOL enabled;						// LoLCamera enabled ?
-	BOOL dbg_mode;						// For unit tests
-	BOOL wait_loading_screen;			// Wait for the start of the game
-	BOOL output_cheatengine_table;		// Output the adresses in CheatEngineTable format in "out.ct"
-	BOOL interface_hovered;
+	bool enabled;						// LoLCamera enabled ?
+	bool dbg_mode;						// For unit tests
+	bool wait_loading_screen;			// Wait for the start of the game
+	bool output_cheatengine_table;		// Output the adresses in CheatEngineTable format in "out.ct"
+	bool interface_hovered;
 	int victory_state;
 	int ms_after_minimap_click;
 	char *section_settings_name;
-	BOOL wait_for_end_of_pause;
-	BOOL dead_mode;
-	BOOL global_weight_activated;
-	BOOL patch_border_screen_moving;
+	bool wait_for_end_of_pause;
+	bool dead_mode;
+	bool global_weight_activated;
+	bool patch_border_screen_moving;
+	POINT mouse_screen;
+	int ping_state;
+	int playersCount;
 
 	// Events
 	Event reset_after_minimap_click;
@@ -189,13 +199,13 @@ void camera_init (MemProc *mp);
 
 // ----------- Methods ------------
 LoLCameraState camera_main ();
-BOOL camera_update ();
+bool camera_update ();
 void camera_load_ini ();
-inline void camera_set_active (BOOL active);
+inline void camera_set_active (bool active);
 Camera *camera_get_instance ();
-BOOL camera_is_near (MemPos *po, float limit);
+bool camera_is_near (MemPos *po, float limit);
 void camera_load_settings (char *section);
-BOOL exit_request (int key);
+bool exit_request (int key);
 int get_kb ();
 void camera_check_version (void);
 void camera_set_pos (float x, float y);
@@ -206,36 +216,36 @@ void camera_reset ();
 bool global_key_toggle ();
 
 // From LoLCameraMem.c
-BOOL camera_scan_champions (BOOL display_error);
-BOOL camera_scan_patch ();
-BOOL camera_scan_win_is_opened ();
-BOOL camera_scan_variables ();
-BOOL camera_scan_loading ();
-BOOL camera_scan_cursor_champ ();
-BOOL camera_scan_hovered_champ ();
-BOOL camera_scan_champ_offsets ();
-BOOL camera_scan_dest_offsets ();
-BOOL camera_scan_victory ();
+bool camera_scan_champions (bool display_error);
+bool camera_scan_patch ();
+bool camera_scan_win_is_opened ();
+bool camera_scan_variables ();
+bool camera_scan_loading ();
+bool camera_scan_cursor_champ ();
+bool camera_scan_hovered_champ ();
+bool camera_scan_champ_offsets ();
+bool camera_scan_dest_offsets ();
+bool camera_scan_victory ();
 
-BOOL camera_refresh_champions ();
-BOOL camera_refresh_entity_hovered ();
-BOOL camera_refresh_win_is_opened ();
-BOOL camera_refresh_self ();
-BOOL camera_wait_for_ingame ();
-BOOL camera_refresh_victory ();
-BOOL camera_refresh_entities_nearby ();
-BOOL camera_refresh_hover_interface ();
-BOOL camera_refresh_screen_border ();
+bool camera_refresh_champions ();
+bool camera_refresh_entity_hovered ();
+bool camera_refresh_win_is_opened ();
+bool camera_refresh_self ();
+bool camera_wait_for_ingame ();
+bool camera_refresh_victory ();
+bool camera_refresh_entities_nearby ();
+bool camera_refresh_hover_interface ();
+bool camera_refresh_screen_border ();
 
 
 // from CameraUnitTest.c
-BOOL camera_ut_campos ();
-BOOL camera_ut_champos ();
-BOOL camera_ut_mousepos ();
-BOOL camera_ut_destpos ();
-BOOL camera_ut_is_win_opened ();
-BOOL camera_ut_screen_mouse ();
-BOOL camera_ut_loading_state ();
+bool camera_ut_campos ();
+bool camera_ut_champos ();
+bool camera_ut_mousepos ();
+bool camera_ut_destpos ();
+bool camera_ut_is_win_opened ();
+bool camera_ut_screen_mouse ();
+bool camera_ut_loading_state ();
 
 void camera_export_to_cheatengine ();
 
