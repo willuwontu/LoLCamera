@@ -8,7 +8,7 @@
 #include "./Crypto/md5.h"
 #include <signal.h>
 
-#define LOLCAMERA_VERSION 0.232
+#define LOLCAMERA_VERSION 0.233
 
 char download_link[] = "https://sourceforge.net/projects/lolcamera/files";
 char download_host[] = "cznic.dl.sourceforge.net";
