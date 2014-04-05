@@ -5,14 +5,14 @@
  *  @date		:	2011-04-12-16.51
  *
  *
- *  EasySocket propose un ensemble de méthodes permettant l'utilisation agréable de socket en C.
- *  La librairie permet de faire abstraction de l'utilisation des threads par callback.
+ *  EasySocket offers a set of functions allowing the pleasant use of C sockets.
+ *  The library allows the abstraction of threads by callback.
  *
- *  Exemple :
+ *  Example :
  *  --------------------------------------------------------------------------------------
  *  void callback_client (EasySocketListened *esl)
  *  {
- *      printf("Hi ! You said : %s\n", esl->buffer);
+ *      printf("Hi! You said : %s\n", esl->buffer);
  *  }
  *
  *  void finish_callback (EasySocketListened *esl)
@@ -29,7 +29,7 @@
  *      EasySocketListened *client;
  *      char buffer[100];
  *
- *      // Example de serveur
+ *      // Example of server
  *      sock = es_server_new(1337, 100);
  *
  *      while (1)
@@ -60,17 +60,14 @@
 #define EasySocket_H_INCLUDED
 
 /* Includes */
-#include <stdlib.h>
-#include <stdio.h>
-#include <windows.h>
-#include <assert.h>
-
 #include "../Ztring/Ztring.h"
+#include "../Utils/Utils.h"
+#include <windows.h>
 
-#define ES_ERROR_BIND       ((void*)-1)
-#define ES_ERROR_LISTEN     ((void*)-2)
-#define ES_ERROR_CONNECT    ((void*)-3)
-#define ES_ERROR_MALLOC     ((void*)-4)
+#define ES_ERROR_BIND    ((void*)-1)
+#define ES_ERROR_LISTEN  ((void*)-2)
+#define ES_ERROR_CONNECT ((void*)-3)
+#define ES_ERROR_MALLOC  ((void*)-4)
 
 // Working Macros
 #define _es_get_data(esl) \
@@ -90,6 +87,9 @@ struct _EasySocket
 {
     SOCKET sock;
     int is_connected;
+
+    char *hostname;
+    char *ip;
 
 }	EasySocket;
 
@@ -132,14 +132,14 @@ EasySocket *
 es_server_new (int port, int max_connection);
 
 	/**=================
-		  @Methods
+		  @Functions
 	===================*/
 
 int
 es_init(void);
 
 EasySocketListened *
-es_accept(EasySocket *server, int buffer_size_allocated);
+es_accept (EasySocket *server, int buffer_size_allocated);
 
 void
 es_listener (EasySocketListened *esl, void (*recv_callback)(EasySocketListened *sock), void (*finish_callback)(EasySocketListened *sock));
@@ -148,10 +148,13 @@ char *
 es_get_ip_from_hostname (char *addr);
 
 void
-es_send(EasySocket *es, char *msg, int len);
+es_send (EasySocket *es, char *msg, int len);
 
-int
-es_recv(EasySocket *es, char *buffer, int len);
+unsigned char *
+es_recv (EasySocket *es, int *_out_size);
+
+void
+es_set_timeout (EasySocket *es, long int milliseconds);
 
 int
 es_close(EasySocket *es);
@@ -166,13 +169,23 @@ void
 _es_func_set_data (EasySocketListened *esl, void *data);
 
 void
-es_set_connected(EasySocket *es, int is_connected);
+es_set_connected (EasySocket *es, int is_connected);
 
 void
-es_send_http_request(EasySocket *es, char *msg);
+es_http_answer_request (EasySocket *es, char *msg);
+
+void
+es_http_send_request (EasySocket *es, char *method, char *additionnal_headers, char *data, char *path);
 
 char *
-es_get_http_file (EasySocket *es, char *path, char *host);
+es_http_get (EasySocket *es, char *path);
+
+char *
+es_http_get_contents (EasySocket *es, char *path);
+
+char *
+es_http_wait_for_answer (EasySocket *es);
+
 
 	/**=================
 		@Destructors

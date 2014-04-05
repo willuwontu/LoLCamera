@@ -7,8 +7,6 @@
 static bool      camera_search_signature  (unsigned char *pattern, DWORD *addr, unsigned char **code_ptr, char *mask, char *name);
 static Patch *   camera_get_patch         (MemProc *mp, char *description, DWORD *addr, unsigned char *sig, char *sig_mask, unsigned char *patch, char *patch_mask);
 bool camera_scan_win_is_opened_offset (void);
-bool camera_scan_minimap_size (void);
-bool camera_scan_ping_or_skill_waiting (void);
 
 bool camera_scan_patch (void)
 {
@@ -1062,36 +1060,63 @@ bool camera_cond_champions (MemProc *mp, BbQueue *results)
 
 	// Address end = address start + 4
 	if (!(ptr[0] + 4 == ptr[1]))
+	{
+		debug("Condition error : 1");
 		return false;
+	}
 
 	if (ptr[0] < 0x00010000) // we need an adress here
+	{
+		debug("Condition error : 2");
 		return false;
+	}
 
 	ptr[0] = read_memory_as_int(mp->proc, ptr[0]);
 	ptr[1] = read_memory_as_int(mp->proc, ptr[1]);
 
 	if ((ptr[1] - ptr[0]) / 4 > 12) // Support 6v6
+	{
+		debug("Condition error : 3");
 		return false;
+	}
 
 	if (ptr[0] == 0)
+	{
+		debug("Condition error : 4");
 		return false;
+	}
 
 	if (ptr[0] == (DWORD) -1)
+	{
+		debug("Condition error : 5");
 		return false;
+	}
 
 	Entity *dummy = entity_new(mp, ptr[0]);
 
 	if (dummy == NULL)
+	{
+		debug("Condition error : 6");
 		return false;
+	}
 
 	if (str_pos(dummy->player_name, "Turret_") != -1)
+	{
+		debug("Condition error : 7");
 		return false;
+	}
 
-	if (dummy->hp_max == 4000.0) // Barracks HP = 4000.0
+	if (str_pos(dummy->player_name, "Barracks_") != -1)
+	{
+		debug("Condition error : 8");
 		return false;
+	}
 
-	if (dummy->movement_speed > 0) // Buildings ms = 0
+	if (dummy->movement_speed <= 0) // Buildings ms = 0
+	{
+		debug("Condition error : 9");
 		return false;
+	}
 
 	entity_free(dummy);
 

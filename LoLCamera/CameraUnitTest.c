@@ -1,8 +1,5 @@
 #include "LoLCamera.h"
 
-#define MAP_WIDTH  15000.0
-#define MAP_HEIGHT 15200.0
-
 bool camera_ut_campos ()
 {
 	Camera *this = camera_get_instance();
@@ -10,8 +7,7 @@ bool camera_ut_campos ()
 
 	mempos_get(this->cam, &x, &y);
 
-	return (x >= 0.0       && y >= 0.0
-	&&		x <= MAP_WIDTH && y <= MAP_HEIGHT);
+	return out_of_map(x, y) == false;
 }
 
 bool camera_ut_champos ()
@@ -21,8 +17,7 @@ bool camera_ut_champos ()
 
 	mempos_get(this->champ, &x, &y);
 
-	return (x >= 0.0       && y >= 0.0
-	&&		x <= MAP_WIDTH && y <= MAP_HEIGHT);
+	return out_of_map(x, y) == false;
 }
 
 bool camera_ut_mousepos ()
@@ -32,8 +27,7 @@ bool camera_ut_mousepos ()
 
 	mempos_get(this->mouse, &x, &y);
 
-	return (x >= 0.0       && y >= 0.0
-	&&		x <= MAP_WIDTH && y <= MAP_HEIGHT);
+	return out_of_map(x, y) == false;
 }
 
 bool camera_ut_destpos ()
@@ -41,10 +35,9 @@ bool camera_ut_destpos ()
 	Camera *this = camera_get_instance();
 	float x, y;
 
-	mempos_get(this->dest, &x, &y);
+	mempos_get (this->dest, &x, &y);
 
-	return (x >= 0.0       && y >= 0.0
-	&&		x <= MAP_WIDTH && y <= MAP_HEIGHT);
+	return out_of_map(x, y) == false;
 }
 
 bool camera_ut_is_win_opened ()
@@ -55,11 +48,20 @@ bool camera_ut_is_win_opened ()
 	&& 		this->interface_opened <  7);
 }
 
-bool camera_ut_loading_state ()
+bool camera_ut_entities ()
 {
-	Camera *this = camera_get_instance();
+    Camera *this = camera_get_instance();
 
-	int state = read_memory_as_int(this->mp->proc, this->loading_state_addr);
+    if (this->playersCount <= 0 || this->playersCount > 10)
+        return false;
 
-	return (state > 0);
+    for (int i = 0; i < this->playersCount; i++)
+    {
+        Entity *entity = this->champions[i];
+
+        if (out_of_map(entity->p.v.x, entity->p.v.y) == false)
+            return false;
+    }
+
+    return true;
 }

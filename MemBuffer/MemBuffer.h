@@ -11,7 +11,7 @@
 #include "../Ztring/Ztring.h"
 #include "../Win32Tools/Win32Tools.h"
 
-// ------ Class declaration -------
+// ------ Struct declaration -------
 typedef
 struct _MemBuffer
 {
@@ -30,7 +30,7 @@ membuffer_new (DWORD addr, unsigned char *code, int size);
 void
 membuffer_init (MemBuffer *mb, DWORD addr, Buffer *buf);
 
-// ----------- Methods ------------
+// ----------- Functions ------------
 
 
 

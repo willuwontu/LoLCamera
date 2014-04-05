@@ -52,8 +52,6 @@
 #define INIPARSER_H_INCLUDED
 
 /* Librairies */
-#include <assert.h>
-#include <string.h>
 #include "../BbQueue/BbQueue.h"
 #include "../Ztring/Ztring.h"
 
@@ -88,7 +86,7 @@ void
 ini_parser_new_internal			(char *filename);
 
 /** * * * * * * * *
-*	 @Methods	 *
+*	 @Functions	 *
  * * * * * * * * * */
 
 int

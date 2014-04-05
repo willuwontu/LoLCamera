@@ -9,7 +9,7 @@ membuffer_new (DWORD addr, unsigned char *code, int size)
 		return NULL;
 
 	membuffer_init (membuffer, addr,
-		buffer_new_ptr(code, size)
+		buffer_new_from_ptr(code, size)
 	);
 
 	return membuffer;

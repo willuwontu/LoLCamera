@@ -13,7 +13,7 @@
 // ---------- Defines -------------
 
 
-// ------ Class declaration -------
+// ------ Struct declaration -------
 typedef
 struct _MemPos
 {
@@ -35,21 +35,23 @@ MemPos *
 mempos_int_new (MemProc *mp, DWORD addrX, DWORD addrY);
 
 
-// ----------- Methods ------------
+// ----------- Functions ------------
 
-int
+bool
 mempos_refresh (MemPos *p);
 
 void
 mempos_init (MemPos *p, MemProc *mp, DWORD addrX, DWORD addrY);
 
-int
+bool
 mempos_int_refresh (MemPos *p);
 
-// --- Accessors
+// --- Setters
 
 void
 mempos_set (MemPos *p, float newX, float newY);
+
+// --- Getters
 
 void
 mempos_get (MemPos *p, float *x, float *y);

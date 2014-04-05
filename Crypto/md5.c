@@ -345,6 +345,9 @@ MD5_file (FILE *file)
 	size_t len;
 	int i;
 
+	if (!file)
+        return NULL;
+
 	MD5Init(&md5);
 	while ((len = fread(data, 1, sizeof(data), file)))
 		MD5Update(&md5, (const unsigned char*) data, len);

@@ -1,4 +1,3 @@
-// --- File		: LoLCamera.h
 #pragma once
 
 // ---------- Includes ------------
@@ -17,34 +16,42 @@
 #include "../MemBuffer/MemBuffer.h"
 #include "../Event/Event.h"
 #include "../EasySocket/EasySocket.h"
+#include "../Utils/Utils.h"
 #include "./Entity.h"
 #include "./CameraSettings.h"
 
 // ---------- Defines -------------
 #define LOLCAMERA_SHOP_OPENED_VALUE 4
 #define LOLCAMERA_CHAT_OPENED_VALUE 2
+#define LOLCAMERA_PING_OR_SKILL_PRESSED 5
 
 #define IN_SCREEN_DISTANCE 2000.0
 #define MEDIUM_BOX 		   1500.0
 #define SMALL_BOX 		   1000.0
+#define MAP_WIDTH  15000.0
+#define MAP_HEIGHT 15200.0
 
-// ------ Class declaration -------
-typedef struct _Minimap {
-	int xLeft, xRight, yBot, yTop;
-} Minimap;
+#define EXECUTABLE_TEXT_SIZE 0x00B3C000
 
+// ------ Struct declaration -------
 typedef struct _Camera Camera;
+typedef struct _Minimap Minimap;
+
+
+struct _Minimap
+{
+    // Screen pixels position
+    int xLeft, xRight, yTop, yBot;
+};
 
 struct _Camera
 {
 	MemProc *mp;					// Process context
-	Minimap minimap;
 
 	// From .ini
 	DWORD border_screen_addr;		// Address of the instructions moving the camera
 	DWORD locked_camera_addr;		// Address of the instructions moving the camera on locked camera
 	DWORD camera_movement_addr;		// Address of the instructions moving the camera when the mouse reaches the border of the screen
-
 	DWORD win_is_opened_ptr;		// Address of the data : address of the pointer to the variable containing "isShopOpen" (different of 0 if its the case)
 	DWORD entities_addr;			// Address of the data : entities array start
 	DWORD entities_addr_end;		// Address of the data : entities array end
@@ -55,15 +62,16 @@ struct _Camera
 	DWORD champx_addr, champy_addr;	// Address of the data : championX / championY
 	DWORD mousex_addr, mousey_addr; // Address of the data : mouseX / mouseY
 	DWORD destx_addr, desty_addr;   // Address of the data : destX / destY (right click)
-	DWORD win_is_opened_addr;		// Address of the data : address of the variable containing "isShopOpen" (different of 0 if its the case)
+	DWORD win_is_opened_addr;		// Address of the data : address of the variable containing "isWindowOpened" (different of 0 if its the case)
+	DWORD win_is_opened_offset;		// Address of the data : address of the offset of the variable "isWindowOpened"
+	DWORD focus_allies_addr;		// Address of the data : address for the patch "Focus the camera on allies"
 
-	DWORD loading_state_addr;		// Adress of the data : loading state
 	DWORD game_info_addr;			// Adress of the data : info of the game
 	DWORD victory_state_addr;		// Adress of the data : Victory or Defeat
-	DWORD mmsize_addr;
-	DWORD ping_state_addr;
 
 	DWORD interface_hovered_addr;	// Address of the data : Is the interface hovered ?
+	DWORD mmsize_addr;              // Address of the array containing the size of the minimap on the screen
+	DWORD ping_state_addr;          // Address of the data : Has ping button been pressed ?
 
 	// Offsets in the game structure
 	DWORD champx_offset;
@@ -95,10 +103,6 @@ struct _Camera
 	float camera_scroll_speed;		// This controls smoothing, smaller values mean slower camera movement
 	float threshold;				// Minimum threshold before calculations halted because camera is "close enough"
 									// Controls the range at which these factors start falling off :
-	float mouse_range_max,			// mouse-champ range
-		  dest_range_max,			// dest-champ range
-		  mouse_dest_range_max;		// mouse-dest range
-
 
 	// Camera system settings
 	int sleep_time;					// Sleep time at each start of main loop
@@ -119,6 +123,7 @@ struct _Camera
 	Entity *nearby[10];				// Array of entities nearby the champion
 	Entity *nearby_allies[5];		// Array of allies entities nearby the champion
 	Entity *nearby_ennemies[5];		// Array of ennemies entities nearby the champion
+	float distance_entity_nearby;
 	int nb_allies_nearby;
 	int nb_ennemies_nearby;
 
@@ -133,7 +138,7 @@ struct _Camera
 	float lmb_weight;
 
 	// Players information
-	int team_size;					// Size of the -team- of the array actually, FIXME
+	int playersCount;				// Size of the entities array
 
 	// Vector positions
 	MemPos *cam;					// Camera ingame position (values only)
@@ -158,13 +163,13 @@ struct _Camera
 	bool restore_tmpcam;				// Request to restore the temporary camera
 	bool drag_request;					// User requested a drag
 	bool active;						// Loop state
-	bool request_polling; 				// Force to poll data the next loop if TRUE
+	bool request_polling; 				// Force to poll data the next loop if true
 	int interface_opened;				// Interface state (window focus : shop, chat, etc)
 	bool enabled;						// LoLCamera enabled ?
 	bool dbg_mode;						// For unit tests
 	bool wait_loading_screen;			// Wait for the start of the game
-	bool output_cheatengine_table;		// Output the adresses in CheatEngineTable format in "out.ct"
 	bool interface_hovered;
+	bool disable_fx_keys;
 	int victory_state;
 	int ms_after_minimap_click;
 	char *section_settings_name;
@@ -172,9 +177,9 @@ struct _Camera
 	bool dead_mode;
 	bool global_weight_activated;
 	bool patch_border_screen_moving;
+	Minimap minimap;
 	POINT mouse_screen;
 	int ping_state;
-	int playersCount;
 
 	// Events
 	Event reset_after_minimap_click;
@@ -195,9 +200,10 @@ typedef enum {
 
 // --------- Constructors ---------
 void camera_init (MemProc *mp);
+void camera_init_light (MemProc *mp);
 
 
-// ----------- Methods ------------
+// ----------- Functions ------------
 LoLCameraState camera_main ();
 bool camera_update ();
 void camera_load_ini ();
@@ -206,26 +212,33 @@ Camera *camera_get_instance ();
 bool camera_is_near (MemPos *po, float limit);
 void camera_load_settings (char *section);
 bool exit_request (int key);
+bool update_request (int c);
 int get_kb ();
 void camera_check_version (void);
 void camera_set_pos (float x, float y);
 short int camera_getkey (int key);
 void camera_reset ();
+bool camera_scan_campos (void);
+bool camera_scan_camval (void);
+bool camera_scan_game_info (void);
+bool camera_scan_hover_interface (void);
+void camera_run_light ();
 
 // -- Hotkeys
-bool global_key_toggle ();
+bool global_key_pressed ();
 
 // From LoLCameraMem.c
 bool camera_scan_champions (bool display_error);
 bool camera_scan_patch ();
 bool camera_scan_win_is_opened ();
+bool camera_scan_minimap_size ();
 bool camera_scan_variables ();
-bool camera_scan_loading ();
 bool camera_scan_cursor_champ ();
-bool camera_scan_hovered_champ ();
 bool camera_scan_champ_offsets ();
+bool camera_scan_dest ();
 bool camera_scan_dest_offsets ();
 bool camera_scan_victory ();
+bool camera_scan_ping_or_skill_waiting ();
 
 bool camera_refresh_champions ();
 bool camera_refresh_entity_hovered ();
@@ -236,7 +249,10 @@ bool camera_refresh_victory ();
 bool camera_refresh_entities_nearby ();
 bool camera_refresh_hover_interface ();
 bool camera_refresh_screen_border ();
+bool camera_refresh_mouse_screen ();
+bool camera_refresh_ping_state ();
 
+bool out_of_map (float x, float y);
 
 // from CameraUnitTest.c
 bool camera_ut_campos ();
@@ -245,7 +261,7 @@ bool camera_ut_mousepos ();
 bool camera_ut_destpos ();
 bool camera_ut_is_win_opened ();
 bool camera_ut_screen_mouse ();
-bool camera_ut_loading_state ();
+bool camera_ut_entities ();
 
 void camera_export_to_cheatengine ();
 

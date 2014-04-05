@@ -54,6 +54,7 @@
 #define FILE_APPEND ((void*)1)
 #define EOS		 (-1)
 
+
 typedef
 struct _Ztring
 {
@@ -95,14 +96,14 @@ Buffer *
 buffer_dup (Buffer *buf);
 
 Buffer *
-buffer_new_ptr (unsigned char *ptr, int size);
+buffer_new_from_ptr (unsigned char *ptr, int size);
 
 Buffer *
-buffer_new_ptr_noalloc (unsigned char *ptr, int size);
+buffer_new_from_ptr_noalloc (unsigned char *ptr, int size);
 
 
 	/** * * * * * * * *
-	*	 @Methods	*
+	*	 @Functions	*
 	* * * * * * * * * */
 /* * Buffer * */
 
@@ -163,13 +164,13 @@ char *
 str_dup_printf		  (const char *format, ...);
 
 int
-str_substring		   (const char *str, int start, int end, char *res);
+str_substring		    (const char *str, int start, int end, char *res);
 
 int
-str_getline			 (char *str, char *dest, int maxlen, int pos);
+str_getline			    (char *str, char *dest, int maxlen, int pos);
 
 void
-str_cpy				 (char **dest, const char *str);
+str_cpy				    (char **dest, const char *str);
 
 void
 strn_cpy				(char *dest, const char *str, int size);
@@ -178,7 +179,16 @@ void
 str_gets				(char *buffer, int len);
 
 int
-str_pos				 (const char *str, const char *search);
+str_pos				    (const char *str, const char *search);
+
+char *
+str_pos_ptr             (char *str, const char *search);
+
+int
+str_pos_after           (const char *str, const char *search);
+
+char *
+str_pos_after_ptr       (char *str, const char *search);
 
 int
 str_pos_reverse 		(const char *str, const char *search);

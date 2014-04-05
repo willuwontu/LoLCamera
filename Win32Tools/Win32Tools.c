@@ -6,6 +6,8 @@ get_pid_by_name (char *proc_name)
 	DWORD dwPID = 0;
 
 	PROCESSENTRY32 pe32;
+	memset(&pe32, 0, sizeof(pe32));
+
 	HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 
 	pe32.dwSize = sizeof(PROCESSENTRY32);
@@ -50,7 +52,7 @@ read_from_memory (HANDLE process, unsigned char *buffer, DWORD addr, unsigned in
 		{
 			res = GetLastError();
 			if (res != ERROR_PARTIAL_COPY)
-				warning("GetLastError() = %d (http://msdn.microsoft.com/en-us/library/windows/desktop/ms681382%28v=vs.85%29.aspx)", res);
+				warning("GetLastError() = %d (http://msdn.microsoft.com/en-us/library/windows/desktop/ms681388(v=vs.85).aspx)", res);
 		}
 
 		if (bytes_read != bytes_to_read)
@@ -96,7 +98,7 @@ get_handle_from_pid (DWORD pid)
 	{
 		hHandle = OpenProcess (
 			PROCESS_ALL_ACCESS,
-			FALSE, pid
+			false, pid
 		);
 
 		Sleep(1);
@@ -164,28 +166,28 @@ bool enable_debug_privileges ()
 	if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken))
 	{
 		warning("Debug privilege : OpenProcessToken ERROR.");
-		return FALSE;
+		return false;
 	}
 
 	if (!LookupPrivilegeValue(NULL, SE_DEBUG_NAME, &newPrivs.Privileges[0].Luid))
 	{
 		warning("Debug privilege : LookupPrivilegeValue ERROR.");
 		CloseHandle(hToken);
-		return FALSE;
+		return false;
 	}
 
 	newPrivs.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
 	newPrivs.PrivilegeCount = 1;
 
-	if (!AdjustTokenPrivileges(hToken, FALSE, &newPrivs, cb, NULL, NULL))
+	if (!AdjustTokenPrivileges(hToken, false, &newPrivs, cb, NULL, NULL))
 	{
 		warning("Debug privilege : AdjustTokenPrivileges ERROR.");
 		CloseHandle(hToken);
-		return FALSE;
+		return false;
 	}
 
 	CloseHandle(hToken);
-	return TRUE;
+	return true;
 }
 
 HWND
@@ -226,9 +228,7 @@ compare_pattern (const unsigned char *buffer, const unsigned char *pattern, cons
 int
 find_pattern (const unsigned char *buffer, DWORD size, unsigned char *pattern, char *mask)
 {
-	int i;
-
-	for (i = 0; i < size; i ++)
+	for (unsigned int i = 0; i < size; i ++)
 	{
 		if (compare_pattern((buffer + i), pattern, mask))
 		{
@@ -247,7 +247,7 @@ read_memory_as_int (HANDLE process, DWORD address)
 
 	if (!ReadProcessMemory(process, (PVOID) address, buffer, 4, &bytes_read))
 	{
-		warning("ReadProcessMemory failed. (0x%.8x)", address);
+		warning("ReadProcessMemory as int failed. (0x%.8x)", address);
 		return 0;
 	}
 
@@ -264,7 +264,37 @@ write_memory_as_int (HANDLE process, DWORD address, unsigned int value)
 
 	if (!WriteProcessMemory(process, (PVOID) address, buffer, 4, &bytes_read))
 	{
-		warning("WriteProcessMemory failed. (0x%.8x)", address);
+		warning("WriteProcessMemory as int failed. (0x%.8x)", address);
+		return 0;
+	}
+
+	return 1;
+}
+
+char
+read_memory_as_byte (HANDLE process, DWORD address)
+{
+	unsigned char byte;
+	DWORD bytes_read;
+
+	if (!ReadProcessMemory(process, (PVOID) address, &byte, 1, &bytes_read))
+	{
+		warning("ReadProcessMemory as byte failed. (0x%.8x)", address);
+		return 0;
+	}
+
+	return byte;
+}
+
+
+int
+write_memory_as_byte (HANDLE process, DWORD address, unsigned char value)
+{
+	DWORD bytes_read;
+
+	if (!WriteProcessMemory(process, (PVOID) address, &value, 1, &bytes_read))
+	{
+		warning("WriteProcessMemory as byte failed. (0x%.8x)", address);
 		return 0;
 	}
 
@@ -279,7 +309,7 @@ read_memory_as_float (HANDLE process, DWORD address)
 
 	if (!ReadProcessMemory(process, (PVOID) address, buffer, sizeof(float), &bytes_read))
 	{
-		warning("ReadProcessMemory failed. (0x%.8x)", address);
+		warning("ReadProcessMemory as float failed. (0x%.8x)", address);
 		return 0;
 	}
 
@@ -296,7 +326,7 @@ write_memory_as_float (HANDLE process, DWORD address, float value)
 
 	if (!WriteProcessMemory(process, (PVOID) address, buffer, sizeof(float), &bytes_read))
 	{
-		warning("WriteProcessMemory failed. (0x%.8x)", address);
+		warning("WriteProcessMemory as float failed. (0x%.8x)", address);
 		return 0;
 	}
 
@@ -403,7 +433,7 @@ console_set_size (int w, int h)
 	HWND console = GetConsoleWindow();
 	RECT r;
 	GetWindowRect(console, &r);
-	MoveWindow(console, r.left, r.top, w, h, TRUE);
+	MoveWindow(console, r.left, r.top, w, h, true);
 }
 
 void
@@ -461,8 +491,23 @@ _info (char *msg, ...)
 }
 
 void
+_readable (char *msg, ...)
+{
+    va_list args;
+	console_set_col(0x0A);
+
+	va_start (args, msg);
+		vfprintf (stdout, msg, args);
+	va_end (args);
+
+	console_set_col(0x07);
+}
+
+void
 _debug (char *msg, ...)
 {
+    (void) msg;
+
 	#if DEBUG_ACTIVATED == 1
 	va_list args;
 	console_set_col(0x03);
@@ -492,7 +537,7 @@ find_pattern_process (HANDLE process, DWORD start, DWORD end, unsigned char *pat
 		warning("buffer malloc (size %d) failed.", size + 1);
 	}
 
-	else if (ReadProcessMemory(process, (PVOID) start, buffer, size, NULL) == FALSE)
+	else if (ReadProcessMemory(process, (PVOID) start, buffer, size, NULL) == false)
 	{
 		warning("(0x%.8x - 0x%.8x) RPM failed.", start, end);
 		free(buffer);
@@ -639,7 +684,9 @@ create_mask_from_file (char *filename)
 DWORD
 get_baseaddr (char *module_name)
 {
-	MODULEENTRY32 module_entry = {};
+	MODULEENTRY32 module_entry;
+	memset(&module_entry, 0, sizeof(module_entry));
+
 	HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, get_pid_by_name(module_name));
 
 	if (!snapshot)
