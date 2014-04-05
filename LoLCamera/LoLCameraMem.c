@@ -1114,7 +1114,7 @@ bool camera_cond_champions (MemProc *mp, BbQueue *results)
 		return false;
 	}
 
-	if (ptr[0] < 0x00010000) // we need an adress here
+	if (NOT_A_POINTER(ptr[0]))
 	{
 		debug("camera_cond_champions : Condition error : 2");
 		return false;
@@ -1123,13 +1123,12 @@ bool camera_cond_champions (MemProc *mp, BbQueue *results)
 	ptr[0] = read_memory_as_int(mp->proc, ptr[0]);
 	ptr[1] = read_memory_as_int(mp->proc, ptr[1]);
 
-	if ((ptr[1] - ptr[0]) / 4 > 12) // Support 6v6
+	if (NOT_A_POINTER(ptr[0]) || NOT_A_POINTER(ptr[1]))
 	{
 		debug("camera_cond_champions : Condition error : 3");
-		return false;
 	}
 
-	if (ptr[0] == 0)
+	if ((ptr[1] - ptr[0]) / 4 > 12) // Support 6v6
 	{
 		debug("camera_cond_champions : Condition error : 4");
 		return false;

@@ -1,5 +1,5 @@
 === 05 / 04 / 14 ===
-- [FIX] Fix an error when getting array entity addresses
+- [FIX] Array entity address detection
 - [FIX] Champion name offset
 - [FIX] Window opened detection
 - [FIX] Minimap size array detection

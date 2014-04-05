@@ -55,7 +55,6 @@ int main_light ()
 		camera_init_light(mp);
 		camera_scan_campos();
 		camera_scan_camval();
-		camera_scan_loading();
 		camera_scan_dest();
 		camera_scan_cursor_champ();
 		camera_scan_game_info();
