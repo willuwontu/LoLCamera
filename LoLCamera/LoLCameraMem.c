@@ -1,8 +1,7 @@
 #include "LoLCamera.h"
 
 #define SELF_NAME_OFFSET 0x28
-#define WIN_IS_OPENED_OFFSET   0x3E8
-#define WIN_IS_OPENED_OFFSET_2 0x54
+#define WIN_IS_OPENED_OFFSET   0x308
 
 static bool      camera_search_signature  (unsigned char *pattern, DWORD *addr, unsigned char **code_ptr, char *mask, char *name);
 static Patch *   camera_get_patch         (MemProc *mp, char *description, DWORD *addr, unsigned char *sig, char *sig_mask, unsigned char *patch, char *patch_mask);
@@ -768,20 +767,23 @@ bool camera_scan_win_is_opened (void)
 
 	BbQueue *res = memscan_search (this->mp, "winIsOpened",
 	/*
-		01540C29                    ║·  8B0D E0D34602           ║mov ecx, [dword ds:League_of_Legends.246D3E0]
-		01540C2F                    ║·  8B01                    ║mov eax, [dword ds:ecx]
-		01540C31                    ║·  FF50 04                 ║call [dword ds:eax+4]
+		 ║·  FF15 DC50BC00           ║call [dword ds:<&IMM32.ImmAssociateContext>]      ; └IMM32.ImmAssociateContext
+		 ║·  8B0D E0D34602           ║mov ecx, [dword ds:League_of_Legends.246D3E0]
+		 ║·  8B01                    ║mov eax, [dword ds:ecx]
+		 ║·  FF50 04                 ║call [dword ds:eax+4]
 	*/
 		(unsigned char[]) {
+			0xFF,0x15,0xDC,0x50,0xBC,0x00,
 			0x8B,0x0D,0xE0,0xD3,0x46,0x02,
 			0x8B,0x01,
 			0xFF,0x50,0x04
 		},
-
+			"xx????"
 			"xx????"
 			"xx"
 			"xxx",
 
+			"xxxxxx"
 			"xx????"
 			"xx"
 			"xxx"
@@ -805,14 +807,13 @@ bool camera_scan_win_is_opened (void)
 	}
 
 	DWORD win_is_opened_addr;
-	win_is_opened_addr = read_memory_as_int(this->mp->proc, this->win_is_opened_ptr);
+	win_is_opened_addr  = read_memory_as_int(this->mp->proc, this->win_is_opened_ptr);
+	win_is_opened_addr += 0x54;
 
 	if (!win_is_opened_addr)
 		return false;
 
-	win_is_opened_addr = win_is_opened_addr + WIN_IS_OPENED_OFFSET + 0x4;
-
-	this->win_is_opened_addr = read_memory_as_int(this->mp->proc, win_is_opened_addr) + WIN_IS_OPENED_OFFSET_2;
+	this->win_is_opened_addr = win_is_opened_addr + WIN_IS_OPENED_OFFSET;
 
 	return true;
 }
@@ -1306,12 +1307,11 @@ bool camera_refresh_win_is_opened (void)
 {
 	Camera *this = camera_get_instance();
 
-	// this->interface_opened = read_memory_as_int(this->mp->proc, this->win_is_opened_addr + 0x244);
+	this->interface_opened = read_memory_as_int(this->mp->proc, this->win_is_opened_addr);
 	// Shop opened : 4
 	// Chat opened : 2
 	// Nothing     : 1
 
-	return true;
 	return this->interface_opened != 0;
 }
 

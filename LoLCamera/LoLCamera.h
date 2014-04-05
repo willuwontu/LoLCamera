@@ -31,7 +31,7 @@
 #define MAP_WIDTH  15000.0
 #define MAP_HEIGHT 15200.0
 
-#define EXECUTABLE_TEXT_SIZE 0x00B3C000
+#define EXECUTABLE_TEXT_SIZE 0x00B84000
 
 // ------ Struct declaration -------
 typedef struct _Camera Camera;
