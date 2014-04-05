@@ -23,8 +23,11 @@ patches/*
 LoLRipotLogs/*
 LoLCamera.lnk
 WebServer/
+<<<<<<< HEAD
 =======
 >>>>>>> ce88f15b980ad1fc53934864305ff6b0a9f35ec2
+=======
+>>>>>>> ee556b95ef822c44131f1f67109042696dcd534f
 
 # External tool builders
 .externalToolBuilders/
@@ -55,7 +58,10 @@ WebServer/
 <<<<<<< HEAD
 [Dd]ebug/
 [Rr]elease/
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> ee556b95ef822c44131f1f67109042696dcd534f
 
 [Dd]ebug/
 [Rr]elease/
@@ -68,7 +74,10 @@ build/
 [Tt]est[Rr]esult*/
 [Bb]uild[Ll]og.*
 
+<<<<<<< HEAD
 >>>>>>> ce88f15b980ad1fc53934864305ff6b0a9f35ec2
+=======
+>>>>>>> ee556b95ef822c44131f1f67109042696dcd534f
 *_i.c
 *_p.c
 *.ilk
@@ -91,7 +100,10 @@ build/
 
 ## TODO: If you have NuGet Package Restore enabled, uncomment this
 #packages/
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> ee556b95ef822c44131f1f67109042696dcd534f
 *.tmp_proj
 *.log
 *.vspscc
@@ -100,7 +112,10 @@ build/
 *.pidb
 *.log
 *.scc
+<<<<<<< HEAD
 >>>>>>> ce88f15b980ad1fc53934864305ff6b0a9f35ec2
+=======
+>>>>>>> ee556b95ef822c44131f1f67109042696dcd534f
 
 # Visual C++ cache files
 ipch/
@@ -109,9 +124,13 @@ ipch/
 *.opensdf
 *.sdf
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 *.cachefile
 >>>>>>> ce88f15b980ad1fc53934864305ff6b0a9f35ec2
+=======
+*.cachefile
+>>>>>>> ee556b95ef822c44131f1f67109042696dcd534f
 
 # Visual Studio profiler
 *.psess
@@ -123,7 +142,10 @@ _ReSharper*
 
 # Installshield output folder
 [Ee]xpress
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> ee556b95ef822c44131f1f67109042696dcd534f
 *.vspx
 
 # Guidance Automation Toolkit
@@ -145,7 +167,10 @@ _TeamCity*
 
 # Installshield output folder
 [Ee]xpress/
+<<<<<<< HEAD
 >>>>>>> ce88f15b980ad1fc53934864305ff6b0a9f35ec2
+=======
+>>>>>>> ee556b95ef822c44131f1f67109042696dcd534f
 
 # DocProject is a documentation generator add-in
 DocProject/buildhelp/
@@ -172,7 +197,10 @@ stylecop.*
 ~$*
 *.dbmdl
 Generated_Code #added for RIA/Silverlight projects
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> ee556b95ef822c44131f1f67109042696dcd534f
 publish/
 
 # Publish Web Output
@@ -204,7 +232,10 @@ ClientBin/
 
 # RIA/Silverlight projects
 Generated_Code/
+<<<<<<< HEAD
 >>>>>>> ce88f15b980ad1fc53934864305ff6b0a9f35ec2
+=======
+>>>>>>> ee556b95ef822c44131f1f67109042696dcd534f
 
 # Backup & report files from converting an old project file to a newer
 # Visual Studio version. Backup files are not needed, because we have git ;-)
@@ -221,7 +252,10 @@ UpgradeLog*.XML
 
 # Windows image file caches
 Thumbs.db
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> ee556b95ef822c44131f1f67109042696dcd534f
 UpgradeLog*.htm
 
 # SQL Server files
@@ -235,11 +269,17 @@ App_Data/*.ldf
 # Windows image file caches
 Thumbs.db
 ehthumbs.db
+<<<<<<< HEAD
 >>>>>>> ce88f15b980ad1fc53934864305ff6b0a9f35ec2
+=======
+>>>>>>> ee556b95ef822c44131f1f67109042696dcd534f
 
 # Folder config file
 Desktop.ini
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 # Recycle Bin used on file shares
@@ -249,6 +289,10 @@ $RECYCLE.BIN/
 .DS_Store
 
 >>>>>>> ce88f15b980ad1fc53934864305ff6b0a9f35ec2
+=======
+# Mac crap
+.DS_Store
+>>>>>>> ee556b95ef822c44131f1f67109042696dcd534f
 
 #############
 ## Python
@@ -268,7 +312,10 @@ bin
 var
 sdist
 develop-eggs
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> ee556b95ef822c44131f1f67109042696dcd534f
 dist/
 build/
 eggs/
@@ -276,7 +323,10 @@ parts/
 var/
 sdist/
 develop-eggs/
+<<<<<<< HEAD
 >>>>>>> ce88f15b980ad1fc53934864305ff6b0a9f35ec2
+=======
+>>>>>>> ee556b95ef822c44131f1f67109042696dcd534f
 .installed.cfg
 
 # Installer logs
@@ -302,6 +352,10 @@ pip-log.txt
 #########################################################################
 LoLCamera.layout
 LoLCamera.depend
+<<<<<<< HEAD
 out.ct
 =======
 >>>>>>> ce88f15b980ad1fc53934864305ff6b0a9f35ec2
+=======
+out.ct
+>>>>>>> ee556b95ef822c44131f1f67109042696dcd534f

@@ -1,5 +1,11 @@
+<<<<<<< HEAD
 === 02 / 04 / 14 ===
 - [FIX] Fix an error when getting addresses
+=======
+=== 08 / 03 / 14 ===
+- [FIX]
+
+>>>>>>> ee556b95ef822c44131f1f67109042696dcd534f
 
 === 06 / 03 / 14 ===
 - [FIX] Patch 4.3 fixed (bis)
