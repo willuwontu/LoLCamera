@@ -38,11 +38,6 @@ entity_new (MemProc *mp, DWORD addr)
 bool
 entity_address_to_array (MemProc *mp, DWORD cur, DWORD end, Entity **champions)
 {
-	/* TODO :
-		Décider si on stocke l'array des champions ici
-		ou autre part ?
-	*/
-
 	for (int i = 0; cur != end && i < 10; cur += 4, i++)
 	{
 		Entity *e = champions[i];
@@ -169,8 +164,8 @@ entity_is_visible (Entity *e)
 void
 entity_debug (Entity *e)
 {
-	debug("Entity DEBUG (0x%.8x) : x=%f / y=%f - hp=%f / hpm=%f - (%s) (%s) - %s - (%d)",
-		e->entity_data, e->p.v.x, e->p.v.y, e->hp, e->hp_max, e->player_name, e->champ_name, (e->team == ENTITY_TEAM_BLUE) ? "blue" : "purple", e->isVisible);
+	debug("Entity DEBUG (0x%.8x) : x=%f / y=%f - hp=%f / hpm=%f - ms=%f - (%s) (%s) - %s - (%d)",
+		e->entity_data, e->p.v.x, e->p.v.y, e->hp, e->hp_max, e->movement_speed, e->player_name, e->champ_name, (e->team == ENTITY_TEAM_BLUE) ? "blue" : "purple", e->isVisible);
 }
 
 void

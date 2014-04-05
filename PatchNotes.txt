@@ -1,6 +1,5 @@
-=== 08 / 03 / 14 ===
-- [FIX]
-
+=== 02 / 04 / 14 ===
+- [FIX] Fix an error when getting addresses
 
 === 06 / 03 / 14 ===
 - [FIX] Patch 4.3 fixed (bis)
