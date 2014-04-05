@@ -176,8 +176,7 @@ static bool camera_left_click ()
 		&&  (this->interface_opened != LOLCAMERA_SHOP_OPENED_VALUE)
         &&  (camera_mouse_in_minimap())
         &&  (camera_not_pinging())
-		)
-		{
+		) {
 			switch (this->lbutton_state)
 			{
 				case 0:

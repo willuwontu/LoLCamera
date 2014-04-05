@@ -20,7 +20,6 @@ void download_lolcamera (char *link)
 
     (void) sourceforge;
     (void) link;
-    // TODO : get from sourceforge :)
 }
 
 char * get_own_patchnotes ()
