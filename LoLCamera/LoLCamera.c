@@ -1449,7 +1449,6 @@ void camera_load_ini ()
 	this->disable_fx_keys = strtol(ini_parser_get_value(parser, "disable_fx_keys"), NULL, 10);
 	this->wait_loading_screen = strtol(ini_parser_get_value(parser, "wait_loading_screen"), NULL, 10);
 	this->ms_after_minimap_click = strtol(ini_parser_get_value(parser, "ms_after_minimap_click"), NULL, 10);
-	this->patch_border_screen_moving = strtol(ini_parser_get_value(parser, "patch_border_screen_moving"), NULL, 10);
 	this->distance_entity_nearby = atof(ini_parser_get_value(parser, "distance_entity_nearby"));
 
 	// Champion Settings

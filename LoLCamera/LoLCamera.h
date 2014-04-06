@@ -176,7 +176,6 @@ struct _Camera
 	bool wait_for_end_of_pause;
 	bool dead_mode;
 	bool global_weight_activated;
-	bool patch_border_screen_moving;
 	Minimap minimap;
 	POINT mouse_screen;
 	int ping_state;
