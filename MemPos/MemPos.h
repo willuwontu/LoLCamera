@@ -40,7 +40,7 @@ mempos_int_new (MemProc *mp, DWORD addrX, DWORD addrY);
 bool
 mempos_refresh (MemPos *p);
 
-void
+bool
 mempos_init (MemPos *p, MemProc *mp, DWORD addrX, DWORD addrY);
 
 bool
