@@ -51,31 +51,29 @@ mempos_init (MemPos *p, MemProc *mp, DWORD addrX, DWORD addrY)
 bool
 mempos_refresh (MemPos *p)
 {
-	p->v.x = -1.1337;
-	p->v.y = -1.1337;
+	float x = read_memory_as_float(p->ctxt->proc, p->addrX);
+	float y = read_memory_as_float(p->ctxt->proc, p->addrY);
 
-	vector2D_set_pos (
-		&p->v,
-		read_memory_as_float(p->ctxt->proc, p->addrX),
-		read_memory_as_float(p->ctxt->proc, p->addrY)
-	);
+	if (x == -1337.1337 && y == -1337.1337)
+		return false;
 
-	return (!(p->v.x == -1.1337 && p->v.y == -1.1337));
+	vector2D_set_pos (&p->v, x, y);
+
+	return true;
 }
 
 bool
 mempos_int_refresh (MemPos *p)
 {
-	p->v.x = -1337;
-	p->v.y = -1337;
+	int x = read_memory_as_int(p->ctxt->proc, p->addrX);
+	int y = read_memory_as_int(p->ctxt->proc, p->addrY);
 
-	vector2D_set_pos (
-		&p->v,
-		read_memory_as_int(p->ctxt->proc, p->addrX),
-		read_memory_as_int(p->ctxt->proc, p->addrY)
-	);
+	if (x == -13371337 && y == -13371337)
+		return false;
 
-	return (!(p->v.x == -1337 && p->v.y == -1337));
+	vector2D_set_pos (&p->v, x, y);
+
+	return true;
 }
 
 void

@@ -87,13 +87,15 @@ entity_init (Entity *e, MemProc *mp, DWORD addr)
 	DWORD champ_struct = read_memory_as_int(e->ctxt->proc, e->entity_data + EOFF_CHAMP_STRUCT);
 	read_from_memory(e->ctxt->proc, e->champ_name, champ_struct + EOFF_CHAMP_NAME, sizeof(e->champ_name) - 1);
 
+	if (!e->player_name)
+		important("Player name has not been found.");
 	if (!e->champ_name)
 		important("Champ name has not been found.");
 
 	{
 		// "Object" name = extended object, read the pointer in the first 4 bytes
-		char buffer[8];
-		memcpy(buffer, &e->player_name[4], sizeof(buffer));
+		char buffer[32];
+		memcpy(buffer, &e->player_name[4], strlen(&e->player_name[4]));
 		buffer[strlen("Object")] = '\0';
 
 		if (str_equals(buffer, "Object"))
@@ -101,7 +103,7 @@ entity_init (Entity *e, MemProc *mp, DWORD addr)
 			DWORD addr;
 			memcpy(&addr, &e->player_name, sizeof(DWORD));
 
-			if (addr)
+			if (addr && !NOT_A_POINTER(addr))
 				read_from_memory (e->ctxt->proc, e->player_name, addr, sizeof(e->player_name) - 1);
 		}
 	}

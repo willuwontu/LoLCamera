@@ -248,7 +248,7 @@ read_memory_as_int (HANDLE process, DWORD address)
 	if (!ReadProcessMemory(process, (PVOID) address, buffer, 4, &bytes_read))
 	{
 		warning("ReadProcessMemory as int failed. (0x%.8x)", address);
-		return 0;
+		return -13371337;
 	}
 
 	return bytes_to_int32 (buffer);
@@ -310,7 +310,7 @@ read_memory_as_float (HANDLE process, DWORD address)
 	if (!ReadProcessMemory(process, (PVOID) address, buffer, sizeof(float), &bytes_read))
 	{
 		warning("ReadProcessMemory as float failed. (0x%.8x)", address);
-		return 0;
+		return -1337.1337;
 	}
 
 	return bytes_to_float (buffer);
