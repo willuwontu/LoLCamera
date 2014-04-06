@@ -1126,6 +1126,7 @@ bool camera_cond_champions (MemProc *mp, BbQueue *results)
 	if (NOT_A_POINTER(ptr[0]) || NOT_A_POINTER(ptr[1]))
 	{
 		debug("camera_cond_champions : Condition error : 3");
+		return false;
 	}
 
 	if ((ptr[1] - ptr[0]) / 4 > 12) // Support 6v6
