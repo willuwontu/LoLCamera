@@ -1,5 +1,7 @@
 #include "Entity.h"
 
+#define NOT_A_POINTER(addr) ((addr) < 0x10000)
+
 #define EOFF_POSX			0x64
 #define EOFF_POSY			(EOFF_POSX + 0x8)
 #define EOFF_HP 			0x118
@@ -69,6 +71,9 @@ entity_init (Entity *e, MemProc *mp, DWORD addr)
 	e->entity_data = read_memory_as_int(mp->proc, addr);
 	e->isHovered = 0;
 	e->isVisible = 0;
+
+	if (!e->entity_data || NOT_A_POINTER(e->entity_data))
+		return false;
 
 	memset(e->player_name, 0, sizeof(e->player_name));
 	memset(e->champ_name,  0, sizeof(e->champ_name));
