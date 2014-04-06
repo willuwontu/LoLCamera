@@ -901,6 +901,14 @@ short int camera_getkey (int key)
 		return 1;
 	}
 
+	int keys[] = {VK_F1, VK_F2, VK_F3, VK_F4, VK_F5, VK_F6, VK_F7, VK_F8, VK_F9, VK_F10};
+	if ((this->disable_fx_keys)
+	&& (is_in_array(key, keys, sizeof_array(keys))))
+	{
+		// Disable FX keys
+		return 1;
+	}
+
 	return GetKeyState(key);
 }
 
