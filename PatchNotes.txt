@@ -1,5 +1,8 @@
-=== 02 / 04 / 14 ===
-- [FIX] Fix an error when getting addresses
+=== 05 / 04 / 14 ===
+- [FIX] Array entity address detection
+- [FIX] Champion name offset
+- [FIX] Window opened detection
+- [FIX] Minimap size array detection
 
 === 06 / 03 / 14 ===
 - [FIX] Patch 4.3 fixed (bis)

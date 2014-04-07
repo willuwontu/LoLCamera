@@ -8,7 +8,7 @@
 #include "./Crypto/md5.h"
 #include <signal.h>
 
-#define LOLCAMERA_VERSION 0.232
+#define LOLCAMERA_VERSION 0.233
 
 char download_link[] = "https://sourceforge.net/projects/lolcamera/files";
 char download_host[] = "cznic.dl.sourceforge.net";
@@ -20,7 +20,6 @@ void download_lolcamera (char *link)
 
     (void) sourceforge;
     (void) link;
-    // TODO : get from sourceforge :)
 }
 
 char * get_own_patchnotes ()
@@ -56,7 +55,6 @@ int main_light ()
 		camera_init_light(mp);
 		camera_scan_campos();
 		camera_scan_camval();
-		camera_scan_loading();
 		camera_scan_dest();
 		camera_scan_cursor_champ();
 		camera_scan_game_info();

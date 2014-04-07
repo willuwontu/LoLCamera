@@ -31,7 +31,7 @@
 #define MAP_WIDTH  15000.0
 #define MAP_HEIGHT 15200.0
 
-#define EXECUTABLE_TEXT_SIZE 0x00B3C000
+#define EXECUTABLE_TEXT_SIZE 0x00B84000
 
 // ------ Struct declaration -------
 typedef struct _Camera Camera;
@@ -176,7 +176,6 @@ struct _Camera
 	bool wait_for_end_of_pause;
 	bool dead_mode;
 	bool global_weight_activated;
-	bool patch_border_screen_moving;
 	Minimap minimap;
 	POINT mouse_screen;
 	int ping_state;

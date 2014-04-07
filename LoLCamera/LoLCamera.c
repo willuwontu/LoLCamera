@@ -176,8 +176,7 @@ static bool camera_left_click ()
 		&&  (this->interface_opened != LOLCAMERA_SHOP_OPENED_VALUE)
         &&  (camera_mouse_in_minimap())
         &&  (camera_not_pinging())
-		)
-		{
+		) {
 			switch (this->lbutton_state)
 			{
 				case 0:
@@ -511,7 +510,7 @@ void camera_init (MemProc *mp)
 
 	// TODO : get .text section offset + size properly
 	DWORD text_section = this->mp->base_addr + 0x1000;
-	unsigned int text_size = 0x00B0C000;
+	unsigned int text_size = EXECUTABLE_TEXT_SIZE;
 
 	// Zeroing stuff
 	memset(this->champions, 0, sizeof(Entity *));
@@ -899,6 +898,14 @@ short int camera_getkey (int key)
 	&&  (key >= 0x33 && key <= 0x126))
 	{
 		// Chat opened, printable character pressed : nothing happens
+		return 1;
+	}
+
+	int keys[] = {VK_F1, VK_F2, VK_F3, VK_F4, VK_F5, VK_F6, VK_F7, VK_F8, VK_F9, VK_F10};
+	if ((this->disable_fx_keys)
+	&& (is_in_array(key, keys, sizeof_array(keys))))
+	{
+		// Disable FX keys
 		return 1;
 	}
 
@@ -1442,7 +1449,6 @@ void camera_load_ini ()
 	this->disable_fx_keys = strtol(ini_parser_get_value(parser, "disable_fx_keys"), NULL, 10);
 	this->wait_loading_screen = strtol(ini_parser_get_value(parser, "wait_loading_screen"), NULL, 10);
 	this->ms_after_minimap_click = strtol(ini_parser_get_value(parser, "ms_after_minimap_click"), NULL, 10);
-	this->patch_border_screen_moving = strtol(ini_parser_get_value(parser, "patch_border_screen_moving"), NULL, 10);
 	this->distance_entity_nearby = atof(ini_parser_get_value(parser, "distance_entity_nearby"));
 
 	// Champion Settings

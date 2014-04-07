@@ -35,3 +35,7 @@
 #ifndef false
 #define false FALSE
 #endif
+
+
+bool
+is_in_array (int value, int *array, int size);

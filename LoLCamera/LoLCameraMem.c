@@ -1,8 +1,9 @@
 #include "LoLCamera.h"
 
+#define NOT_A_POINTER(addr) ((addr) < 0x10000)
+
 #define SELF_NAME_OFFSET 0x28
-#define WIN_IS_OPENED_OFFSET   0x3E8
-#define WIN_IS_OPENED_OFFSET_2 0x54
+#define WIN_IS_OPENED_OFFSET   0x308
 
 static bool      camera_search_signature  (unsigned char *pattern, DWORD *addr, unsigned char **code_ptr, char *mask, char *name);
 static Patch *   camera_get_patch         (MemProc *mp, char *description, DWORD *addr, unsigned char *sig, char *sig_mask, unsigned char *patch, char *patch_mask);
@@ -768,20 +769,23 @@ bool camera_scan_win_is_opened (void)
 
 	BbQueue *res = memscan_search (this->mp, "winIsOpened",
 	/*
-		01540C29                    ║·  8B0D E0D34602           ║mov ecx, [dword ds:League_of_Legends.246D3E0]
-		01540C2F                    ║·  8B01                    ║mov eax, [dword ds:ecx]
-		01540C31                    ║·  FF50 04                 ║call [dword ds:eax+4]
+		 ║·  FF15 DC50BC00           ║call [dword ds:<&IMM32.ImmAssociateContext>]      ; └IMM32.ImmAssociateContext
+		 ║·  8B0D E0D34602           ║mov ecx, [dword ds:League_of_Legends.246D3E0]
+		 ║·  8B01                    ║mov eax, [dword ds:ecx]
+		 ║·  FF50 04                 ║call [dword ds:eax+4]
 	*/
 		(unsigned char[]) {
+			0xFF,0x15,0xDC,0x50,0xBC,0x00,
 			0x8B,0x0D,0xE0,0xD3,0x46,0x02,
 			0x8B,0x01,
 			0xFF,0x50,0x04
 		},
-
+			"xx????"
 			"xx????"
 			"xx"
 			"xxx",
 
+			"xxxxxx"
 			"xx????"
 			"xx"
 			"xxx"
@@ -805,14 +809,13 @@ bool camera_scan_win_is_opened (void)
 	}
 
 	DWORD win_is_opened_addr;
-	win_is_opened_addr = read_memory_as_int(this->mp->proc, this->win_is_opened_ptr);
+	win_is_opened_addr  = read_memory_as_int(this->mp->proc, this->win_is_opened_ptr);
+	win_is_opened_addr += 0x54;
 
 	if (!win_is_opened_addr)
 		return false;
 
-	win_is_opened_addr = win_is_opened_addr + WIN_IS_OPENED_OFFSET + 0x4;
-
-	this->win_is_opened_addr = read_memory_as_int(this->mp->proc, win_is_opened_addr) + WIN_IS_OPENED_OFFSET_2;
+	this->win_is_opened_addr = win_is_opened_addr + WIN_IS_OPENED_OFFSET;
 
 	return true;
 }
@@ -837,12 +840,57 @@ bool camera_win_offset_cond (MemProc *mp, BbQueue *results)
 	return true;
 }
 
+bool camera_minimap_size_cond (MemProc *mp, BbQueue *results)
+{
+	Buffer *b;
+	DWORD addr;
+
+	b = bb_queue_pick_first(results);
+	memcpy(&addr, b->data, sizeof(DWORD));
+
+	if (NOT_A_POINTER(addr))
+		return false;
+
+	DWORD ptr[2];
+	DWORD offset[2] = {0xC4, 0xDC};
+
+	ptr[0] = read_memory_as_int(mp->proc, addr);
+
+	if (NOT_A_POINTER(ptr[0]))
+		return false;
+
+	ptr[1] = read_memory_as_int(mp->proc, ptr[0] + offset[0]);
+
+	if (NOT_A_POINTER(ptr[1]))
+		return false;
+
+	addr = ptr[1] + offset[1];
+
+	int left = read_memory_as_int(mp->proc, addr);
+	if (left == 0 || left > 10000)
+		return false;
+
+	int top = read_memory_as_int(mp->proc, addr + 4);
+	if (top == 0 || top > 10000)
+		return false;
+
+	int right = read_memory_as_int(mp->proc, addr + 4);
+	if (right == 0 || right > 10000)
+		return false;
+
+	int bot = read_memory_as_int(mp->proc, addr + 4);
+	if (bot == 0 || bot > 10000)
+		return false;
+
+	return true;
+}
+
 bool camera_scan_minimap_size (void)
 {
 	Camera *this = camera_get_instance();
 	unsigned char *description = "minimapSize";
 
-	BbQueue *res = memscan_search (this->mp, description,
+	BbQueue *res = memscan_search_cond (this->mp, description,
 	/*
         0168CC87  ║·  E8 44751000   call League_of_Legends.017941D0                      ; └League_of_Legends.017941D0
         0168CC8C  ║►  E8 EF6DFEFF   call League_of_Legends.01673A80                      ; [League_of_Legends.01673A80
@@ -875,7 +923,9 @@ bool camera_scan_minimap_size (void)
         "xx"
         "xx"
         "xxxxx"
-        "xxxxx"
+        "xxxxx",
+
+        camera_minimap_size_cond
 	);
 
 	if (!res)
@@ -892,7 +942,7 @@ bool camera_scan_minimap_size (void)
     bb_queue_free_all(res, buffer_free);
 
 	// TODO : Get offsets properly
-	DWORD ptr[3];
+	DWORD ptr[2];
 	DWORD offset[2] = {0xC4, 0xDC};
 
     // Get the final value
@@ -900,9 +950,8 @@ bool camera_scan_minimap_size (void)
 	ptr[1] = read_memory_as_int(this->mp->proc, ptr[0] + offset[0]);
 	this->mmsize_addr = ptr[1] + offset[1];
 
-	if (!this->mmsize_addr) {
+	if (NOT_A_POINTER(this->mmsize_addr)) {
 		warning("Cannot scan %s array", description);
-		return false;
 	}
 
     // Get window position
@@ -1061,34 +1110,34 @@ bool camera_cond_champions (MemProc *mp, BbQueue *results)
 	// Address end = address start + 4
 	if (!(ptr[0] + 4 == ptr[1]))
 	{
-		debug("Condition error : 1");
+		debug("camera_cond_champions : Condition error : 1");
 		return false;
 	}
 
-	if (ptr[0] < 0x00010000) // we need an adress here
+	if (NOT_A_POINTER(ptr[0]))
 	{
-		debug("Condition error : 2");
+		debug("camera_cond_champions : Condition error : 2");
 		return false;
 	}
 
 	ptr[0] = read_memory_as_int(mp->proc, ptr[0]);
 	ptr[1] = read_memory_as_int(mp->proc, ptr[1]);
 
-	if ((ptr[1] - ptr[0]) / 4 > 12) // Support 6v6
+	if (NOT_A_POINTER(ptr[0]) || NOT_A_POINTER(ptr[1]))
 	{
-		debug("Condition error : 3");
+		debug("camera_cond_champions : Condition error : 3");
 		return false;
 	}
 
-	if (ptr[0] == 0)
+	if ((ptr[1] - ptr[0]) / 4 > 12) // Support 6v6
 	{
-		debug("Condition error : 4");
+		debug("camera_cond_champions : Condition error : 4");
 		return false;
 	}
 
 	if (ptr[0] == (DWORD) -1)
 	{
-		debug("Condition error : 5");
+		debug("camera_cond_champions : Condition error : 5");
 		return false;
 	}
 
@@ -1096,25 +1145,25 @@ bool camera_cond_champions (MemProc *mp, BbQueue *results)
 
 	if (dummy == NULL)
 	{
-		debug("Condition error : 6");
+		debug("camera_cond_champions : Condition error : 6");
 		return false;
 	}
 
 	if (str_pos(dummy->player_name, "Turret_") != -1)
 	{
-		debug("Condition error : 7");
+		debug("camera_cond_champions : Condition error : 7");
 		return false;
 	}
 
 	if (str_pos(dummy->player_name, "Barracks_") != -1)
 	{
-		debug("Condition error : 8");
+		debug("camera_cond_champions : Condition error : 8");
 		return false;
 	}
 
 	if (dummy->movement_speed <= 0) // Buildings ms = 0
 	{
-		debug("Condition error : 9");
+		debug("camera_cond_champions : Condition error : 9");
 		return false;
 	}
 
@@ -1306,12 +1355,11 @@ bool camera_refresh_win_is_opened (void)
 {
 	Camera *this = camera_get_instance();
 
-	// this->interface_opened = read_memory_as_int(this->mp->proc, this->win_is_opened_addr + 0x244);
+	this->interface_opened = read_memory_as_int(this->mp->proc, this->win_is_opened_addr);
 	// Shop opened : 4
 	// Chat opened : 2
 	// Nothing     : 1
 
-	return true;
 	return this->interface_opened != 0;
 }
 

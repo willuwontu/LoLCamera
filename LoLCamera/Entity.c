@@ -1,5 +1,7 @@
 #include "Entity.h"
 
+#define NOT_A_POINTER(addr) ((addr) < 0x10000)
+
 #define EOFF_POSX			0x64
 #define EOFF_POSY			(EOFF_POSX + 0x8)
 #define EOFF_HP 			0x118
@@ -12,7 +14,7 @@
 #define EOFF_HOVERED		0x231
 
 // Offset in champion structure
-#define EOFF_CHAMP_NAME		0x24
+#define EOFF_CHAMP_NAME		0x18
 
 // Offset in champion context
 #define EOFF_IS_VISIBLE		0x24
@@ -70,6 +72,9 @@ entity_init (Entity *e, MemProc *mp, DWORD addr)
 	e->isHovered = 0;
 	e->isVisible = 0;
 
+	if (!e->entity_data || NOT_A_POINTER(e->entity_data))
+		return false;
+
 	memset(e->player_name, 0, sizeof(e->player_name));
 	memset(e->champ_name,  0, sizeof(e->champ_name));
 
@@ -82,13 +87,15 @@ entity_init (Entity *e, MemProc *mp, DWORD addr)
 	DWORD champ_struct = read_memory_as_int(e->ctxt->proc, e->entity_data + EOFF_CHAMP_STRUCT);
 	read_from_memory(e->ctxt->proc, e->champ_name, champ_struct + EOFF_CHAMP_NAME, sizeof(e->champ_name) - 1);
 
+	if (!e->player_name)
+		important("Player name has not been found.");
 	if (!e->champ_name)
 		important("Champ name has not been found.");
 
 	{
 		// "Object" name = extended object, read the pointer in the first 4 bytes
-		char buffer[8];
-		memcpy(buffer, &e->player_name[4], sizeof(buffer));
+		char buffer[32];
+		memcpy(buffer, &e->player_name[4], strlen(&e->player_name[4]));
 		buffer[strlen("Object")] = '\0';
 
 		if (str_equals(buffer, "Object"))
@@ -96,7 +103,7 @@ entity_init (Entity *e, MemProc *mp, DWORD addr)
 			DWORD addr;
 			memcpy(&addr, &e->player_name, sizeof(DWORD));
 
-			if (addr)
+			if (addr && !NOT_A_POINTER(addr))
 				read_from_memory (e->ctxt->proc, e->player_name, addr, sizeof(e->player_name) - 1);
 		}
 	}
