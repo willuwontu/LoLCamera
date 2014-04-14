@@ -655,23 +655,25 @@ bool camera_scan_variables (void)
 	info("------------------------------------------------------------------");
 	info("Reading the content of pointers...");
 	camera_scan_champions(true);
-	camera_refresh_self();
+	camera_refresh_self(true);
 
 	return res;
 }
 
-bool camera_refresh_self (void)
+bool camera_refresh_self (bool display_debug)
 {
 	Camera *this = camera_get_instance();
 
 	DWORD cur = this->entity_ptr;
 	DWORD end = this->entity_ptr_end;
 
-	debug("Looking for self champion ... Self name = <%s>", this->self_name);
+	if (display_debug)
+		debug("Looking for self champion ... Self name = <%s>", this->self_name);
 
 	for (int i = 0; cur != end && i < 10; cur += 4, i++)
 	{
-		debug("Player name detected : <%s>", this->champions[i]->player_name);
+		if (display_debug)
+			debug("Player name detected : <%s>", this->champions[i]->player_name);
 	    if (strcmp(this->self_name, this->champions[i]->player_name) == 0)
 		{
 			this->self = this->champions[i];
@@ -1165,7 +1167,7 @@ bool camera_scan_champions (bool display_error)
 	}
 
 	if (entity_address_to_array(this->mp, this->entity_ptr, this->entity_ptr_end, this->champions))
-		camera_refresh_self();
+		camera_refresh_self(true);
 
 	return true;
 }

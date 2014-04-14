@@ -778,7 +778,7 @@ bool camera_update ()
 		{.func = camera_refresh_champions,		.arg = NULL,				.desc = "Entities array"},
 		{.func = camera_refresh_win_is_opened,	.arg = NULL,				.desc = "Window opened"},
 		{.func = camera_refresh_entity_hovered,	.arg = NULL,				.desc = "Entity hovered"},
-		{.func = camera_refresh_self,	        .arg = NULL,				.desc = "Self champion detection"},
+		{.func = camera_refresh_self,	        .arg = false,				.desc = "Self champion detection"},
 		{.func = camera_refresh_entities_nearby,.arg = NULL,				.desc = "Nearby champions"},
 		{.func = camera_refresh_hover_interface,.arg = NULL,				.desc = "Hover Interface"},
 		{.func = camera_refresh_mouse_screen,   .arg = NULL,				.desc = "Mouse Screen"},

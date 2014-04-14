@@ -242,7 +242,7 @@ bool camera_scan_ping_or_skill_waiting ();
 bool camera_refresh_champions ();
 bool camera_refresh_entity_hovered ();
 bool camera_refresh_win_is_opened ();
-bool camera_refresh_self ();
+bool camera_refresh_self (bool display);
 bool camera_wait_for_ingame ();
 bool camera_refresh_entities_nearby ();
 bool camera_refresh_hover_interface ();
