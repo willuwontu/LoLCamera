@@ -46,6 +46,9 @@
 #define debugb(msg, ...) \
 	do {_debug("[+] " msg, ##__VA_ARGS__);} while(0)
 
+#define debugbs(msg, ...) \
+	do {_debug(msg, ##__VA_ARGS__);} while(0)
+
 #define infob(msg, ...) \
 	do {_info("[+] " msg, ##__VA_ARGS__);} while(0)
 

@@ -1192,6 +1192,12 @@ is_letter (char c)
 	);
 }
 
+inline int
+is_printable (char c)
+{
+	return isprint (c);
+}
+
 void
 ztring_debug (Ztring *z)
 {

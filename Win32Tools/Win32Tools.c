@@ -42,7 +42,7 @@ read_from_memory (HANDLE process, unsigned char *buffer, DWORD addr, unsigned in
 	unsigned int total_read = 0;
 	static unsigned char tempbuf[128*1024];
 	DWORD bytes_read;
-	int res = 0;
+	int res = 1;
 
 	while (bytes_left)
 	{
@@ -52,7 +52,10 @@ read_from_memory (HANDLE process, unsigned char *buffer, DWORD addr, unsigned in
 		{
 			res = GetLastError();
 			if (res != ERROR_PARTIAL_COPY)
+			{
 				warning("GetLastError() = %d (http://msdn.microsoft.com/en-us/library/windows/desktop/ms681388(v=vs.85).aspx)", res);
+				return 0;
+			}
 		}
 
 		if (bytes_read != bytes_to_read)
@@ -517,6 +520,8 @@ _debug (char *msg, ...)
 	va_end (args);
 
 	console_set_col(0x07);
+
+	fflush(stdout);
 	#endif
 }
 

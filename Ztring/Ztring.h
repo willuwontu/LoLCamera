@@ -44,6 +44,7 @@
 /* Librairies */
 #include <stdarg.h>
 #include <string.h>
+#include <ctype.h>
 #include "../BbQueue/BbQueue.h"
 
 /* Macros */
@@ -223,8 +224,11 @@ str_is_empty			(char *str);
 BbQueue *
 str_explode			 (char *str, const char *delimiter);
 
-int
+inline int
 is_letter (char c);
+
+inline int
+is_printable (char c);
 
 /* * File * */
 char *

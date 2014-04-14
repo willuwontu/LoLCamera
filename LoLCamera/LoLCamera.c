@@ -609,9 +609,9 @@ bool camera_ingame_conditions ()
             {
                 if (out_of_map(this->mouse->v.x, this->mouse->v.y))
                 {
-                    debug("Mouse = %.2f - %.2f", this->mouse->v.x, this->mouse->v.y);
-                    debug("Mouse is out of map");
-                    return false;
+                    warning("Mouse = %.2f - %.2f", this->mouse->v.x, this->mouse->v.y);
+                    warning("Mouse is out of map : If your LoL window is inactive, ignore this warning");
+                    return true;
                 }
             }
             else

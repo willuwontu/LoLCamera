@@ -55,11 +55,11 @@ entity_address_to_array (MemProc *mp, DWORD cur, DWORD end, Entity **champions)
 			return false;
 		}
 		else
-			debug(" - Entity %d found -> "
-				  "%16s : pos={%5.0f,%5.0f} hp={%4.0f/%4.0f} team=%6s "
-				  "pname=\"%16s\" - 0x%.8x)",
+			debug("- E%d: "
+				  "cn=<%16s> : p={%5.0f,%5.0f} hp={%4.0f/%4.0f} team=%6s "
+				  "pn=<%16s> - 0x%.8x)",
 				  i, e->champ_name, e->p.v.x, e->p.v.y, e->hp, e->hp_max, (e->team == ENTITY_TEAM_BLUE) ? "blue" : "purple",
-				  e->player_name, cur
+				  e->player_name, e->entity_data
 			);
 	}
 
@@ -67,16 +67,45 @@ entity_address_to_array (MemProc *mp, DWORD cur, DWORD end, Entity **champions)
 }
 
 bool
-entity_init (Entity *e, MemProc *mp, DWORD addr)
+entity_init (Entity *e, MemProc *mp, DWORD entity_addr)
 {
 	e->ctxt = mp;
-	e->addr = addr;
-	e->entity_data = read_memory_as_int(mp->proc, addr);
+	e->addr = entity_addr;
+	e->entity_data = read_memory_as_int(mp->proc, entity_addr);
 	e->isHovered = 0;
 	e->isVisible = 0;
 
 	if (!e->entity_data || NOT_A_POINTER(e->entity_data))
+	{
+		debug("Entity (%x) : data cannot be read = %x", entity_addr, e->entity_data);
 		return false;
+	}
+
+	#ifdef DEBUG
+		int colsize = 85;
+		unsigned char buffer[colsize*16];
+		read_from_memory(mp->proc, buffer, e->entity_data, sizeof(buffer));
+		for (int i = 0; i < colsize; i++)
+		{
+			for (int j = 0; j < 16; j++)
+			{
+				if (j == 0)
+					debugbs("%.3X\t", j+(i*16));
+				debugbs("%.2X ", buffer[j+(i*16)]);
+			}
+
+			debugbs("\t");
+			for (int j = 0; j < 16; j++)
+			{
+				if (is_printable(buffer[j+(i*16)]))
+					debugbs("%c", buffer[j+(i*16)]);
+				else
+					debugbs(".");
+			}
+
+			debugbs("\n");
+		}
+	#endif
 
 	memset(e->player_name, 0, sizeof(e->player_name));
 	memset(e->champ_name,  0, sizeof(e->champ_name));
