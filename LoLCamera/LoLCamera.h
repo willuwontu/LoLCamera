@@ -217,10 +217,10 @@ void camera_check_version (void);
 void camera_set_pos (float x, float y);
 short int camera_getkey (int key);
 void camera_reset ();
-bool camera_scan_campos (void);
-bool camera_scan_camval (void);
-bool camera_scan_game_info (void);
-bool camera_scan_hover_interface (void);
+bool camera_scan_campos (bool display_error);
+bool camera_scan_camval (bool display_error);
+bool camera_scan_game_info (bool display_error);
+bool camera_scan_hover_interface (bool display_error);
 void camera_run_light ();
 
 // -- Hotkeys
@@ -244,7 +244,6 @@ bool camera_refresh_entity_hovered ();
 bool camera_refresh_win_is_opened ();
 bool camera_refresh_self ();
 bool camera_wait_for_ingame ();
-bool camera_refresh_victory ();
 bool camera_refresh_entities_nearby ();
 bool camera_refresh_hover_interface ();
 bool camera_refresh_screen_border ();

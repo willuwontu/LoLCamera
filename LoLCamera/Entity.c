@@ -50,7 +50,10 @@ entity_address_to_array (MemProc *mp, DWORD cur, DWORD end, Entity **champions)
 			entity_init(e, mp, cur);
 
 		if (e == NULL)
+		{
 			debug("  --> Ally %d not found", i);
+			return false;
+		}
 		else
 			debug(" - Entity %d found -> "
 				  "%16s : pos={%5.0f,%5.0f} hp={%4.0f/%4.0f} team=%6s "
@@ -78,7 +81,7 @@ entity_init (Entity *e, MemProc *mp, DWORD addr)
 	memset(e->player_name, 0, sizeof(e->player_name));
 	memset(e->champ_name,  0, sizeof(e->champ_name));
 
-	mempos_init(&e->p, mp, e->entity_data + EOFF_POSX - mp->base_addr, e->entity_data + EOFF_POSY - mp->base_addr);
+	mempos_init(&e->p, mp, e->entity_data + EOFF_POSX, e->entity_data + EOFF_POSY);
 
 	if (!entity_refresh(e))
 		return false;

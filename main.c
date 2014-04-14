@@ -8,7 +8,7 @@
 #include "./Crypto/md5.h"
 #include <signal.h>
 
-#define LOLCAMERA_VERSION 0.233
+#define LOLCAMERA_VERSION 0.234
 
 char download_link[] = "https://sourceforge.net/projects/lolcamera/files";
 char download_host[] = "cznic.dl.sourceforge.net";
@@ -53,15 +53,15 @@ int main_light ()
 
 	#ifdef REPAIR
 		camera_init_light(mp);
-		camera_scan_campos();
-		camera_scan_camval();
-		camera_scan_dest();
-		camera_scan_cursor_champ();
-		camera_scan_game_info();
-		camera_scan_win_is_opened();
-		camera_scan_hover_interface();
-		camera_scan_victory();
-		camera_refresh_entity_hovered();
+		camera_scan_campos(true);
+		camera_scan_camval(true);
+		camera_scan_dest(true);
+		camera_scan_cursor_champ(true);
+		camera_scan_game_info(true);
+		camera_scan_win_is_opened(true);
+		camera_scan_hover_interface(true);
+		camera_scan_victory(true);
+		camera_refresh_entity_hovered(true);
 		camera_scan_champions(true);
 		camera_run_light();
 		camera_scan_patch();
@@ -98,7 +98,7 @@ int main (int argc, char **argv)
 
     #ifdef DEBUG
     isOffline = false;
-    #endif // DEBUG
+    #endif
 
 	// Check online version
 	if (!isOffline)

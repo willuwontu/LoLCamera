@@ -305,7 +305,7 @@ memproc_free (MemProc *memproc)
 {
 	if (memproc != NULL)
 	{
-		bb_queue_free_all (memproc->memchunks, memchunk_free);
+		memproc_clear(memproc);
 		free (memproc);
 	}
 }

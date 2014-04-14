@@ -173,7 +173,7 @@ bool camera_scan_patch (void)
 	return true;
 }
 
-bool camera_scan_camval (void)
+bool camera_scan_camval (bool display_error)
 {
 	Camera *this = camera_get_instance();
 	unsigned char *description = "CameraX_Value/CameraY_Value";
@@ -250,7 +250,8 @@ bool camera_scan_camval (void)
 
 	if (!res)
 	{
-		warning("Cannot find %s address", description);
+		if (display_error)
+			warning("Cannot find %s address", description);
 		return false;
 	}
 
@@ -264,12 +265,13 @@ bool camera_scan_camval (void)
 
 	if (!camx_addr_ptr || !camy_addr_ptr)
 	{
-		warning("Cannot find camera position");
+		if (display_error)
+			warning("Cannot find camera position");
 		return false;
 	}
 
-	this->camx_val = camx_addr_ptr - this->mp->base_addr;
-	this->camy_val = camy_addr_ptr - this->mp->base_addr;
+	this->camx_val = camx_addr_ptr;
+	this->camy_val = camy_addr_ptr;
 
 	return true;
 }
@@ -300,7 +302,7 @@ bool camera_posmemory_cond (MemProc *mp, BbQueue *results)
 	return true;
 }
 
-bool camera_scan_campos (void)
+bool camera_scan_campos (bool display_error)
 {
 	Camera *this = camera_get_instance();
 	unsigned char *description = "CameraX_Memory/CameraY_Memory";
@@ -341,7 +343,8 @@ bool camera_scan_campos (void)
 
 	if (!res)
 	{
-		warning("Cannot find %s address", description);
+		if (display_error)
+			warning("Cannot find %s address", description);
 		return false;
 	}
 
@@ -352,19 +355,20 @@ bool camera_scan_campos (void)
 
 	bb_queue_free_all(res, buffer_free);
 
-	if (!camx_addr_ptr || !camy_addr_ptr)
+	if (!camx_addr_ptr || !camy_addr_ptr || NOT_A_POINTER(camx_addr_ptr))
 	{
-		warning("Cannot find camera position");
+		if (display_error)
+			warning("Cannot find camera position");
 		return false;
 	}
 
-	this->camx_addr  = camx_addr_ptr  - this->mp->base_addr;
-	this->camy_addr  = camy_addr_ptr  - this->mp->base_addr;
+	this->camx_addr  = camx_addr_ptr;
+	this->camy_addr  = camy_addr_ptr;
 
 	return true;
 }
 
-bool camera_scan_hover_interface (void)
+bool camera_scan_hover_interface (bool display_error)
 {
 	Camera *this = camera_get_instance();
 
@@ -410,7 +414,8 @@ bool camera_scan_hover_interface (void)
 
 	if (!res)
 	{
-		warning("Cannot find HoverInterface address");
+		if (display_error)
+			warning("Cannot find HoverInterface address");
 		return false;
 	}
 
@@ -421,7 +426,8 @@ bool camera_scan_hover_interface (void)
 
 	if (!this->interface_hovered_addr)
 	{
-		warning("Cannot scan HoverInterface");
+		if (display_error)
+			warning("Cannot scan HoverInterface");
 		return false;
 	}
 
@@ -430,100 +436,9 @@ bool camera_scan_hover_interface (void)
 	return true;
 }
 
-bool camera_scan_game_info (void)
+bool camera_scan_game_info (bool display_error)
 {
 	Camera *this = camera_get_instance();
-
-	/*
-	BbQueue *res = memscan_search (this->mp, "gameState",
-		00477293  ║·  833D FC13DA02 00   cmp [dword ds:League_of_Legends.2DA13FC], 0
-		0047729A  ║·▼ 75 4A              jne short League_of_Legends.004772E6
-		0047729C  ║·  803D CB13DA02 00   cmp [byte ds:League_of_Legends.2DA13CB], 0
-		004772A3  ║·▼ 74 0E              je short League_of_Legends.004772B3
-		004772A5  ║·  C605 CB13DA02 00   mov [byte ds:League_of_Legends.2DA13CB], 0
-		004772AC  ║·  C605 080FDA02 01   mov [byte ds:League_of_Legends.2DA0F08], 1
-		004772B3      C745 F0 F00CDA02   mov [dword ss:ebp-10], offset League_of_Legends.02DA0CF0
-		004772BA  ║·  B9 F00CDA02        mov ecx, offset League_of_Legends.02DA0CF0
-		(unsigned char[]) {
-			0x83,0x3D,0xFC,0x13,0xDA,0x02,0x00,
-			0x75,0x4A,
-			0x80,0x3D,0xCB,0x13,0xDA,0x02,0x00,
-			0x74,0x0E,
-			0xC6,0x05,0xCB,0x13,0xDA,0x02,0x00,
-			0xC6,0x05,0x08,0x0F,0xDA,0x02,0x01,
-			0xC7,0x45,0xF0,0xF0,0x0C,0xDA,0x02,
-			0xB9,0xF0,0x0C,0xDA,0x02
-		},
-
-			"xx????x"
-			"x?"
-			"xx????x"
-			"x?"
-			"xx????x"
-			"xx????x"
-			"xx?????"
-			"x????",
-
-			"xxxxxxx"
-			"xx"
-			"xxxxxxx"
-			"xx"
-			"xxxxxxx"
-			"xxxxxxx"
-			"xxx????"
-			"x????"
-	);
-
-	if (!res)
-	{
-		warning("Cannot find game state address");
-		return false;
-	}
-
-	int start = 1;
-	bool looping = true;
-	Buffer *game_info_addr = NULL;
-	while (looping)
-	{
-		DWORD addr[2];
-		game_info_addr = bb_queue_pick_nth(res, start);
-		Buffer *game_info_addr_same = bb_queue_pick_nth(res, start+1);
-
-		memcpy(&addr[0], game_info_addr->data, game_info_addr->size);
-		memcpy(&addr[1], game_info_addr_same->data, game_info_addr_same->size);
-
-		if ((addr[0] == addr[1]) && (addr[0] != 0))
-			looping = false;
-
-		else if (++start > (bb_queue_get_length(res) + 1))
-		{
-			fatal_error("gameState not found.");
-			looping = false;
-		}
-	}
-
-	memcpy(&this->game_info_addr, game_info_addr->data, game_info_addr->size);
-
-	bb_queue_free_all(res, buffer_free);
-
-	if (!this->game_info_addr)
-	{
-		warning("Cannot scan game state");
-		return false;
-	}
-
-	read_from_memory(this->mp->proc, this->self_name, this->game_info_addr + SELF_NAME_OFFSET, sizeof(this->self_name) - 1);
-
-	if (str_is_empty(this->self_name))
-	{
-		warning("Cannot find self name");
-		return false;
-	}
-	else
-		debug("Self name (%p) : <%s>", this->game_info_addr + SELF_NAME_OFFSET, this->self_name);
-
-	return true;
-	*/
 
 	BbQueue *res = memscan_search (this->mp, "gameInfo",
 	/*
@@ -556,7 +471,8 @@ bool camera_scan_game_info (void)
 
 	if (!res)
 	{
-		warning("Cannot find game info address");
+		if (display_error)
+			warning("Cannot find game info address");
 		return false;
 	}
 
@@ -567,7 +483,8 @@ bool camera_scan_game_info (void)
 
 	if (!addr)
 	{
-		warning("Cannot scan game info");
+		if (display_error)
+			warning("Cannot scan game info");
 		return false;
 	}
 
@@ -576,7 +493,8 @@ bool camera_scan_game_info (void)
 
 	if (str_is_empty(this->self_name))
 	{
-		warning("Cannot find self name");
+		if (display_error)
+			warning("Cannot find self name");
 		return false;
 	}
 	else
@@ -585,7 +503,7 @@ bool camera_scan_game_info (void)
 	return true;
 }
 
-bool camera_scan_cursor_champ (void)
+bool camera_scan_cursor_champ (bool display_error)
 {
 	Camera *this = camera_get_instance();
 
@@ -628,7 +546,8 @@ bool camera_scan_cursor_champ (void)
 
 	if (!res)
 	{
-		warning("Cannot find mouse or champion structure");
+		if (display_error)
+			warning("Cannot find mouse or champion structure");
 		return false;
 	}
 
@@ -642,20 +561,18 @@ bool camera_scan_cursor_champ (void)
 
 	if (!this->mousex_addr || !this->champx_addr)
 	{
-		warning("Cannot scan mouse or champion position");
+		if (display_error)
+			warning("Cannot scan mouse or champion position");
 		return false;
 	}
 
-	this->champx_addr -= this->mp->base_addr;
 	this->champy_addr  = this->champx_addr + 8;
-
-	this->mousex_addr -= this->mp->base_addr;
 	this->mousey_addr  = this->mousex_addr + 8;
 
 	return true;
 }
 
-bool camera_scan_dest (void)
+bool camera_scan_dest (bool display_error)
 {
 	Camera *this = camera_get_instance();
 
@@ -694,15 +611,14 @@ bool camera_scan_dest (void)
 
 	if (!res)
 	{
-		warning("Cannot find Dest offsets\n");
+		if (display_error)
+			warning("Cannot find Dest offsets\n");
 		return false;
 	}
 
 	Buffer *dest = bb_queue_pick_first(res);
 
 	memcpy(&this->destx_addr, dest->data, dest->size);
-
-	this->destx_addr -= this->mp->base_addr;
 	this->desty_addr = this->destx_addr + 8;
 
 	bb_queue_free_all(res, buffer_free);
@@ -718,12 +634,12 @@ bool camera_scan_variables (void)
 	info("------------------------------------------------------------------");
 	info("Searching for static variables address ...");
 
-	bool (*scan_funcs[])(void) = {
+	bool (*scan_funcs[])(bool) = {
 		camera_scan_campos,
 		camera_scan_camval,
+		camera_scan_game_info,
 		camera_scan_dest,
 		camera_scan_cursor_champ,
-		camera_scan_game_info,
 		camera_scan_win_is_opened,
 		camera_scan_minimap_size,
 		camera_scan_ping_or_skill_waiting,
@@ -732,7 +648,7 @@ bool camera_scan_variables (void)
 
 	for (int i = 0; i < sizeof_array(scan_funcs); i++)
 	{
-		if (!scan_funcs[i]())
+		if (!scan_funcs[i](true))
 			res = false;
 	}
 
@@ -751,8 +667,11 @@ bool camera_refresh_self (void)
 	DWORD cur = this->entity_ptr;
 	DWORD end = this->entity_ptr_end;
 
+	debug("Looking for self champion ... Self name = <%s>", this->self_name);
+
 	for (int i = 0; cur != end && i < 10; cur += 4, i++)
 	{
+		debug("Player name detected : <%s>", this->champions[i]->player_name);
 	    if (strcmp(this->self_name, this->champions[i]->player_name) == 0)
 		{
 			this->self = this->champions[i];
@@ -763,7 +682,7 @@ bool camera_refresh_self (void)
 	return false;
 }
 
-bool camera_scan_win_is_opened (void)
+bool camera_scan_win_is_opened (bool display_error)
 {
 	Camera *this = camera_get_instance();
 
@@ -793,7 +712,8 @@ bool camera_scan_win_is_opened (void)
 
 	if (!res)
 	{
-		warning("Cannot find win_is_opened_ptr address");
+		if (display_error)
+			warning("Cannot find win_is_opened_ptr address");
 		return false;
 	}
 
@@ -804,7 +724,8 @@ bool camera_scan_win_is_opened (void)
 
 	if (!this->win_is_opened_ptr)
 	{
-		warning("Cannot scan win_is_opened_ptr");
+		if (display_error)
+			warning("Cannot scan win_is_opened_ptr");
 		return false;
 	}
 
@@ -885,7 +806,7 @@ bool camera_minimap_size_cond (MemProc *mp, BbQueue *results)
 	return true;
 }
 
-bool camera_scan_minimap_size (void)
+bool camera_scan_minimap_size (bool display_error)
 {
 	Camera *this = camera_get_instance();
 	unsigned char *description = "minimapSize";
@@ -930,7 +851,8 @@ bool camera_scan_minimap_size (void)
 
 	if (!res)
 	{
-		warning("Cannot find %s address", description);
+		if (display_error)
+			warning("Cannot find %s address", description);
 		return false;
 	}
 
@@ -951,7 +873,8 @@ bool camera_scan_minimap_size (void)
 	this->mmsize_addr = ptr[1] + offset[1];
 
 	if (NOT_A_POINTER(this->mmsize_addr)) {
-		warning("Cannot scan %s array", description);
+		if (display_error)
+			warning("Cannot scan %s array", description);
 	}
 
     // Get window position
@@ -971,7 +894,7 @@ bool camera_scan_minimap_size (void)
 	return true;
 }
 
-bool camera_scan_ping_or_skill_waiting (void)
+bool camera_scan_ping_or_skill_waiting (bool display_error)
 {
 	Camera *this = camera_get_instance();
 	unsigned char * description = "pingWaiting";
@@ -1000,7 +923,8 @@ bool camera_scan_ping_or_skill_waiting (void)
 
 	if (!res)
 	{
-		warning("Cannot find %s", description);
+		if (display_error)
+			warning("Cannot find %s", description);
 		return false;
 	}
 
@@ -1009,7 +933,8 @@ bool camera_scan_ping_or_skill_waiting (void)
 
 	if (!this->ping_state_addr)
 	{
-		warning("Cannot scan %s", description);
+		if (display_error)
+			warning("Cannot scan %s", description);
 		return false;
 	}
 
@@ -1111,12 +1036,14 @@ bool camera_cond_champions (MemProc *mp, BbQueue *results)
 	if (!(ptr[0] + 4 == ptr[1]))
 	{
 		debug("camera_cond_champions : Condition error : 1");
+		debug("ptr[0] = %x / ptr[1] = %x", ptr[0], ptr[1]);
 		return false;
 	}
 
 	if (NOT_A_POINTER(ptr[0]))
 	{
 		debug("camera_cond_champions : Condition error : 2");
+		debug("ptr[0] = %x", ptr[0]);
 		return false;
 	}
 
@@ -1126,18 +1053,21 @@ bool camera_cond_champions (MemProc *mp, BbQueue *results)
 	if (NOT_A_POINTER(ptr[0]) || NOT_A_POINTER(ptr[1]))
 	{
 		debug("camera_cond_champions : Condition error : 3");
+		debug("ptr[0] = %x / ptr[1] = %x", ptr[0], ptr[1]);
 		return false;
 	}
 
 	if ((ptr[1] - ptr[0]) / 4 > 12) // Support 6v6
 	{
 		debug("camera_cond_champions : Condition error : 4");
+		debug("ptr[0] = %x / ptr[1] = %x", ptr[0], ptr[1]);
 		return false;
 	}
 
 	if (ptr[0] == (DWORD) -1)
 	{
 		debug("camera_cond_champions : Condition error : 5");
+		debug("ptr[0] = %x", ptr[0]);
 		return false;
 	}
 
@@ -1146,24 +1076,39 @@ bool camera_cond_champions (MemProc *mp, BbQueue *results)
 	if (dummy == NULL)
 	{
 		debug("camera_cond_champions : Condition error : 6");
+		debug("dummy == NULL - ptr[0] = %x", ptr[0]);
 		return false;
 	}
 
+	// Turrets entity array
 	if (str_pos(dummy->player_name, "Turret_") != -1)
 	{
 		debug("camera_cond_champions : Condition error : 7");
+		debug("dummy->player_name = <%s>", dummy->player_name);
 		return false;
 	}
 
+	// Buildings entity array
 	if (str_pos(dummy->player_name, "Barracks_") != -1)
 	{
 		debug("camera_cond_champions : Condition error : 8");
+		debug("dummy->player_name = <%s>", dummy->player_name);
 		return false;
 	}
 
-	if (dummy->movement_speed <= 0) // Buildings ms = 0
+	// Buildings ms = 0
+	if (dummy->movement_speed <= 0)
 	{
 		debug("camera_cond_champions : Condition error : 9");
+		debug("(%s)->movement_speed = <%f>", dummy->player_name, dummy->movement_speed);
+		return false;
+	}
+
+	// If not in game, the position is negative or zero
+	if (dummy->p.v.x <= 0 || dummy->p.v.y <= 0)
+	{
+		debug("camera_cond_champions : Condition error : 10");
+		debug("(%s)->pos = <%f/%f>", dummy->player_name, dummy->p.v.x, dummy->p.v.y);
 		return false;
 	}
 
@@ -1227,15 +1172,6 @@ bool camera_scan_champions (bool display_error)
 
 
 /** Refreshers **/
-bool camera_refresh_victory (void)
-{
-	Camera *this = camera_get_instance();
-
-	this->victory_state = read_memory_as_int(this->mp->proc, this->victory_state_addr);
-
-	return true;
-}
-
 bool camera_refresh_mouse_screen (void)
 {
 	Camera *this = camera_get_instance();

@@ -266,4 +266,5 @@ pip-log.txt
 #########################################################################
 LoLCamera.layout
 LoLCamera.depend
-out.ct
+*.ct
+*.exe

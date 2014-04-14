@@ -8,8 +8,8 @@ mempos_new (MemProc *mp, DWORD addrX, DWORD addrY)
 	if ((p = malloc(sizeof(MemPos))) == NULL)
 		return NULL;
 
-	p->addrX = addrX + mp->base_addr;
-	p->addrY = addrY + mp->base_addr;
+	p->addrX = addrX;
+	p->addrY = addrY;
 	p->ctxt = mp;
 
 	if (!mempos_refresh(p))
@@ -29,8 +29,8 @@ mempos_int_new (MemProc *mp, DWORD addrX, DWORD addrY)
 	if ((p = malloc(sizeof(MemPos))) == NULL)
 		return NULL;
 
-	p->addrX = addrX + mp->base_addr;
-	p->addrY = addrY + mp->base_addr;
+	p->addrX = addrX;
+	p->addrY = addrY;
 	p->ctxt = mp;
 
 	mempos_int_refresh(p);
@@ -42,8 +42,8 @@ bool
 mempos_init (MemPos *p, MemProc *mp, DWORD addrX, DWORD addrY)
 {
 	p->ctxt = mp;
-	p->addrX = addrX + mp->base_addr;
-	p->addrY = addrY + mp->base_addr;
+	p->addrX = addrX;
+	p->addrY = addrY;
 
 	return mempos_refresh(p);
 }
