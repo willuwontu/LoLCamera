@@ -100,6 +100,12 @@ vector2D_scalar 	(Vector2D *v, float k);
 void
 vector2D_sscalar 	(Vector2D *v, float k);
 
+void
+vector2D_sscalar_x  (Vector2D *v, float k);
+
+void
+vector2D_sscalar_y  (Vector2D *v, float k);
+
 Vector2D
 vector2D_limit 		(Vector2D *v, float limit);
 

@@ -179,6 +179,17 @@ vector2D_sscalar (Vector2D *v, float k)
 	v->y = k * v->y;
 }
 
+void
+vector2D_sscalar_x (Vector2D *v, float k)
+{
+	v->x = k * v->x;
+}
+
+void
+vector2D_sscalar_y (Vector2D *v, float k)
+{
+	v->y = k * v->y;
+}
 
 int
 vector2D_is_zero (Vector2D *v)

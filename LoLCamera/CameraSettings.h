@@ -13,20 +13,25 @@ struct _CameraSettings
 {
 	float camera_scroll_speed;
 	float threshold;
-	float camera_scroll_speed_bottom; // speed for going to the south
+	float camera_scroll_speed_vertical;
+	float camera_scroll_speed_horizontal;
+	float camera_scroll_speed_bottom;
 
 }	CameraSettings;
 
-// --------- Constructors ---------
+typedef enum {
+	CAMERA_SETTING_SCROLL_SPEED,
+	CAMERA_SETTING_THRESHOLD,
+	CAMERA_SETTING_SCROLL_SPEED_HORIZONTAL,
+	CAMERA_SETTING_SCROLL_SPEED_VERTICAL,
+	CAMERA_SETTING_SCROLL_SPEED_BOTTOM
 
-CameraSettings *
-camera_settings_new (float camera_scroll_speed, float threshold);
+} CameraSettingsType;
+
+// --------- Constructors ---------
 
 
 // ----------- Functions ------------
-
-void
-camera_settings_init(CameraSettings *this, float camera_scroll_speed, float threshold);
 
 void
 camera_settings_debug (CameraSettings *this);

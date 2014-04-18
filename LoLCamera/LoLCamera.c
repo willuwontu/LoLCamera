@@ -403,8 +403,8 @@ static CameraTrackingMode camera_get_mode ()
 	if (!camera_is_enabled())
         return NoUpdate;
 
-	// User hovered the interface, moving the camera uselessly
-	if (camera_interface_is_hovered())
+	// User hovered the minimap, don't move the camera
+	if (camera_interface_is_hovered() && camera_mouse_in_minimap())
 		return NoMove;
 
 	// If our champion is dead, set free mode
@@ -557,7 +557,7 @@ void camera_init (MemProc *mp)
 	// Checks before patching !
 	if (this->self == NULL) {
 		fatal_error("LoLCamera failed to read client variables.\n"
-		            "Please wait for a fix.");
+		            "Please wait for a fix, or send a mail at <lolcamera.contact@gmail.com>.");
 	}
 
 	// Signature scanning for patches
@@ -1016,7 +1016,9 @@ LoLCameraState camera_main ()
 		camera_compute_target(&target, camera_mode);
 
 		// Compute Camera Scroll Speed
-		float camera_scroll_speed = camera_compute_camera_scroll_speed (camera_mode);
+		float camera_scroll_speed            = camera_compute_camera_scroll_speed (camera_mode);
+		float camera_scroll_speed_vertical   = this->champ_settings.camera_scroll_speed_vertical;
+		float camera_scroll_speed_horizontal = this->champ_settings.camera_scroll_speed_horizontal;
 
 		// Distance from ideal target and current camera
 		float dist_target_cam = vector2D_distance(&target, &this->cam->v);
@@ -1030,10 +1032,10 @@ LoLCameraState camera_main ()
 
         // Smoothing
 		if (abs(target.x - this->cam->v.x) > this->champ_settings.threshold)
-			this->cam->v.x += (target.x - this->cam->v.x) * camera_scroll_speed;
+			this->cam->v.x += (target.x - this->cam->v.x) * camera_scroll_speed * camera_scroll_speed_horizontal;
 
 		if (abs(target.y - this->cam->v.y) > this->champ_settings.threshold)
-			this->cam->v.y += (target.y - this->cam->v.y) * camera_scroll_speed;
+			this->cam->v.y += (target.y - this->cam->v.y) * camera_scroll_speed * camera_scroll_speed_vertical;
 
 		// Keep this just before camera_set_pos(this->cam->v.x, this->cam->v.y);
         if (camera_mode == NoMove)
@@ -1151,7 +1153,7 @@ void camera_compute_target (Vector2D *target, CameraTrackingMode camera_mode)
     {
         // The camera goes farther when the camera is moving to the south
         float distance_mouse_cam_y = cam.y - mouse.y;
-        if (distance_mouse_cam_y > 0.0) {
+        if (distance_mouse_cam_y > 0.0 && distance_mouse_cam_y > this->champ_settings.threshold) {
             mouse.y -= (distance_mouse_cam_y * this->champ_settings.camera_scroll_speed_bottom); // <-- arbitrary value
         }
     }
@@ -1375,9 +1377,11 @@ void camera_load_settings (char *section)
 		char *value   = kv->res;
 
 		char *possible_settings[] = {
-			[0] = "camera_scroll_speed",
-			[1] = "threshold",
-			[2] = "camera_scroll_speed_bottom"
+			[CAMERA_SETTING_SCROLL_SPEED] 			 = "camera_scroll_speed",
+			[CAMERA_SETTING_THRESHOLD] 				 = "threshold",
+			[CAMERA_SETTING_SCROLL_SPEED_VERTICAL] 	 = "camera_scroll_speed_vertical",
+			[CAMERA_SETTING_SCROLL_SPEED_HORIZONTAL] = "camera_scroll_speed_horizontal",
+			[CAMERA_SETTING_SCROLL_SPEED_BOTTOM]     = "camera_scroll_speed_bottom",
 		};
 
 		for (int i = 0; i < sizeof_array(possible_settings); i++)
@@ -1386,17 +1390,27 @@ void camera_load_settings (char *section)
 			{
 				switch (i)
 				{
-					case 0: // lerp rate
+					case CAMERA_SETTING_SCROLL_SPEED:
 						this->champ_settings.camera_scroll_speed = atof (value) / 10000.0; // this controls smoothing, smaller values mean slower camera movement
 						info("%s camera_scroll_speed = %f", section, this->champ_settings.camera_scroll_speed);
 					break;
 
-					case 1: // threshold
+					case CAMERA_SETTING_THRESHOLD:
 						this->champ_settings.threshold = atof (value); // minimum threshold before calculations halted because camera is "close enough"
 						info("%s threshold = %f", section, this->champ_settings.threshold);
 					break;
 
-					case 2: // camera_scroll_speed_bottom
+					case CAMERA_SETTING_SCROLL_SPEED_VERTICAL:
+						this->champ_settings.camera_scroll_speed_vertical = atof(value);
+						info("%s camera_scroll_speed_vertical = %f", section, this->champ_settings.camera_scroll_speed_vertical);
+					break;
+
+					case CAMERA_SETTING_SCROLL_SPEED_HORIZONTAL:
+						this->champ_settings.camera_scroll_speed_horizontal = atof(value);
+						info("%s camera_scroll_speed_horizontal = %f", section, this->champ_settings.camera_scroll_speed_horizontal);
+					break;
+
+					case CAMERA_SETTING_SCROLL_SPEED_BOTTOM:
 						this->champ_settings.camera_scroll_speed_bottom = atof(value);
 						info("%s camera_scroll_speed_bottom = %f", section, this->champ_settings.camera_scroll_speed_bottom);
 					break;
