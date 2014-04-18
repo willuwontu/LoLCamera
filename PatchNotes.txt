@@ -1,6 +1,6 @@
 === ===
 - [NEW] "camera_scroll_speed_vertical" and "camera_scroll_speed_horizontal" settings in LoLCamera.ini will control the speed of the camera on the Horizontal and Vertical axes.
-- [FIX] Error for reading properly the entity array (Thanks Penteano and Khith)
+- [FIX] Error when reading the entity array (Thanks Penteano and Khith)
 - [FIX] Error with the threshold bottom boundary (Thanks Zyrxil)
 
 === 05 / 04 / 14 ===
