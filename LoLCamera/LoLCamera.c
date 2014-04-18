@@ -404,7 +404,7 @@ static CameraTrackingMode camera_get_mode ()
         return NoUpdate;
 
 	// User hovered the minimap, don't move the camera
-	if (camera_interface_is_hovered() && camera_mouse_in_minimap())
+	if (camera_interface_is_hovered())
 		return NoMove;
 
 	// If our champion is dead, set free mode
