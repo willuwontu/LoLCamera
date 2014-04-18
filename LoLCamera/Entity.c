@@ -76,6 +76,7 @@ entity_init (Entity *e, MemProc *mp, DWORD entity_addr)
 
 			debugbs("\n");
 		}
+		debug("--------------------------------------------------------------------------------");
 	#endif
 
 	memset(e->player_name, 0, sizeof(e->player_name));

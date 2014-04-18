@@ -278,15 +278,18 @@ static void camera_translate_toggle (int state)
 {
 	switch (state)
 	{
-		case 0:
+		case 0: // Translate request
 			vector2D_set_zero(&this->distance_translation);
 			this->translate_request = 1;
+			this->old_threshold = this->champ_settings.threshold;
+			this->champ_settings.threshold = 0;
 		break;
 
-		case 1:
+		case 1: // Release
 			this->distance_translation.x = this->cam->v.x - this->champ->v.x;
 			this->distance_translation.y = this->cam->v.y - this->champ->v.y;
 			this->translate_request = 0;
+			this->champ_settings.threshold = this->old_threshold;
 		break;
 	}
 }
@@ -1063,11 +1066,11 @@ static float camera_compute_camera_scroll_speed (CameraTrackingMode camera_mode)
 	switch (camera_mode)
 	{
 		case Translate:
-			camera_scroll_speed *= 5;
+			camera_scroll_speed *= 1;
 		break;
 
 		case isTranlating:
-			camera_scroll_speed *= 1;
+			camera_scroll_speed *= 0.2;
 		break;
 
 		case RestoreCam:

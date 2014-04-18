@@ -28,8 +28,8 @@
 #define IN_SCREEN_DISTANCE 2000.0
 #define MEDIUM_BOX 		   1500.0
 #define SMALL_BOX 		   1000.0
-#define MAP_WIDTH  15000.0
-#define MAP_HEIGHT 15200.0
+#define MAP_WIDTH          15000.0
+#define MAP_HEIGHT         15200.0
 
 #define EXECUTABLE_TEXT_SIZE 0x00B84000
 
@@ -98,11 +98,8 @@ struct _Camera
 	char drag_key;
 
 	// Settings
-	CameraSettings all_settings[200]; // Champion specific settings
 	CameraSettings champ_settings;	  // Current champion settings
-	float camera_scroll_speed;		// This controls smoothing, smaller values mean slower camera movement
-	float threshold;				// Minimum threshold before calculations halted because camera is "close enough"
-									// Controls the range at which these factors start falling off :
+	float old_threshold;			  // When M is pressed, the threshold is set to 0. This variable keeps the old value of threshold.
 
 	// Camera system settings
 	int sleep_time;					// Sleep time at each start of main loop
