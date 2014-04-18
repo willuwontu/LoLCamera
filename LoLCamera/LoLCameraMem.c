@@ -491,6 +491,8 @@ bool camera_scan_game_info (bool display_error)
 	this->game_info_addr = read_memory_as_int (this->mp->proc, addr);
 	read_from_memory (this->mp->proc, this->self_name, this->game_info_addr + SELF_NAME_OFFSET, sizeof(this->self_name) - 1);
 
+	entity_decode_object_name(this->mp, this->self_name);
+
 	if (str_is_empty(this->self_name))
 	{
 		if (display_error)
@@ -1103,7 +1105,7 @@ bool camera_cond_champions (MemProc *mp, BbQueue *results)
 	{
 		debug("camera_cond_champions : Condition error : 9");
 		debug("(%s)->movement_speed = <%f>", dummy->player_name, dummy->movement_speed);
-		return false;
+		// return false;
 	}
 
 	// If not in game, the position is negative or zero

@@ -18,6 +18,10 @@
 #define ENTITY_TEAM_PURPLE	0xC8
 
 
+#define SIZEOF_PLAYERNAME 32
+#define SIZEOF_CHAMPNAME 32
+
+
 // ------ Struct declaration -------
 typedef
 struct _Entity
@@ -30,8 +34,8 @@ struct _Entity
 	MemProc *ctxt;
 	DWORD entity_data; // <-- ptr to the structure
 
-	char player_name[32]; // max name length = 16
-	char champ_name[32];
+	char player_name[SIZEOF_PLAYERNAME]; // max name length = 16
+	char champ_name[SIZEOF_CHAMPNAME];
 	int team;
 
 	bool isVisible;
@@ -71,6 +75,9 @@ entity_ally_with (Entity *e1, Entity *e2);
 
 bool
 entity_address_to_array (MemProc *mp, DWORD entities_addr_start, DWORD entities_addr_end, Entity **champions);
+
+void
+entity_decode_object_name (MemProc *mp, char *name);
 
 
 // --------- Destructors ----------

@@ -38,35 +38,6 @@ entity_new (MemProc *mp, DWORD addr)
 }
 
 bool
-entity_address_to_array (MemProc *mp, DWORD cur, DWORD end, Entity **champions)
-{
-	for (int i = 0; cur != end && i < 10; cur += 4, i++)
-	{
-		Entity *e = champions[i];
-
-		if (e == NULL)
-			champions[i] = e = entity_new(mp, cur);
-		else
-			entity_init(e, mp, cur);
-
-		if (e == NULL)
-		{
-			debug("  --> Ally %d not found", i);
-			return false;
-		}
-		else
-			debug("- E%d: "
-				  "cn=<%16s> : p={%5.0f,%5.0f} hp={%4.0f/%4.0f} team=%6s "
-				  "pn=<%16s> - 0x%.8x)",
-				  i, e->champ_name, e->p.v.x, e->p.v.y, e->hp, e->hp_max, (e->team == ENTITY_TEAM_BLUE) ? "blue" : "purple",
-				  e->player_name, e->entity_data
-			);
-	}
-
-	return true;
-}
-
-bool
 entity_init (Entity *e, MemProc *mp, DWORD entity_addr)
 {
 	e->ctxt = mp;
@@ -82,7 +53,7 @@ entity_init (Entity *e, MemProc *mp, DWORD entity_addr)
 	}
 
 	#ifdef DEBUG
-		int colsize = 85;
+		int colsize = 120;
 		unsigned char buffer[colsize*16];
 		read_from_memory(mp->proc, buffer, e->entity_data, sizeof(buffer));
 		for (int i = 0; i < colsize; i++)
@@ -124,23 +95,29 @@ entity_init (Entity *e, MemProc *mp, DWORD entity_addr)
 	if (!e->champ_name)
 		important("Champ name has not been found.");
 
-	{
-		// "Object" name = extended object, read the pointer in the first 4 bytes
-		char buffer[32];
-		memcpy(buffer, &e->player_name[4], strlen(&e->player_name[4]));
-		buffer[strlen("Object")] = '\0';
-
-		if (str_equals(buffer, "Object"))
-		{
-			DWORD addr;
-			memcpy(&addr, &e->player_name, sizeof(DWORD));
-
-			if (addr && !NOT_A_POINTER(addr))
-				read_from_memory (e->ctxt->proc, e->player_name, addr, sizeof(e->player_name) - 1);
-		}
-	}
+	entity_decode_object_name(e->ctxt, e->player_name);
 
 	return true;
+}
+
+void
+entity_decode_object_name (MemProc *mp, char *name)
+{
+	// "Object" name = extended object, read the pointer in the first 4 bytes
+	char buffer[32];
+	memcpy(buffer, &name[4], strlen(&name[4]));
+	buffer[strlen("Object")] = '\0';
+
+	if (str_equals(buffer, "Object"))
+	{
+		DWORD addr;
+		memcpy(&addr, name, sizeof(DWORD));
+
+		if (addr && !NOT_A_POINTER(addr))
+			read_from_memory (mp->proc, name, addr, SIZEOF_PLAYERNAME - 1);
+		else
+			warning("Warning : Player <%s> was detected as an Object but cannot be decoded. (%x)", name, addr);
+	}
 }
 
 int
@@ -166,6 +143,49 @@ entity_refresh (Entity *e)
 
 	return (!(e->hp == 0.0 && e->hp_max == 0.0));
 }
+
+
+
+bool
+entity_address_to_array (MemProc *mp, DWORD cur, DWORD end, Entity **champions)
+{
+	DWORD startCur = cur;
+
+	for (int i = 0; cur != end && i < 10; cur += 4, i++)
+	{
+		Entity *e = champions[i];
+
+		if (e == NULL)
+			champions[i] = e = entity_new(mp, cur);
+		else
+			entity_init(e, mp, cur);
+
+		if (e == NULL)
+		{
+			debug("  --> Ally %d not found", i);
+			system("pause");
+			return false;
+		}
+	}
+
+	cur = startCur;
+	for (int i = 0; cur != end && i < 10; cur += 4, i++)
+	{
+		Entity *e = champions[i];
+
+		if (e != NULL)
+		{
+			debug("- E%d (0x%.8x) : champion=<%-16s> - player=<%-16s> \n"
+					"\t p={%5.0f,%5.0f} hp={%4.0f/%4.0f} team=%6s ms=%3.0f",
+				  i, e->entity_data, e->champ_name, e->player_name,
+				  e->p.v.x, e->p.v.y, e->hp, e->hp_max, (e->team == ENTITY_TEAM_BLUE) ? "blue" : "purple", e->movement_speed
+			);
+		}
+	}
+
+	return true;
+}
+
 
 inline bool
 entity_is_dead (Entity *e)
