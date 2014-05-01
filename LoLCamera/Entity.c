@@ -164,7 +164,6 @@ entity_address_to_array (MemProc *mp, DWORD cur, DWORD end, Entity **champions)
 		if (e == NULL)
 		{
 			debug("  --> Ally %d not found", i);
-			system("pause");
 			return false;
 		}
 	}

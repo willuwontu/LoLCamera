@@ -1,0 +1,47 @@
+Hotkeys
+=======
+
+Keyboard
+--------
+    - F11 : enable / disable LoLCamera
+	LoLCamera should be enabled by default once it is launched. 
+	You shouldn't press F11 when LoLCamera starts, use it only to pause / resume it during a game.
+	
+    - Space / F1 : Center the camera on the champion
+	
+    - M : Activate Translation mode.
+	Translation mode is a simple locked camera, but you can adjust where the champion is on the screen.
+	Press M a first time to adjust the translation distance.
+	Press M a second time to confirm the translation distance.
+	
+Mouse
+-----
+    Middle button drag : Translate the camera
+	--------------------
+	
+    - Hover the mouse on an ally or an ennemy : Hint for LoLCamera to keep this champion in sight
+	You can adjust this parameter in LoLCamera.ini, by modifying the "focus_weight" value.
+	
+    - Left click on an ally / ennemy : Hint for LoLCamera to follow the targeted champion
+	You can adjust this parameter in LoLCamera.ini, by modifying the "hint_weight" value.
+	
+	- Left click on the ground : (DISABLED BY DEFAULT) Move the camera so it goes where you left clicked.
+	You can adjust this parameter in LoLCamera.ini, by modifying the "lmb_weight" value.
+
+	
+About the weights in LoLCamera.ini :
+====================================
+
+If you increase the value of a weight, the camera will try to put the center of the screen at the location of this weight.
+If you set 2 weights = 1.0, let's say A = 1.0 and B = 1.0, all others weights = 0.0, the camera will be at the middle between A and B.
+For instance, champ_weight : If you increase this value, the camera will try to center the camera on the champion.
+
+    - mouse_weight : focus the current position of the mouse
+    - dest_weight : focus the destination of your champion (when you right click on the ground)
+    - lmb_weight : focus where you left clicked (when clicked on the ground) - disabled by default because it is confusing when you don't know how to use it
+    - focus_weight : focus the champion you left clicked
+    - hint_weight : focus the champion you hovered with your mouse
+    - global_weight_allies : focus the allies around the champion (it will try to center to the median of the position of all allies around the champion)
+    - global_weight_ennemies : the same but for ennemies
+
+You can watch all the effect of these weights individually in this video : https://www.youtube.com/watch?v=P_foO5KO-PI
